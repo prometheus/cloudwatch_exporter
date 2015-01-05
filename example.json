@@ -13,7 +13,7 @@
      "aws_dimensions": ["AvailabilityZone", "LoadBalancerName"], "aws_statistics": ["Maximum", "Sum"]},
 
     {"aws_namespace": "AWS/ElastiCache", "aws_metric_name": "CPUUtilization",
-     "aws_dimensions": ["CacheClusterId"] "aws_statistics": ["Average"], },
+     "aws_dimensions": ["CacheClusterId"], "aws_statistics": ["Average"], },
     {"aws_namespace": "AWS/ElastiCache", "aws_metric_name": "NetworkBytesIn",
      "aws_dimensions": ["CacheClusterId"], "aws_statistics": ["Average"]},
     {"aws_namespace": "AWS/ElastiCache", "aws_metric_name": "NetworkBytesOut",
@@ -35,11 +35,11 @@
      "aws_dimensions": ["CacheClusterId"], "aws_statistics": ["Average"]},
 
     {"aws_namespace": "AWS/Redshift", "aws_metric_name": "DatabaseConnections",
-     "aws_dimensions": ["ClusterIdentifier"] "aws_statistics": ["Average"], },
+     "aws_dimensions": ["ClusterIdentifier"], "aws_statistics": ["Average"], },
     {"aws_namespace": "AWS/Redshift", "aws_metric_name": "HealthStatus",
-     "aws_dimensions": ["ClusterIdentifier"] "aws_statistics": ["Average"], },
+     "aws_dimensions": ["ClusterIdentifier"], "aws_statistics": ["Average"], },
     {"aws_namespace": "AWS/Redshift", "aws_metric_name": "MaintenanceMode",
-     "aws_dimensions": ["ClusterIdentifier"] "aws_statistics": ["Average"], },
+     "aws_dimensions": ["ClusterIdentifier"], "aws_statistics": ["Average"], },
 
     {"aws_namespace": "AWS/Redshift", "aws_metric_name": "CPUUtilization",
      "aws_dimensions": ["NodeID", "ClusterIdentifier"], "aws_statistics": ["Average"], },
