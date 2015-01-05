@@ -17,8 +17,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -46,13 +46,18 @@ public class CloudwatchCollector extends Collector {
     ArrayList<MetricRule> rules = new ArrayList<MetricRule>();
 
     public CloudwatchCollector(Reader in) throws IOException, ParseException {
-        this((JSONObject)new JSONParser().parse(in));
+        this((JSONObject)new JSONParser().parse(in), null);
     }
     public CloudwatchCollector(String jsonConfig) throws ParseException {
-        this((JSONObject)new JSONParser().parse(jsonConfig));
+        this((JSONObject)new JSONParser().parse(jsonConfig), null);
     }
 
-    private CloudwatchCollector(JSONObject config) throws ParseException {
+    /* For unittests. */
+    protected CloudwatchCollector(String jsonConfig, AmazonCloudWatchClient client) throws ParseException {
+        this((JSONObject)new JSONParser().parse(jsonConfig), client);
+    }
+
+    private CloudwatchCollector(JSONObject config, AmazonCloudWatchClient client) throws ParseException {
         if (!config.containsKey("region")) {
           throw new IllegalArgumentException("Must provide region");
         }
@@ -66,8 +71,12 @@ public class CloudwatchCollector extends Collector {
           defaultRange = (Integer)config.get("range_seconds");
         }
 
-        client = new AmazonCloudWatchClient();
-        client.setEndpoint("https://monitoring." + region + ".amazonaws.com");
+        if (client == null) {
+          this.client = new AmazonCloudWatchClient();
+          this.client.setEndpoint("https://monitoring." + region + ".amazonaws.com");
+        } else {
+          this.client = client;
+        }
 
         if (!config.containsKey("metrics")) {
           throw new IllegalArgumentException("Must provide metrics");
@@ -219,11 +228,11 @@ public class CloudwatchCollector extends Collector {
           }
           if (dp.getMinimum() != null) {
             minimumSamples.add(new MetricFamilySamples.Sample(
-                baseName + "_mimumum", labelNames, labelValues, dp.getMinimum()));
+                baseName + "_minimum", labelNames, labelValues, dp.getMinimum()));
           }
           if (dp.getMaximum() != null) {
             maximumSamples.add(new MetricFamilySamples.Sample(
-                baseName + "_maxumum",labelNames, labelValues, dp.getMaximum()));
+                baseName + "_maximum",labelNames, labelValues, dp.getMaximum()));
           }
           if (dp.getAverage() != null) {
             averageSamples.add(new MetricFamilySamples.Sample(
@@ -238,10 +247,10 @@ public class CloudwatchCollector extends Collector {
           mfs.add(new MetricFamilySamples(baseName + "_sample_count", Type.GAUGE, help(rule, unit, "SampleCount"), sampleCountSamples));
         }
         if (!minimumSamples.isEmpty()) {
-          mfs.add(new MetricFamilySamples(baseName + "_mimumum", Type.GAUGE, help(rule, unit, "Minimum"), minimumSamples));
+          mfs.add(new MetricFamilySamples(baseName + "_minimum", Type.GAUGE, help(rule, unit, "Minimum"), minimumSamples));
         }
         if (!maximumSamples.isEmpty()) {
-          mfs.add(new MetricFamilySamples(baseName + "_maxumum", Type.GAUGE, help(rule, unit, "Maximum"), maximumSamples));
+          mfs.add(new MetricFamilySamples(baseName + "_maximum", Type.GAUGE, help(rule, unit, "Maximum"), maximumSamples));
         }
         if (!averageSamples.isEmpty()) {
           mfs.add(new MetricFamilySamples(baseName + "_average", Type.GAUGE, help(rule, unit, "Average"), averageSamples));
@@ -257,7 +266,7 @@ public class CloudwatchCollector extends Collector {
         scrape(mfs);
       } catch (Exception e) {
         error = 1;
-        LOGGER.severe("Cloudwatch scrape failed: " + e);
+        LOGGER.log(Level.WARNING, "Cloudwatch scrape failed", e);
       }
       List<MetricFamilySamples.Sample> samples = new ArrayList<MetricFamilySamples.Sample>();
       samples.add(new MetricFamilySamples.Sample(
