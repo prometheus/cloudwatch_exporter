@@ -53,7 +53,7 @@ In addition `cloudwatch_exporter_scrape_error` will be non-zero if an error occu
 
 Amazon charges for every API request, see the [current charges](http://aws.amazon.com/cloudwatch/pricing/).
 
-Every metric retrieved requires one API request, which can include multiple statistics. In addition, when `aws\_dimensions` is provided, the exporter needs to do API requests to determine what metrics to request. This should be negligable compared to the requests for the metrics themselvs.
+Every metric retrieved requires one API request, which can include multiple statistics. In addition, when `aws_dimensions` is provided, the exporter needs to do API requests to determine what metrics to request. This should be negligable compared to the requests for the metrics themselvs.
 
 If you've 100 API requests every minute, with the price of USD$10 per million requests (as of Jan 2015), that's around $45 per month. The `cloudwatch_requests_total` counter tracks how many requests are being made.
 
