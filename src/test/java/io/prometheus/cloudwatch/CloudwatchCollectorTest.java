@@ -22,7 +22,7 @@ import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
 
-public class CloudwatchCollectorTest {
+public class CloudWatchCollectorTest {
   AmazonCloudWatchClient client;
   CollectorRegistry registry;
 
@@ -116,7 +116,7 @@ public class CloudwatchCollectorTest {
 
   @Test
   public void testAllStatistics() throws Exception {
-    new CloudwatchCollector(
+    new CloudWatchCollector(
         "{`region`: `reg`, `metrics`: [{`aws_namespace`: `AWS/ELB`, `aws_metric_name`: `RequestCount`}]}"
         .replace('`', '"'), client).register(registry);
 
@@ -135,7 +135,7 @@ public class CloudwatchCollectorTest {
 
   @Test
   public void testUsesNewestDatapoint() throws Exception {
-    new CloudwatchCollector(
+    new CloudWatchCollector(
         "{`region`: `reg`, `metrics`: [{`aws_namespace`: `AWS/ELB`, `aws_metric_name`: `RequestCount`}]}"
         .replace('`', '"'), client).register(registry);
 
@@ -151,7 +151,7 @@ public class CloudwatchCollectorTest {
 
   @Test
   public void testDimensions() throws Exception {
-    new CloudwatchCollector(
+    new CloudWatchCollector(
         ("{`region`: `reg`, `metrics`: [{`aws_namespace`: `AWS/ELB`, `aws_metric_name`: `RequestCount`, "
         + "`aws_dimensions`: [`AvailabilityZone`, `LoadBalancerName`]}]}")
         .replace('`', '"'), client).register(registry);
@@ -179,7 +179,7 @@ public class CloudwatchCollectorTest {
 
   @Test
   public void testGetDimensionsUsesNextToken() throws Exception {
-    new CloudwatchCollector(
+    new CloudWatchCollector(
         ("{`region`: `reg`, `metrics`: [{`aws_namespace`: `AWS/ELB`, `aws_metric_name`: `RequestCount`, "
         + "`aws_dimensions`: [`AvailabilityZone`, `LoadBalancerName`]}]}")
         .replace('`', '"'), client).register(registry);

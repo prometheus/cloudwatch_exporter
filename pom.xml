@@ -6,7 +6,7 @@
   <artifactId>cloudwatch_exporter</artifactId>
   <version>0.1-SNAPSHOT</version>
   <description>
-    An exporter for AWS Cloudwatch metrics, for use with Prometheus.
+    An exporter for AWS CloudWatch metrics, for use with Prometheus.
   </description>
   <url>http://github.com/prometheus/cloudwatch_exporter</url>
 

@@ -25,8 +25,8 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 
-public class CloudwatchCollector extends Collector {
-    private static final Logger LOGGER = Logger.getLogger(CloudwatchCollector.class.getName());
+public class CloudWatchCollector extends Collector {
+    private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
 
     AmazonCloudWatchClient client; 
 
@@ -35,29 +35,30 @@ public class CloudwatchCollector extends Collector {
       String awsMetricName;
       int periodSeconds;
       int rangeSeconds;
+      int delaySeconds;
       List<String> awsStatistics;
       List<String> awsDimensions;
       String help;
     }
 
     private static final Counter cloudwatchRequests = Counter.build()
-      .name("cloudwatch_requests_total").help("API requests made to Cloudwatch").register();
+      .name("cloudwatch_requests_total").help("API requests made to CloudWatch").register();
 
     ArrayList<MetricRule> rules = new ArrayList<MetricRule>();
 
-    public CloudwatchCollector(Reader in) throws IOException, ParseException {
+    public CloudWatchCollector(Reader in) throws IOException, ParseException {
         this((JSONObject)new JSONParser().parse(in), null);
     }
-    public CloudwatchCollector(String jsonConfig) throws ParseException {
+    public CloudWatchCollector(String jsonConfig) throws ParseException {
         this((JSONObject)new JSONParser().parse(jsonConfig), null);
     }
 
     /* For unittests. */
-    protected CloudwatchCollector(String jsonConfig, AmazonCloudWatchClient client) throws ParseException {
+    protected CloudWatchCollector(String jsonConfig, AmazonCloudWatchClient client) throws ParseException {
         this((JSONObject)new JSONParser().parse(jsonConfig), client);
     }
 
-    private CloudwatchCollector(JSONObject config, AmazonCloudWatchClient client) throws ParseException {
+    private CloudWatchCollector(JSONObject config, AmazonCloudWatchClient client) throws ParseException {
         if (!config.containsKey("region")) {
           throw new IllegalArgumentException("Must provide region");
         }
@@ -69,6 +70,10 @@ public class CloudwatchCollector extends Collector {
         int defaultRange = 600;
         if (config.containsKey("range_seconds")) {
           defaultRange = (Integer)config.get("range_seconds");
+        }
+        int defaultDelay = 600;
+        if (config.containsKey("delay_seconds")) {
+          defaultDelay = (Integer)config.get("delay_seconds");
         }
 
         if (client == null) {
@@ -110,6 +115,11 @@ public class CloudwatchCollector extends Collector {
             rule.rangeSeconds = (Integer)jsonMetricRule.get("range_seconds");
           } else {
             rule.rangeSeconds = defaultRange;
+          }
+          if (jsonMetricRule.containsKey("delay_seconds")) {
+            rule.delaySeconds = (Integer)jsonMetricRule.get("delay_seconds");
+          } else {
+            rule.delaySeconds = defaultDelay;
           }
         }
     }
@@ -170,16 +180,16 @@ public class CloudwatchCollector extends Collector {
     }
 
     private String help(MetricRule rule, String unit, String statistic) {
-      return "Cloudwatch metric " + rule.awsNamespace + " " + rule.awsMetricName
+      return "CloudWatch metric " + rule.awsNamespace + " " + rule.awsMetricName
           + " Dimensions: " + rule.awsDimensions + " Statistic: " + statistic
           + " Unit: " + unit;
     }
 
     private void scrape(List<MetricFamilySamples> mfs) {
       long start = System.currentTimeMillis();
-      Date startDate = new Date(start);
       for (MetricRule rule: rules) {
-        Date endDate = new Date(start - 1000 * rule.rangeSeconds);
+        Date startDate = new Date(start - 1000 * rule.delaySeconds);
+        Date endDate = new Date(start - 1000 * (rule.delaySeconds + rule.rangeSeconds));
         GetMetricStatisticsRequest request = new GetMetricStatisticsRequest();
         request.setNamespace(rule.awsNamespace);
         request.setMetricName(rule.awsMetricName);
@@ -266,12 +276,12 @@ public class CloudwatchCollector extends Collector {
         scrape(mfs);
       } catch (Exception e) {
         error = 1;
-        LOGGER.log(Level.WARNING, "Cloudwatch scrape failed", e);
+        LOGGER.log(Level.WARNING, "CloudWatch scrape failed", e);
       }
       List<MetricFamilySamples.Sample> samples = new ArrayList<MetricFamilySamples.Sample>();
       samples.add(new MetricFamilySamples.Sample(
           "cloudwatch_exporter_scrape_duration_seconds", new ArrayList<String>(), new ArrayList<String>(), (System.nanoTime() - start) / 1.0E9));
-      mfs.add(new MetricFamilySamples("cloudwatch_exporter_scrape_duration_seconds", Type.GAUGE, "Time this Cloudwatch scrape took, in seconds.", samples));
+      mfs.add(new MetricFamilySamples("cloudwatch_exporter_scrape_duration_seconds", Type.GAUGE, "Time this CloudWatch scrape took, in seconds.", samples));
 
       samples = new ArrayList<MetricFamilySamples.Sample>();
       samples.add(new MetricFamilySamples.Sample(
@@ -288,7 +298,7 @@ public class CloudwatchCollector extends Collector {
       if (args.length > 0) {
         region = args[0];
       }
-      CloudwatchCollector jc = new CloudwatchCollector(("{"
+      CloudWatchCollector jc = new CloudWatchCollector(("{"
       + "`region`: `" + region + "`,"
       + "`metrics`: [{`aws_namespace`: `AWS/ELB`, `aws_metric_name`: `RequestCount`, `aws_dimensions`: [`AvailabilityZone`, `LoadBalancerName`]}] ,"
       + "}").replace('`', '"'));
