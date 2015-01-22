@@ -12,7 +12,7 @@ public class WebServer {
        System.err.println("Usage: WebServer <port> <json configuration file>");
        System.exit(1);
      }
-     CloudwatchCollector cc = new CloudwatchCollector(new FileReader(args[1])).register();
+     CloudWatchCollector cc = new CloudWatchCollector(new FileReader(args[1])).register();
 
      int port = Integer.parseInt(args[0]);
      Server server = new Server(port);
