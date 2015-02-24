@@ -65,15 +65,15 @@ public class CloudWatchCollector extends Collector {
         String region = (String)config.get("region");
         int defaultPeriod = 60;
         if (config.containsKey("period_seconds")) {
-          defaultPeriod = (Integer)config.get("period_Seconds");
+          defaultPeriod = ((Number)config.get("period_seconds")).intValue();
         }
         int defaultRange = 600;
         if (config.containsKey("range_seconds")) {
-          defaultRange = (Integer)config.get("range_seconds");
+          defaultRange = ((Number)config.get("range_seconds")).intValue();
         }
         int defaultDelay = 600;
         if (config.containsKey("delay_seconds")) {
-          defaultDelay = (Integer)config.get("delay_seconds");
+          defaultDelay = ((Number)config.get("delay_seconds")).intValue();
         }
 
         if (client == null) {
@@ -107,23 +107,23 @@ public class CloudWatchCollector extends Collector {
             rule.awsStatistics = new ArrayList(Arrays.asList("Sum", "SampleCount", "Minimum", "Maximum", "Average"));
           }
           if (jsonMetricRule.containsKey("period_seconds")) {
-            rule.periodSeconds = (Integer)jsonMetricRule.get("period_seconds");
+            rule.periodSeconds = ((Number)jsonMetricRule.get("period_seconds")).intValue();
           } else {
             rule.periodSeconds = defaultPeriod;
           }
           if (jsonMetricRule.containsKey("range_seconds")) {
-            rule.rangeSeconds = (Integer)jsonMetricRule.get("range_seconds");
+            rule.rangeSeconds = ((Number)jsonMetricRule.get("range_seconds")).intValue();
           } else {
             rule.rangeSeconds = defaultRange;
           }
           if (jsonMetricRule.containsKey("delay_seconds")) {
-            rule.delaySeconds = (Integer)jsonMetricRule.get("delay_seconds");
+            rule.delaySeconds = ((Number)jsonMetricRule.get("delay_seconds")).intValue();
           } else {
             rule.delaySeconds = defaultDelay;
           }
         }
     }
-    
+
     private List<List<Dimension>> getDimensions(MetricRule rule) {
       List<List<Dimension>> dimensions = new ArrayList<List<Dimension>>();
       if (rule.awsDimensions == null) {

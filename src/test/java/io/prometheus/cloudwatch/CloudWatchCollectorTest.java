@@ -2,6 +2,7 @@ package io.prometheus.cloudwatch;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.argThat;
 
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
@@ -17,6 +18,8 @@ import io.prometheus.client.CollectorRegistry;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import org.json.simple.parser.ParseException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
@@ -84,6 +87,7 @@ public class CloudWatchCollectorTest {
     String namespace;
     String metricName;
     List<Dimension> dimensions = new ArrayList<Dimension>();
+    Integer period;
 
     public GetMetricStatisticsRequestMatcher Namespace(String namespace) {
       this.namespace = namespace;
@@ -97,7 +101,11 @@ public class CloudWatchCollectorTest {
       dimensions.add(new Dimension().withName(name).withValue(value));
       return this;
     }
-    
+    public GetMetricStatisticsRequestMatcher Period(int period) {
+      this.period = period;
+      return this;
+    }
+
     public boolean matches(Object o) {
      GetMetricStatisticsRequest request = (GetMetricStatisticsRequest) o;
      if (request == null) return false;
@@ -110,8 +118,51 @@ public class CloudWatchCollectorTest {
      if (!dimensions.equals(request.getDimensions())) {
        return false;
      }
+     if (period != null && !period.equals(request.getPeriod())) {
+         return false;
+     }
      return true;
     }
+  }
+
+  @Test
+  public void testMetricPeriod() throws ParseException {
+    new CloudWatchCollector(
+            "{`region`: `reg`, `metrics`: [{`aws_namespace`: `AWS/ELB`, `aws_metric_name`: `RequestCount`, `period_seconds`: 100, `range_seconds`: 200, `delay_seconds`: 300}]}"
+                    .replace('`', '"'), client).register(registry);
+
+    Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest) anyObject()))
+            .thenReturn(new GetMetricStatisticsResult());
+
+    registry.getSampleValue("aws_elb_request_count_average", new String[]{"job"}, new String[]{"aws_elb"});
+
+
+    Mockito.verify(client).getMetricStatistics((GetMetricStatisticsRequest) argThat(
+            new GetMetricStatisticsRequestMatcher()
+                    .Namespace("AWS/ELB")
+                    .MetricName("RequestCount")
+                    .Period(100)
+    ));
+  }
+
+  @Test
+  public void testDefaultPeriod() throws ParseException {
+    new CloudWatchCollector(
+            "{`region`: `reg`, `period_seconds`: 100, `range_seconds`: 200, `delay_seconds`: 300, `metrics`: [{`aws_namespace`: `AWS/ELB`, `aws_metric_name`: `RequestCount`}]}"
+                    .replace('`', '"'), client).register(registry);
+
+    Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest) anyObject()))
+            .thenReturn(new GetMetricStatisticsResult());
+
+    registry.getSampleValue("aws_elb_request_count_average", new String[]{"job"}, new String[]{"aws_elb"});
+
+
+    Mockito.verify(client).getMetricStatistics((GetMetricStatisticsRequest) argThat(
+            new GetMetricStatisticsRequestMatcher()
+                    .Namespace("AWS/ELB")
+                    .MetricName("RequestCount")
+                    .Period(100)
+    ));
   }
 
   @Test
