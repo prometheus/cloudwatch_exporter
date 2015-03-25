@@ -26,7 +26,9 @@ The configuration is in JSON, an example with common options:
   "region": "eu-west-1",
   "metrics": [
     {"aws_namespace": "AWS/ELB", "aws_metric_name": "RequestCount",
-     "aws_dimensions": ["AvailabilityZone", "LoadBalancerName"], "aws_statistics": ["Sum"]},
+     "aws_dimensions": ["AvailabilityZone", "LoadBalancerName"],
+     "aws_dimension_select": {"LoadBalancerName": ["myLB"]},
+     "aws_statistics": ["Sum"]},
   ]
 }
 ```
@@ -37,6 +39,7 @@ metrics  | Required. A list of CloudWatch metrics to retrieve and export
 aws_namespace  | Required. Namespace of the CloudWatch metric.
 aws_metric_name  | Required. Metric name of the CloudWatch metric.
 aws_dimensions | Optional. Which dimension to fan out over.
+aws_dimension_select | Optional. Which dimension values to filter. Specify a json object with the dimension name as key and an array of dimension values as value.
 aws_statistics | Optional. A list of statistics to retrieve, values can include Sum, SampleCount, Minimum, Maximum, Average. Defaults to all statistics.
 delay_seconds | Optional. The newest data to request. Used to avoid collecting data that has not fully converged. Defaults to 300s. Can be set globally and per metric.
 range_seconds | Optional. How far back to request data for. Useful for cases such as Billing metrics that are only set every few hours. Defaults to 600s. Can be set globally and per metric.

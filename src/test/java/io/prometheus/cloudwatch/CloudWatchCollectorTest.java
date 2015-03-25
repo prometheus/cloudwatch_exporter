@@ -229,6 +229,35 @@ public class CloudWatchCollectorTest {
   }
 
   @Test
+  public void testDimensionSelect() throws Exception {
+    new CloudWatchCollector(
+        ("{`region`: `reg`, `metrics`: [{`aws_namespace`: `AWS/ELB`, `aws_metric_name`: `RequestCount`, "
+            + "`aws_dimensions`: [`AvailabilityZone`, `LoadBalancerName`], `aws_dimension_select`: {`LoadBalancerName`: [`myLB`]}}]}")
+            .replace('`', '"'), client).register(registry);
+
+    Mockito.when(client.listMetrics((ListMetricsRequest)argThat(
+        new ListMetricsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimensions("AvailabilityZone", "LoadBalancerName"))))
+        .thenReturn(new ListMetricsResult().withMetrics(
+            new Metric().withDimensions(new Dimension().withName("AvailabilityZone").withValue("a"), new Dimension().withName("LoadBalancerName").withValue("myLB")),
+            new Metric().withDimensions(new Dimension().withName("AvailabilityZone").withValue("b"), new Dimension().withName("LoadBalancerName").withValue("myLB")),
+            new Metric().withDimensions(new Dimension().withName("AvailabilityZone").withValue("a"), new Dimension().withName("LoadBalancerName").withValue("myOtherLB"))));
+
+    Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest)argThat(
+        new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimension("AvailabilityZone", "a").Dimension("LoadBalancerName", "myLB"))))
+        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
+            new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
+
+    Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest)argThat(
+        new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimension("AvailabilityZone", "b").Dimension("LoadBalancerName", "myLB"))))
+        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
+            new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
+
+    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "a", "myLB"}), .01);
+    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "b", "myLB"}), .01);
+    assertNull(registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "a", "myOtherLB"}));
+  }
+
+  @Test
   public void testGetDimensionsUsesNextToken() throws Exception {
     new CloudWatchCollector(
         ("{`region`: `reg`, `metrics`: [{`aws_namespace`: `AWS/ELB`, `aws_metric_name`: `RequestCount`, "

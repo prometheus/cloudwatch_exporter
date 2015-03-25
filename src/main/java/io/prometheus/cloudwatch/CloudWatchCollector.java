@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.json.simple.JSONArray;
@@ -38,6 +40,7 @@ public class CloudWatchCollector extends Collector {
       int delaySeconds;
       List<String> awsStatistics;
       List<String> awsDimensions;
+      Map<String,List<String>> awsDimensionSelect;
       String help;
     }
 
@@ -101,6 +104,9 @@ public class CloudWatchCollector extends Collector {
           if (jsonMetricRule.containsKey("aws_dimensions")) {
             rule.awsDimensions = (JSONArray)jsonMetricRule.get("aws_dimensions");
           }
+          if (jsonMetricRule.containsKey("aws_dimension_select")) {
+            rule.awsDimensionSelect = (JSONObject)jsonMetricRule.get("aws_dimension_select");
+          }
           if (jsonMetricRule.containsKey("aws_statistics")) {
             rule.awsStatistics = (JSONArray)jsonMetricRule.get("aws_statistics");
           } else {
@@ -151,7 +157,9 @@ public class CloudWatchCollector extends Collector {
             // so filter them out.
             continue;
           }
-          dimensions.add(metric.getDimensions());
+          if (useMetric(rule, metric)) {
+            dimensions.add(metric.getDimensions());
+          }
         }
         nextToken = result.getNextToken();
       } while (nextToken != null);
@@ -159,6 +167,26 @@ public class CloudWatchCollector extends Collector {
       return dimensions;
     }
 
+    /**
+     * Check if a metric should be used according to `aws_dimension_select`
+     */
+    private boolean useMetric(MetricRule rule, Metric metric) {
+      if (rule.awsDimensionSelect == null) {
+        return true;
+      }
+      Set<String> dimensionSelectKeys = rule.awsDimensionSelect.keySet();
+      for (Dimension dimension : metric.getDimensions()) {
+        String dimensionName = dimension.getName();
+        String dimensionValue = dimension.getValue();
+        if (dimensionSelectKeys.contains(dimensionName)) {
+          List<String> allowedDimensionValues = rule.awsDimensionSelect.get(dimensionName);
+          if (!allowedDimensionValues.contains(dimensionValue)) {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
 
     private Datapoint getNewestDatapoint(java.util.List<Datapoint> datapoints) {
       Datapoint newest = null;
