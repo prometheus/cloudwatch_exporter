@@ -7,7 +7,7 @@ An exporter for [Amazon CloudWatch](http://aws.amazon.com/cloudwatch/), for Prom
 
 `mvn package` to build.
 
-`java -jar target/cloudwatch_exporter-0.1-SNAPSHOT-jar-with-dependencies.jar 1234 example.json` to run.
+`java -jar target/cloudwatch_exporter-0.1-SNAPSHOT-jar-with-dependencies.jar 9106 example.json` to run.
 
 ## Credentials and permissions
 
@@ -78,4 +78,19 @@ If you have 100 API requests every minute, with the price of USD$10 per million
 requests (as of Jan 2015), that is around $45 per month. The
 `cloudwatch_requests_total` counter tracks how many requests are being made.
 
+## Docker Image
 
+To run the CloudWatch exporter on Docker, you can use the [prom/cloudwatch-exporter](https://registry.hub.docker.com/u/prom/cloudwatch-exporter)
+image. It exposes port 9106 and expects the config in `/config.json`. To
+configure it, you can either bind-mount a config from your host:
+
+```
+$ docker run -p 9106 -v /path/on/host/config.json:/config.json prom/cloudwatch-exporter
+```
+
+Or you create a config file named config.json along with following
+Dockerfile in the same directory and build it with `docker build`:
+
+```
+FROM prom/cloudwatch-exporter
+```
