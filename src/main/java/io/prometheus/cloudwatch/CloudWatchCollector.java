@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -41,6 +42,7 @@ public class CloudWatchCollector extends Collector {
       List<String> awsStatistics;
       List<String> awsDimensions;
       Map<String,List<String>> awsDimensionSelect;
+      Map<String,List<String>> awsDimensionSelectRegex;
       String help;
     }
 
@@ -104,8 +106,14 @@ public class CloudWatchCollector extends Collector {
           if (jsonMetricRule.containsKey("aws_dimensions")) {
             rule.awsDimensions = (JSONArray)jsonMetricRule.get("aws_dimensions");
           }
+          if (jsonMetricRule.containsKey("aws_dimension_select") && jsonMetricRule.containsKey("aws_dimension_select_regex")) {
+            throw new IllegalArgumentException("Must not provide aws_dimension_select and aws_dimension_select_regex at the same time");
+          }
           if (jsonMetricRule.containsKey("aws_dimension_select")) {
             rule.awsDimensionSelect = (JSONObject)jsonMetricRule.get("aws_dimension_select");
+          }
+          if (jsonMetricRule.containsKey("aws_dimension_select_regex")) {
+            rule.awsDimensionSelectRegex = (JSONObject)jsonMetricRule.get("aws_dimension_select_regex");
           }
           if (jsonMetricRule.containsKey("aws_statistics")) {
             rule.awsStatistics = (JSONArray)jsonMetricRule.get("aws_statistics");
@@ -168,12 +176,25 @@ public class CloudWatchCollector extends Collector {
     }
 
     /**
-     * Check if a metric should be used according to `aws_dimension_select`
+     * Check if a metric should be used according to `aws_dimension_select` or `aws_dimension_select_regex`
      */
     private boolean useMetric(MetricRule rule, Metric metric) {
-      if (rule.awsDimensionSelect == null) {
+      if (rule.awsDimensionSelect == null && rule.awsDimensionSelectRegex == null) {
         return true;
       }
+      if (rule.awsDimensionSelect != null  && metricsIsInAwsDimensionSelect(rule, metric)) {
+        return true;
+      }
+      if (rule.awsDimensionSelectRegex != null  && metricIsInAwsDimensionSelectRegex(rule, metric)) {
+        return true;
+      }
+      return false;
+    }
+
+    /**
+     * Check if a metric is matched in `aws_dimension_select`
+     */
+    private boolean metricsIsInAwsDimensionSelect(MetricRule rule, Metric metric) {
       Set<String> dimensionSelectKeys = rule.awsDimensionSelect.keySet();
       for (Dimension dimension : metric.getDimensions()) {
         String dimensionName = dimension.getName();
@@ -186,6 +207,36 @@ public class CloudWatchCollector extends Collector {
         }
       }
       return true;
+    }
+
+    /**
+     * Check if a metric is matched in `aws_dimension_select_regex`
+     */
+    private boolean metricIsInAwsDimensionSelectRegex(MetricRule rule, Metric metric) {
+      Set<String> dimensionSelectRegexKeys = rule.awsDimensionSelectRegex.keySet();
+      for (Dimension dimension : metric.getDimensions()) {
+        String dimensionName = dimension.getName();
+        String dimensionValue = dimension.getValue();
+        if (dimensionSelectRegexKeys.contains(dimensionName)) {
+          List<String> allowedDimensionValues = rule.awsDimensionSelectRegex.get(dimensionName);
+          if (!regexListMatch(allowedDimensionValues, dimensionValue)) {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+
+    /**
+     * Check if any regex string in a list matches a given input value
+     */
+    protected static boolean regexListMatch(List<String> regexList, String input) {
+      for (String regex: regexList) {
+        if (Pattern.matches(regex, input)) {
+          return true;
+        }
+      }
+      return false;
     }
 
     private Datapoint getNewestDatapoint(java.util.List<Datapoint> datapoints) {
