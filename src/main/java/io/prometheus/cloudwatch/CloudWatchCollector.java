@@ -259,9 +259,9 @@ public class CloudWatchCollector extends Collector {
     }
 
     private String help(MetricRule rule, String unit, String statistic) {
-        if (rule.help != null) {
-            return rule.help;
-        }
+      if (rule.help != null) {
+          return rule.help;
+      }
       return "CloudWatch metric " + rule.awsNamespace + " " + rule.awsMetricName
           + " Dimensions: " + rule.awsDimensions + " Statistic: " + statistic
           + " Unit: " + unit;
