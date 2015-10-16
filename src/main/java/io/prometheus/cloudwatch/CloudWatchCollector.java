@@ -19,14 +19,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
+import org.yaml.snakeyaml.Yaml;
 
 public class CloudWatchCollector extends Collector {
     private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
@@ -51,19 +49,22 @@ public class CloudWatchCollector extends Collector {
 
     ArrayList<MetricRule> rules = new ArrayList<MetricRule>();
 
-    public CloudWatchCollector(Reader in) throws IOException, ParseException {
-        this((JSONObject)new JSONParser().parse(in), null);
+    public CloudWatchCollector(Reader in) throws IOException {
+        this((Map<String, Object>)new Yaml().load(in),null);
     }
-    public CloudWatchCollector(String jsonConfig) throws ParseException {
-        this((JSONObject)new JSONParser().parse(jsonConfig), null);
+    public CloudWatchCollector(String yamlConfig) {
+        this((Map<String, Object>)new Yaml().load(yamlConfig),null);
     }
 
     /* For unittests. */
-    protected CloudWatchCollector(String jsonConfig, AmazonCloudWatchClient client) throws ParseException {
-        this((JSONObject)new JSONParser().parse(jsonConfig), client);
+    protected CloudWatchCollector(String jsonConfig, AmazonCloudWatchClient client) {
+        this((Map<String, Object>)new Yaml().load(jsonConfig), client);
     }
 
-    private CloudWatchCollector(JSONObject config, AmazonCloudWatchClient client) throws ParseException {
+    private CloudWatchCollector(Map<String, Object> config, AmazonCloudWatchClient client) {
+        if(config == null) {  // Yaml config empty, set config to empty map.
+            config = new HashMap<String, Object>(); 
+        }
         if (!config.containsKey("region")) {
           throw new IllegalArgumentException("Must provide region");
         }
@@ -91,47 +92,47 @@ public class CloudWatchCollector extends Collector {
         if (!config.containsKey("metrics")) {
           throw new IllegalArgumentException("Must provide metrics");
         }
-        for (Object ruleObject : (JSONArray) config.get("metrics")) {
-          JSONObject jsonMetricRule = (JSONObject) ruleObject;
+        for (Object ruleObject : (List<Map<String,Object>>) config.get("metrics")) {
+          Map<String, Object> yamlMetricRule = (Map<String, Object>)ruleObject;
           MetricRule rule = new MetricRule();
           rules.add(rule);
-          if (!jsonMetricRule.containsKey("aws_namespace") || !jsonMetricRule.containsKey("aws_metric_name")) {
+          if (!yamlMetricRule.containsKey("aws_namespace") || !yamlMetricRule.containsKey("aws_metric_name")) {
             throw new IllegalArgumentException("Must provide aws_namespace and aws_metric_name");
           }
-          rule.awsNamespace = (String)jsonMetricRule.get("aws_namespace");
-          rule.awsMetricName = (String)jsonMetricRule.get("aws_metric_name");
-          if (jsonMetricRule.containsKey("help")) {
-            rule.help = (String)jsonMetricRule.get("help");
+          rule.awsNamespace = (String)yamlMetricRule.get("aws_namespace");
+          rule.awsMetricName = (String)yamlMetricRule.get("aws_metric_name");
+          if (yamlMetricRule.containsKey("help")) {
+            rule.help = (String)yamlMetricRule.get("help");
           }
-          if (jsonMetricRule.containsKey("aws_dimensions")) {
-            rule.awsDimensions = (JSONArray)jsonMetricRule.get("aws_dimensions");
+          if (yamlMetricRule.containsKey("aws_dimensions")) {
+            rule.awsDimensions = (List<String>)yamlMetricRule.get("aws_dimensions");
           }
-          if (jsonMetricRule.containsKey("aws_dimension_select") && jsonMetricRule.containsKey("aws_dimension_select_regex")) {
+          if (yamlMetricRule.containsKey("aws_dimension_select") && yamlMetricRule.containsKey("aws_dimension_select_regex")) {
             throw new IllegalArgumentException("Must not provide aws_dimension_select and aws_dimension_select_regex at the same time");
           }
-          if (jsonMetricRule.containsKey("aws_dimension_select")) {
-            rule.awsDimensionSelect = (JSONObject)jsonMetricRule.get("aws_dimension_select");
+          if (yamlMetricRule.containsKey("aws_dimension_select")) {
+            rule.awsDimensionSelect = (Map<String, List<String>>)yamlMetricRule.get("aws_dimension_select");
           }
-          if (jsonMetricRule.containsKey("aws_dimension_select_regex")) {
-            rule.awsDimensionSelectRegex = (JSONObject)jsonMetricRule.get("aws_dimension_select_regex");
+          if (yamlMetricRule.containsKey("aws_dimension_select_regex")) {
+            rule.awsDimensionSelectRegex = (Map<String,List<String>>)yamlMetricRule.get("aws_dimension_select_regex");
           }
-          if (jsonMetricRule.containsKey("aws_statistics")) {
-            rule.awsStatistics = (JSONArray)jsonMetricRule.get("aws_statistics");
+          if (yamlMetricRule.containsKey("aws_statistics")) {
+            rule.awsStatistics = (List<String>)yamlMetricRule.get("aws_statistics");
           } else {
             rule.awsStatistics = new ArrayList(Arrays.asList("Sum", "SampleCount", "Minimum", "Maximum", "Average"));
           }
-          if (jsonMetricRule.containsKey("period_seconds")) {
-            rule.periodSeconds = ((Number)jsonMetricRule.get("period_seconds")).intValue();
+          if (yamlMetricRule.containsKey("period_seconds")) {
+            rule.periodSeconds = ((Number)yamlMetricRule.get("period_seconds")).intValue();
           } else {
             rule.periodSeconds = defaultPeriod;
           }
-          if (jsonMetricRule.containsKey("range_seconds")) {
-            rule.rangeSeconds = ((Number)jsonMetricRule.get("range_seconds")).intValue();
+          if (yamlMetricRule.containsKey("range_seconds")) {
+            rule.rangeSeconds = ((Number)yamlMetricRule.get("range_seconds")).intValue();
           } else {
             rule.rangeSeconds = defaultRange;
           }
-          if (jsonMetricRule.containsKey("delay_seconds")) {
-            rule.delaySeconds = ((Number)jsonMetricRule.get("delay_seconds")).intValue();
+          if (yamlMetricRule.containsKey("delay_seconds")) {
+            rule.delaySeconds = ((Number)yamlMetricRule.get("delay_seconds")).intValue();
           } else {
             rule.delaySeconds = defaultDelay;
           }

@@ -1,0 +1,142 @@
+---
+region: eu-west-1
+metrics:
+- aws_namespace: AWS/ELB
+  aws_metric_name: HealthyHostCount
+  aws_dimensions: [AvailabilityZone, LoadBalancerName]
+  aws_statistics: [Average]
+
+- aws_namespace: AWS/ELB
+  aws_metric_name: UnHealthyHostCount
+  aws_dimensions: [AvailabilityZone, LoadBalancerName]
+  aws_statistics: [Average]
+
+- aws_namespace: AWS/ELB
+  aws_metric_name: RequestCount
+  aws_dimensions: [AvailabilityZone, LoadBalancerName]
+  aws_statistics: [Sum]
+
+- aws_namespace: AWS/ELB
+  aws_metric_name: Latency
+  aws_dimensions: [AvailabilityZone, LoadBalancerName]
+  aws_statistics: [Average]
+
+- aws_namespace: AWS/ELB
+  aws_metric_name: SurgeQueueLength
+  aws_dimensions: [AvailabilityZone, LoadBalancerName]
+  aws_statistics: [Maximum, Sum]
+
+- aws_namespace: AWS/ElastiCache
+  aws_metric_name: CPUUtilization
+  aws_dimensions: [CacheClusterId]
+  aws_statistics: [Average]
+
+- aws_namespace: AWS/ElastiCache
+  aws_metric_name: NetworkBytesIn
+  aws_dimensions: [CacheClusterId]
+  aws_statistics: [Average]
+
+- aws_namespace: AWS/ElastiCache
+  aws_metric_name: NetworkBytesOut
+  aws_dimensions: [CacheClusterId]
+  aws_statistics: [Average]
+
+- aws_namespace: AWS/ElastiCache
+  aws_metric_name: FreeableMemory
+  aws_dimensions: [CacheClusterId]
+  aws_statistics: [Average]
+
+- aws_namespace: AWS/ElastiCache
+  aws_metric_name: BytesUsedForCache
+  aws_dimensions: [CacheClusterId]
+  aws_statistics: [Average]
+
+- aws_namespace: AWS/ElastiCache
+  aws_metric_name: CurrConnections
+  aws_dimensions: [CacheClusterId]
+  aws_statistics: [Average]
+
+- aws_namespace: AWS/ElastiCache
+  aws_metric_name: NewConnections
+  aws_dimensions: [CacheClusterId]
+  aws_statistics: [Average]
+
+- aws_namespace: AWS/ElastiCache
+  aws_metric_name: CacheHits
+  aws_dimensions: [CacheClusterId]
+  aws_statistics: [Average]
+
+- aws_namespace: AWS/ElastiCache
+  aws_metric_name: CacheMisses
+  aws_dimensions: [CacheClusterId]
+  aws_statistics: [Average]
+
+- aws_namespace: AWS/ElastiCache
+  aws_metric_name: ReplicationLag
+  aws_dimensions: [CacheClusterId]
+  aws_statistics: [Average]
+
+- aws_namespace: AWS/Redshift
+  aws_metric_name: DatabaseConnections
+  aws_dimensions: [ClusterIdentifier]
+  aws_statistics: [Average]
+
+- aws_namespace: AWS/Redshift
+  aws_metric_name: HealthStatus
+  aws_dimensions: [ClusterIdentifier]
+  aws_statistics: [Average]
+
+- aws_namespace: AWS/Redshift
+  aws_metric_name: MaintenanceMode
+  aws_dimensions: [ClusterIdentifier]
+  aws_statistics: [Average]
+
+- aws_namespace: AWS/Redshift
+  aws_metric_name: CPUUtilization
+  aws_dimensions: [NodeID, ClusterIdentifier]
+  aws_statistics: [Average]
+
+- aws_namespace: AWS/Redshift
+  aws_metric_name: PercentageDiskSpaceUsed
+  aws_dimensions: [NodeID, ClusterIdentifier]
+  aws_statistics: [Average]
+
+- aws_namespace: AWS/Redshift
+  aws_metric_name: NetworkReceiveThroughput
+  aws_dimensions: [NodeID, ClusterIdentifier]
+  aws_statistics: [Average]
+
+- aws_namespace: AWS/Redshift
+  aws_metric_name: NetworkTransmitThroughput
+  aws_dimensions: [NodeID, ClusterIdentifier]
+  aws_statistics: [Average]
+
+- aws_namespace: AWS/Redshift
+  aws_metric_name: ReadLatency
+  aws_dimensions: [NodeID, ClusterIdentifier]
+  aws_statistics: [Average]
+
+- aws_namespace: AWS/Redshift
+  aws_metric_name: ReadThroughput
+  aws_dimensions: [NodeID, ClusterIdentifier]
+  aws_statistics: [Average]
+
+- aws_namespace: AWS/Redshift
+  aws_metric_name: ReadIOPS
+  aws_dimensions: [NodeID, ClusterIdentifier]
+  aws_statistics: [Average]
+
+- aws_namespace: AWS/Redshift
+  aws_metric_name: WriteLatency
+  aws_dimensions: [NodeID, ClusterIdentifier]
+  aws_statistics: [Average]
+
+- aws_namespace: AWS/Redshift
+  aws_metric_name: WriteThroughput
+  aws_dimensions: [NodeID, ClusterIdentifier]
+  aws_statistics: [Average]
+
+- aws_namespace: AWS/Redshift
+  aws_metric_name: WriteIOPS
+  aws_dimensions: [NodeID, ClusterIdentifier]
+  aws_statistics: [Average]
