@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.json.simple.parser.ParseException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
@@ -126,10 +125,9 @@ public class CloudWatchCollectorTest {
   }
 
   @Test
-  public void testMetricPeriod() throws ParseException {
+  public void testMetricPeriod() {
     new CloudWatchCollector(
-            "{`region`: `reg`, `metrics`: [{`aws_namespace`: `AWS/ELB`, `aws_metric_name`: `RequestCount`, `period_seconds`: 100, `range_seconds`: 200, `delay_seconds`: 300}]}"
-                    .replace('`', '"'), client).register(registry);
+            "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  period_seconds: 100\n  range_seconds: 200\n  delay_seconds: 300", client).register(registry);
 
     Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest) anyObject()))
             .thenReturn(new GetMetricStatisticsResult());
@@ -146,10 +144,9 @@ public class CloudWatchCollectorTest {
   }
 
   @Test
-  public void testDefaultPeriod() throws ParseException {
+  public void testDefaultPeriod() {
     new CloudWatchCollector(
-            "{`region`: `reg`, `period_seconds`: 100, `range_seconds`: 200, `delay_seconds`: 300, `metrics`: [{`aws_namespace`: `AWS/ELB`, `aws_metric_name`: `RequestCount`}]}"
-                    .replace('`', '"'), client).register(registry);
+                    "---\nregion: reg\nperiod_seconds: 100\nrange_seconds: 200\ndelay_seconds: 300\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount", client).register(registry);
 
     Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest) anyObject()))
             .thenReturn(new GetMetricStatisticsResult());
@@ -168,8 +165,7 @@ public class CloudWatchCollectorTest {
   @Test
   public void testAllStatistics() throws Exception {
     new CloudWatchCollector(
-        "{`region`: `reg`, `metrics`: [{`aws_namespace`: `AWS/ELB`, `aws_metric_name`: `RequestCount`}]}"
-        .replace('`', '"'), client).register(registry);
+        "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount", client).register(registry);
 
     Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount"))))
@@ -187,8 +183,7 @@ public class CloudWatchCollectorTest {
   @Test
   public void testUsesNewestDatapoint() throws Exception {
     new CloudWatchCollector(
-        "{`region`: `reg`, `metrics`: [{`aws_namespace`: `AWS/ELB`, `aws_metric_name`: `RequestCount`}]}"
-        .replace('`', '"'), client).register(registry);
+        "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount", client).register(registry);
 
     Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount"))))
@@ -203,9 +198,7 @@ public class CloudWatchCollectorTest {
   @Test
   public void testDimensions() throws Exception {
     new CloudWatchCollector(
-        ("{`region`: `reg`, `metrics`: [{`aws_namespace`: `AWS/ELB`, `aws_metric_name`: `RequestCount`, "
-        + "`aws_dimensions`: [`AvailabilityZone`, `LoadBalancerName`]}]}")
-        .replace('`', '"'), client).register(registry);
+        "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancerName", client).register(registry);
     
     Mockito.when(client.listMetrics((ListMetricsRequest)argThat(
         new ListMetricsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimensions("AvailabilityZone", "LoadBalancerName"))))
@@ -231,10 +224,7 @@ public class CloudWatchCollectorTest {
   @Test
   public void testDimensionSelect() throws Exception {
     new CloudWatchCollector(
-        ("{`region`: `reg`, `metrics`: [{`aws_namespace`: `AWS/ELB`, `aws_metric_name`: `RequestCount`, "
-            + "`aws_dimensions`: [`AvailabilityZone`, `LoadBalancerName`], `aws_dimension_select`: {`LoadBalancerName`: [`myLB`]}}]}")
-            .replace('`', '"'), client).register(registry);
-
+        "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancerName\n  aws_dimension_select:\n    LoadBalancerName:\n    - myLB", client).register(registry);
     Mockito.when(client.listMetrics((ListMetricsRequest)argThat(
         new ListMetricsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimensions("AvailabilityZone", "LoadBalancerName"))))
         .thenReturn(new ListMetricsResult().withMetrics(
@@ -260,9 +250,7 @@ public class CloudWatchCollectorTest {
   @Test
   public void testDimensionSelectRegex() throws Exception {
     new CloudWatchCollector(
-        ("{`region`: `reg`, `metrics`: [{`aws_namespace`: `AWS/ELB`, `aws_metric_name`: `RequestCount`, "
-            + "`aws_dimensions`: [`AvailabilityZone`, `LoadBalancerName`], `aws_dimension_select_regex`: {`LoadBalancerName`: [`myLB(.*)`]}}]}")
-            .replace('`', '"'), client).register(registry);
+        "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancerName\n  aws_dimension_select_regex:\n    LoadBalancerName:\n    - myLB(.*)", client).register(registry);
 
     Mockito.when(client.listMetrics((ListMetricsRequest) argThat(
         new ListMetricsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimensions("AvailabilityZone", "LoadBalancerName"))))
@@ -289,9 +277,7 @@ public class CloudWatchCollectorTest {
   @Test
   public void testGetDimensionsUsesNextToken() throws Exception {
     new CloudWatchCollector(
-        ("{`region`: `reg`, `metrics`: [{`aws_namespace`: `AWS/ELB`, `aws_metric_name`: `RequestCount`, "
-        + "`aws_dimensions`: [`AvailabilityZone`, `LoadBalancerName`]}]}")
-        .replace('`', '"'), client).register(registry);
+            "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancerName\n  aws_dimension_select:\n    LoadBalancerName:\n    - myLB", client).register(registry);
     
     Mockito.when(client.listMetrics((ListMetricsRequest)argThat(
         new ListMetricsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimensions("AvailabilityZone", "LoadBalancerName"))))
