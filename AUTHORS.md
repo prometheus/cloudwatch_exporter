@@ -11,4 +11,4 @@ The following individuals have contributed code to this repository
 * Brian Brazil <brian.brazil@robustperception.io>
 * Fabian Stehle
 * Joscha Meyer
-* Julius Volz <julius@soundcloud.com>
+* Julius Volz <julius.volz@gmail.com>
