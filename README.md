@@ -22,15 +22,15 @@ The `cloudwatch:ListMetrics` and `cloudwatch:GetMetricStatistics` IAM permission
 ## Configuration
 The configuration is in JSON, an example with common options:
 ```
-{ 
-  "region": "eu-west-1",
-  "metrics": [
-    {"aws_namespace": "AWS/ELB", "aws_metric_name": "RequestCount",
-     "aws_dimensions": ["AvailabilityZone", "LoadBalancerName"],
-     "aws_dimension_select": {"LoadBalancerName": ["myLB"]},
-     "aws_statistics": ["Sum"]},
-  ]
-}
+---
+region: eu-west-1
+metrics:
+ - aws_namespace: AWS/ELB
+   aws_metric_name: RequestCount
+   aws_dimensions: [AvailabilityZone, LoadBalancerName]
+   aws_dimension_select:
+     LoadBalancerName: [myLB]
+   aws_statistics: [Sum]
 ```
 Name     | Description
 ---------|------------
