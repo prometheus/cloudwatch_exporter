@@ -7,7 +7,7 @@ An exporter for [Amazon CloudWatch](http://aws.amazon.com/cloudwatch/), for Prom
 
 `mvn package` to build.
 
-`java -jar target/cloudwatch_exporter-0.1-SNAPSHOT-jar-with-dependencies.jar 9106 example.json` to run.
+`java -jar target/cloudwatch_exporter-0.1-SNAPSHOT-jar-with-dependencies.jar 9106 example.yml` to run.
 
 ## Credentials and permissions
 
@@ -20,7 +20,7 @@ variables.
 The `cloudwatch:ListMetrics` and `cloudwatch:GetMetricStatistics` IAM permissions are required.
 
 ## Configuration
-The configuration is in JSON, an example with common options:
+The configuration is in YAML, an example with common options:
 ```
 ---
 region: eu-west-1
