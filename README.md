@@ -35,6 +35,7 @@ metrics:
 Name     | Description
 ---------|------------
 region   | Required. The AWS region to connect to.
+role_arn   | Optional. The AWS role to assume. Useful for retrieving cross account metrics.
 metrics  | Required. A list of CloudWatch metrics to retrieve and export
 aws_namespace  | Required. Namespace of the CloudWatch metric.
 aws_metric_name  | Required. Metric name of the CloudWatch metric.
