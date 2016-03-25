@@ -1,5 +1,6 @@
 package io.prometheus.cloudwatch;
 
+import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
 import com.amazonaws.services.cloudwatch.model.Datapoint;
 import com.amazonaws.services.cloudwatch.model.Dimension;
@@ -83,7 +84,15 @@ public class CloudWatchCollector extends Collector {
         }
 
         if (client == null) {
-          this.client = new AmazonCloudWatchClient();
+          if (config.containsKey("role_arn")) {
+            STSAssumeRoleSessionCredentialsProvider credentialsProvider = new STSAssumeRoleSessionCredentialsProvider(
+              (String) config.get("role_arn"),
+              "cloudwatch_exporter"
+            );
+            this.client = new AmazonCloudWatchClient(credentialsProvider);
+          } else {
+            this.client = new AmazonCloudWatchClient();
+          }
           this.client.setEndpoint("https://monitoring." + region + ".amazonaws.com");
         } else {
           this.client = client;
