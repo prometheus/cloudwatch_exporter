@@ -16,5 +16,5 @@ RUN echo 'http://dl-3.alpinelinux.org/alpine/edge/testing' >> /etc/apk/repositor
     && rm -rf /cloudwatch_exporter
 
 WORKDIR /
-COPY config.yml /
+ONBUILD COPY config.yml /
 ENTRYPOINT [ "java", "-jar", "/cloudwatch_exporter.jar", "9106", "/config.yml" ]
