@@ -9,5 +9,5 @@ RUN apt-get -qy update && apt-get -qy install maven && mvn package && \
     rm -rf /cloudwatch_exporter && apt-get -qy remove --purge maven && apt-get -qy autoremove
 WORKDIR /
 
-ONBUILD ADD config.json /
-ENTRYPOINT [ "java", "-jar", "/cloudwatch_exporter.jar", "9106", "/config.json" ]
+ONBUILD ADD config.yml /
+ENTRYPOINT [ "java", "-jar", "/cloudwatch_exporter.jar", "9106", "/config.yml" ]
