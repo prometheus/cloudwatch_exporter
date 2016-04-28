@@ -12,8 +12,8 @@ RUN echo 'http://dl-3.alpinelinux.org/alpine/edge/testing' >> /etc/apk/repositor
     && apk add maven openjdk8-jre \
     && mvn package \
     && mv target/cloudwatch_exporter-*-with-dependencies.jar /cloudwatch_exporter.jar \
-    && rm -rf /cloudwatch_exporter \
-    && apk del maven openjdk8-jre
+    && apk del maven openjdk8-jre \
+    && rm -rf /cloudwatch_exporter
 
 WORKDIR /
 COPY config.yml /
