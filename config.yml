@@ -1,0 +1,45 @@
+---
+region: ${AWS_REGION}
+
+# Request data that spans this range:
+range_seconds: 120
+# Request data that is already this old:
+delay_seconds: 120
+# How often do we query AWS?
+period_seconds: 120
+
+metrics:
+- aws_namespace: AWS/ELB
+  aws_metric_name: HealthyHostCount
+  aws_dimensions: [AvailabilityZone, LoadBalancerName]
+  aws_statistics: [Average]
+  aws_dimension_select_regex:
+    LoadBalancerName: ["${LOADBALANCERNAME_REGEX}"]
+
+- aws_namespace: AWS/ELB
+  aws_metric_name: UnHealthyHostCount
+  aws_dimensions: [AvailabilityZone, LoadBalancerName]
+  aws_statistics: [Average]
+  aws_dimension_select_regex:
+    LoadBalancerName: ["${LOADBALANCERNAME_REGEX}"]
+
+- aws_namespace: AWS/ELB
+  aws_metric_name: RequestCount
+  aws_dimensions: [AvailabilityZone, LoadBalancerName]
+  aws_statistics: [Sum]
+  aws_dimension_select_regex:
+    LoadBalancerName: ["${LOADBALANCERNAME_REGEX}"]
+
+- aws_namespace: AWS/ELB
+  aws_metric_name: Latency
+  aws_dimensions: [AvailabilityZone, LoadBalancerName]
+  aws_statistics: [Average]
+  aws_dimension_select_regex:
+    LoadBalancerName: ["${LOADBALANCERNAME_REGEX}"]
+
+- aws_namespace: AWS/ELB
+  aws_metric_name: SurgeQueueLength
+  aws_dimensions: [AvailabilityZone, LoadBalancerName]
+  aws_statistics: [Maximum, Sum]
+  aws_dimension_select_regex:
+    LoadBalancerName: ["${LOADBALANCERNAME_REGEX}"]
