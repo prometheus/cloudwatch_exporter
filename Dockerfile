@@ -1,5 +1,7 @@
 FROM wehkamp/jre:1.8
 MAINTAINER Prometheus Team <prometheus-developers@googlegroups.com>
+LABEL container.name=wehkamp/prometheus-cloudwatch-exporter:1.0
+
 EXPOSE 9106
 
 WORKDIR /cloudwatch_exporter
