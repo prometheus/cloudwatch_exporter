@@ -1,5 +1,5 @@
 ---
-region: ${AWS_REGION}
+region: eu-west-1
 
 # Request data that spans this range:
 range_seconds: 120
