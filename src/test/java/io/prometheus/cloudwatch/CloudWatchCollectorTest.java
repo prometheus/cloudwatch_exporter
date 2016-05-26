@@ -294,4 +294,13 @@ public class CloudWatchCollectorTest {
 
     assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "a", "myLB"}), .01);
   }
+
+  @Test
+  public void testGetMonitoringEndpoint() throws Exception {
+    CloudWatchCollector us_collector = new CloudWatchCollector("---\nregion: us-east-1\nmetrics: []\n");
+    assertEquals("https://monitoring.us-east-1.amazonaws.com", us_collector.getMonitoringEndpoint());
+
+    CloudWatchCollector cn_collector = new CloudWatchCollector("---\nregion: cn-north-1\nmetrics: []\n");
+    assertEquals("https://monitoring.cn-north-1.amazonaws.com.cn", cn_collector.getMonitoringEndpoint());
+  }
 }
