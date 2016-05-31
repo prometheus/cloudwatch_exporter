@@ -1,6 +1,8 @@
 package io.prometheus.cloudwatch;
 
 import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
 import com.amazonaws.services.cloudwatch.model.Datapoint;
 import com.amazonaws.services.cloudwatch.model.Dimension;
@@ -30,7 +32,9 @@ import org.yaml.snakeyaml.Yaml;
 public class CloudWatchCollector extends Collector {
     private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
 
-    AmazonCloudWatchClient client; 
+    AmazonCloudWatchClient client;
+
+    Region region;
 
     static class MetricRule {
       String awsNamespace;
@@ -69,7 +73,8 @@ public class CloudWatchCollector extends Collector {
         if (!config.containsKey("region")) {
           throw new IllegalArgumentException("Must provide region");
         }
-        String region = (String)config.get("region");
+        region = RegionUtils.getRegion((String) config.get("region"));
+
         int defaultPeriod = 60;
         if (config.containsKey("period_seconds")) {
           defaultPeriod = ((Number)config.get("period_seconds")).intValue();
@@ -93,7 +98,7 @@ public class CloudWatchCollector extends Collector {
           } else {
             this.client = new AmazonCloudWatchClient();
           }
-          this.client.setEndpoint("https://monitoring." + region + ".amazonaws.com");
+          this.client.setEndpoint(getMonitoringEndpoint());
         } else {
           this.client = client;
         }
@@ -146,6 +151,10 @@ public class CloudWatchCollector extends Collector {
             rule.delaySeconds = defaultDelay;
           }
         }
+    }
+
+    public String getMonitoringEndpoint() {
+      return "https://" + region.getServiceEndpoint("monitoring");
     }
 
     private List<List<Dimension>> getDimensions(MetricRule rule) {
