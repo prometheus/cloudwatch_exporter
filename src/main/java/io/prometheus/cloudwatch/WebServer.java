@@ -20,6 +20,7 @@ public class WebServer {
      context.setContextPath("/");
      server.setHandler(context);
      context.addServlet(new ServletHolder(new MetricsServlet()), "/metrics");
+     context.addServlet(new ServletHolder(new HealthCheckServlet(cc.client)), "/status");
      server.start();
      server.join();
    }
