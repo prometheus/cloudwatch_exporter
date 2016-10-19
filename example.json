@@ -1,0 +1,301 @@
+{
+  "region": "eu-west-1"
+  "metrics": [
+    {
+      "aws_metric_name": "HealthyHostCount",
+      "aws_namespace": "AWS/ELB",
+      "aws_dimensions": [
+        "AvailabilityZone",
+        "LoadBalancerName"
+      ],
+      "aws_statistics": [
+        "Average"
+      ]
+    },
+    {
+      "aws_metric_name": "UnHealthyHostCount",
+      "aws_namespace": "AWS/ELB",
+      "aws_dimensions": [
+        "AvailabilityZone",
+        "LoadBalancerName"
+      ],
+      "aws_statistics": [
+        "Average"
+      ]
+    },
+    {
+      "aws_metric_name": "RequestCount",
+      "aws_namespace": "AWS/ELB",
+      "aws_dimensions": [
+        "AvailabilityZone",
+        "LoadBalancerName"
+      ],
+      "aws_statistics": [
+        "Sum"
+      ]
+    },
+    {
+      "aws_metric_name": "Latency",
+      "aws_namespace": "AWS/ELB",
+      "aws_dimensions": [
+        "AvailabilityZone",
+        "LoadBalancerName"
+      ],
+      "aws_statistics": [
+        "Average"
+      ]
+    },
+    {
+      "aws_metric_name": "SurgeQueueLength",
+      "aws_namespace": "AWS/ELB",
+      "aws_dimensions": [
+        "AvailabilityZone",
+        "LoadBalancerName"
+      ],
+      "aws_statistics": [
+        "Maximum",
+        "Sum"
+      ]
+    },
+    {
+      "aws_metric_name": "CPUUtilization",
+      "aws_namespace": "AWS/ElastiCache",
+      "aws_dimensions": [
+        "CacheClusterId"
+      ],
+      "aws_statistics": [
+        "Average"
+      ]
+    },
+    {
+      "aws_metric_name": "NetworkBytesIn",
+      "aws_namespace": "AWS/ElastiCache",
+      "aws_dimensions": [
+        "CacheClusterId"
+      ],
+      "aws_statistics": [
+        "Average"
+      ]
+    },
+    {
+      "aws_metric_name": "NetworkBytesOut",
+      "aws_namespace": "AWS/ElastiCache",
+      "aws_dimensions": [
+        "CacheClusterId"
+      ],
+      "aws_statistics": [
+        "Average"
+      ]
+    },
+    {
+      "aws_metric_name": "FreeableMemory",
+      "aws_namespace": "AWS/ElastiCache",
+      "aws_dimensions": [
+        "CacheClusterId"
+      ],
+      "aws_statistics": [
+        "Average"
+      ]
+    },
+    {
+      "aws_metric_name": "BytesUsedForCache",
+      "aws_namespace": "AWS/ElastiCache",
+      "aws_dimensions": [
+        "CacheClusterId"
+      ],
+      "aws_statistics": [
+        "Average"
+      ]
+    },
+    {
+      "aws_metric_name": "CurrConnections",
+      "aws_namespace": "AWS/ElastiCache",
+      "aws_dimensions": [
+        "CacheClusterId"
+      ],
+      "aws_statistics": [
+        "Average"
+      ]
+    },
+    {
+      "aws_metric_name": "NewConnections",
+      "aws_namespace": "AWS/ElastiCache",
+      "aws_dimensions": [
+        "CacheClusterId"
+      ],
+      "aws_statistics": [
+        "Average"
+      ]
+    },
+    {
+      "aws_metric_name": "CacheHits",
+      "aws_namespace": "AWS/ElastiCache",
+      "aws_dimensions": [
+        "CacheClusterId"
+      ],
+      "aws_statistics": [
+        "Average"
+      ]
+    },
+    {
+      "aws_metric_name": "CacheMisses",
+      "aws_namespace": "AWS/ElastiCache",
+      "aws_dimensions": [
+        "CacheClusterId"
+      ],
+      "aws_statistics": [
+        "Average"
+      ]
+    },
+    {
+      "aws_metric_name": "ReplicationLag",
+      "aws_namespace": "AWS/ElastiCache",
+      "aws_dimensions": [
+        "CacheClusterId"
+      ],
+      "aws_statistics": [
+        "Average"
+      ]
+    },
+    {
+      "aws_metric_name": "DatabaseConnections",
+      "aws_namespace": "AWS/Redshift",
+      "aws_dimensions": [
+        "ClusterIdentifier"
+      ],
+      "aws_statistics": [
+        "Average"
+      ]
+    },
+    {
+      "aws_metric_name": "HealthStatus",
+      "aws_namespace": "AWS/Redshift",
+      "aws_dimensions": [
+        "ClusterIdentifier"
+      ],
+      "aws_statistics": [
+        "Average"
+      ]
+    },
+    {
+      "aws_metric_name": "MaintenanceMode",
+      "aws_namespace": "AWS/Redshift",
+      "aws_dimensions": [
+        "ClusterIdentifier"
+      ],
+      "aws_statistics": [
+        "Average"
+      ]
+    },
+    {
+      "aws_metric_name": "CPUUtilization",
+      "aws_namespace": "AWS/Redshift",
+      "aws_dimensions": [
+        "NodeID",
+        "ClusterIdentifier"
+      ],
+      "aws_statistics": [
+        "Average"
+      ]
+    },
+    {
+      "aws_metric_name": "PercentageDiskSpaceUsed",
+      "aws_namespace": "AWS/Redshift",
+      "aws_dimensions": [
+        "NodeID",
+        "ClusterIdentifier"
+      ],
+      "aws_statistics": [
+        "Average"
+      ]
+    },
+    {
+      "aws_metric_name": "NetworkReceiveThroughput",
+      "aws_namespace": "AWS/Redshift",
+      "aws_dimensions": [
+        "NodeID",
+        "ClusterIdentifier"
+      ],
+      "aws_statistics": [
+        "Average"
+      ]
+    },
+    {
+      "aws_metric_name": "NetworkTransmitThroughput",
+      "aws_namespace": "AWS/Redshift",
+      "aws_dimensions": [
+        "NodeID",
+        "ClusterIdentifier"
+      ],
+      "aws_statistics": [
+        "Average"
+      ]
+    },
+    {
+      "aws_metric_name": "ReadLatency",
+      "aws_namespace": "AWS/Redshift",
+      "aws_dimensions": [
+        "NodeID",
+        "ClusterIdentifier"
+      ],
+      "aws_statistics": [
+        "Average"
+      ]
+    },
+    {
+      "aws_metric_name": "ReadThroughput",
+      "aws_namespace": "AWS/Redshift",
+      "aws_dimensions": [
+        "NodeID",
+        "ClusterIdentifier"
+      ],
+      "aws_statistics": [
+        "Average"
+      ]
+    },
+    {
+      "aws_metric_name": "ReadIOPS",
+      "aws_namespace": "AWS/Redshift",
+      "aws_dimensions": [
+        "NodeID",
+        "ClusterIdentifier"
+      ],
+      "aws_statistics": [
+        "Average"
+      ]
+    },
+    {
+      "aws_metric_name": "WriteLatency",
+      "aws_namespace": "AWS/Redshift",
+      "aws_dimensions": [
+        "NodeID",
+        "ClusterIdentifier"
+      ],
+      "aws_statistics": [
+        "Average"
+      ]
+    },
+    {
+      "aws_metric_name": "WriteThroughput",
+      "aws_namespace": "AWS/Redshift",
+      "aws_dimensions": [
+        "NodeID",
+        "ClusterIdentifier"
+      ],
+      "aws_statistics": [
+        "Average"
+      ]
+    },
+    {
+      "aws_metric_name": "WriteIOPS",
+      "aws_namespace": "AWS/Redshift",
+      "aws_dimensions": [
+        "NodeID",
+        "ClusterIdentifier"
+      ],
+      "aws_statistics": [
+        "Average"
+      ]
+    }
+  ]
+}
