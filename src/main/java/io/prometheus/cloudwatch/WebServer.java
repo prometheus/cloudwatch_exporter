@@ -9,7 +9,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 public class WebServer {
    public static void main(String[] args) throws Exception {
      if (args.length < 2) {
-       System.err.println("Usage: WebServer <port> <json configuration file>");
+       System.err.println("Usage: WebServer <port> <yml configuration file>");
        System.exit(1);
      }
      CloudWatchCollector cc = new CloudWatchCollector(new FileReader(args[1])).register();
