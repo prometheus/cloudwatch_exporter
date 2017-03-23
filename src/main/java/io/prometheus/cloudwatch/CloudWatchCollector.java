@@ -324,6 +324,8 @@ public class CloudWatchCollector extends Collector {
           List<String> labelValues = new ArrayList<String>();
           labelNames.add("job");
           labelValues.add(jobName);
+          labelNames.add("instance");
+          labelValues.add("");
           for (Dimension d: dimensions) {
             labelNames.add(safeName(toSnakeCase(d.getName())));
             labelValues.add(d.getValue());

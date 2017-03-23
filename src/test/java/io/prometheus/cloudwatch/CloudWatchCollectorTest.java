@@ -132,7 +132,7 @@ public class CloudWatchCollectorTest {
     Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest) anyObject()))
             .thenReturn(new GetMetricStatisticsResult());
 
-    registry.getSampleValue("aws_elb_request_count_average", new String[]{"job"}, new String[]{"aws_elb"});
+    registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance"}, new String[]{"aws_elb", ""});
 
 
     Mockito.verify(client).getMetricStatistics((GetMetricStatisticsRequest) argThat(
@@ -151,7 +151,7 @@ public class CloudWatchCollectorTest {
     Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest) anyObject()))
             .thenReturn(new GetMetricStatisticsResult());
 
-    registry.getSampleValue("aws_elb_request_count_average", new String[]{"job"}, new String[]{"aws_elb"});
+    registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance"}, new String[]{"aws_elb", ""});
 
 
     Mockito.verify(client).getMetricStatistics((GetMetricStatisticsRequest) argThat(
@@ -173,11 +173,11 @@ public class CloudWatchCollectorTest {
             new Datapoint().withTimestamp(new Date()).withAverage(1.0)
                 .withMaximum(2.0).withMinimum(3.0).withSampleCount(4.0).withSum(5.0)));
 
-    assertEquals(1.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job"}, new String[]{"aws_elb"}), .01);
-    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_maximum", new String[]{"job"}, new String[]{"aws_elb"}), .01);
-    assertEquals(3.0, registry.getSampleValue("aws_elb_request_count_minimum", new String[]{"job"}, new String[]{"aws_elb"}), .01);
-    assertEquals(4.0, registry.getSampleValue("aws_elb_request_count_sample_count", new String[]{"job"}, new String[]{"aws_elb"}), .01);
-    assertEquals(5.0, registry.getSampleValue("aws_elb_request_count_sum", new String[]{"job"}, new String[]{"aws_elb"}), .01);
+    assertEquals(1.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
+    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_maximum", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
+    assertEquals(3.0, registry.getSampleValue("aws_elb_request_count_minimum", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
+    assertEquals(4.0, registry.getSampleValue("aws_elb_request_count_sample_count", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
+    assertEquals(5.0, registry.getSampleValue("aws_elb_request_count_sum", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
   }
 
   @Test
@@ -192,7 +192,7 @@ public class CloudWatchCollectorTest {
             new Datapoint().withTimestamp(new Date(3)).withAverage(3.0),
             new Datapoint().withTimestamp(new Date(2)).withAverage(2.0)));
 
-    assertEquals(3.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job"}, new String[]{"aws_elb"}), .01);
+    assertEquals(3.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
   }
 
   @Test
@@ -216,9 +216,9 @@ public class CloudWatchCollectorTest {
         .thenReturn(new GetMetricStatisticsResult().withDatapoints(
             new Datapoint().withTimestamp(new Date()).withAverage(3.0)));
 
-    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "a", "myLB"}), .01);
-    assertEquals(3.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "b", "myOtherLB"}), .01);
-    assertNull(registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "availability_zone", "load_balancer_name", "this_extra_dimension_is_ignored"}, new String[]{"aws_elb", "a", "myLB", "dummy"}));
+    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "a", "myLB"}), .01);
+    assertEquals(3.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "b", "myOtherLB"}), .01);
+    assertNull(registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name", "this_extra_dimension_is_ignored"}, new String[]{"aws_elb", "", "a", "myLB", "dummy"}));
   }
 
   @Test
@@ -242,9 +242,9 @@ public class CloudWatchCollectorTest {
         .thenReturn(new GetMetricStatisticsResult().withDatapoints(
             new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
 
-    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "a", "myLB"}), .01);
-    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "b", "myLB"}), .01);
-    assertNull(registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "a", "myOtherLB"}));
+    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "a", "myLB"}), .01);
+    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "b", "myLB"}), .01);
+    assertNull(registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "a", "myOtherLB"}));
   }
 
   @Test
@@ -269,9 +269,9 @@ public class CloudWatchCollectorTest {
         .thenReturn(new GetMetricStatisticsResult().withDatapoints(
             new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
 
-    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "a", "myLB1"}), .01);
-    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "b", "myLB2"}), .01);
-    assertNull(registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "a", "myOtherLB"}));
+    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "a", "myLB1"}), .01);
+    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "b", "myLB2"}), .01);
+    assertNull(registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "a", "myOtherLB"}));
   }
 
   @Test
@@ -292,7 +292,7 @@ public class CloudWatchCollectorTest {
         .thenReturn(new GetMetricStatisticsResult().withDatapoints(
             new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
 
-    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "a", "myLB"}), .01);
+    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "a", "myLB"}), .01);
   }
 
   @Test
