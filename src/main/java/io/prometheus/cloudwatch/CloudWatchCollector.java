@@ -20,8 +20,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.LinkedList;
 import java.util.Set;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,6 +37,19 @@ public class CloudWatchCollector extends Collector {
     AmazonCloudWatchClient client;
 
     Region region;
+
+    /* Expand all environment variables in text */
+    public static String expandEnvVars(String text) {
+        Map<String, String> envMap = System.getenv();
+        for (Entry<String, String> entry : envMap.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            text = text.replaceAll("\\$\\{" + key + "\\}", value);
+            String message = key + " => " + value + " (" + text + ")";
+            LOGGER.log(Level.FINE, " Expanded k/v: {0}", message);
+        }
+        return text;
+    }
 
     static class MetricRule {
       String awsNamespace;
@@ -129,6 +144,18 @@ public class CloudWatchCollector extends Collector {
           }
           if (yamlMetricRule.containsKey("aws_dimension_select_regex")) {
             rule.awsDimensionSelectRegex = (Map<String,List<String>>)yamlMetricRule.get("aws_dimension_select_regex");
+            // Go over all regexes and try to expand any environment variables.
+            for (Entry<String, List<String>> entry : rule.awsDimensionSelectRegex.entrySet()) {
+              String key = entry.getKey();
+              List<String> values = entry.getValue();
+              LinkedList<String> expandedValues = new LinkedList<String>();
+              for (String value : values) {
+                expandedValues.add(expandEnvVars(value));
+              }
+              String message = "Expanded key " + key + " to value " + expandedValues;
+              LOGGER.log(Level.INFO, " {0}", message);
+              entry.setValue(expandedValues);
+            }
           }
           if (yamlMetricRule.containsKey("aws_statistics")) {
             rule.awsStatistics = (List<String>)yamlMetricRule.get("aws_statistics");

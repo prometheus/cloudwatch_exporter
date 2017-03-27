@@ -43,7 +43,7 @@ aws_namespace  | Required. Namespace of the CloudWatch metric.
 aws_metric_name  | Required. Metric name of the CloudWatch metric.
 aws_dimensions | Optional. Which dimension to fan out over.
 aws_dimension_select | Optional. Which dimension values to filter. Specify a map from the dimension name to a list of values to select from that dimension.
-aws_dimension_select_regex | Optional. Which dimension values to filter on with a regular expression. Specify a map from the dimension name to a list of regexes that will be applied to select from that dimension.
+aws_dimension_select_regex | Optional. Which dimension values to filter on with a regular expression. Specify a map from the dimension name to a list of regexes that will be applied to select from that dimension. This also tries to expand environment variables used as value, like ${CLOUDWATCH_REGEX} or even ${TMPDIR}.
 aws_statistics | Optional. A list of statistics to retrieve, values can include Sum, SampleCount, Minimum, Maximum, Average. Defaults to all statistics.
 delay_seconds | Optional. The newest data to request. Used to avoid collecting data that has not fully converged. Defaults to 600s. Can be set globally and per metric.
 range_seconds | Optional. How far back to request data for. Useful for cases such as Billing metrics that are only set every few hours. Defaults to 600s. Can be set globally and per metric.
