@@ -365,7 +365,7 @@ public class CloudWatchCollector extends Collector {
                 extendedSamples.put(entry.getKey(), samples);
               }
               samples.add(new MetricFamilySamples.Sample(
-                  baseName + "_" + entry.getKey(), labelNames, labelValues, entry.getValue()));
+                  baseName + "_" + safeName(toSnakeCase(entry.getKey())), labelNames, labelValues, entry.getValue()));
             }
           }
         }
@@ -386,7 +386,7 @@ public class CloudWatchCollector extends Collector {
           mfs.add(new MetricFamilySamples(baseName + "_average", Type.GAUGE, help(rule, unit, "Average"), averageSamples));
         }
         for (Map.Entry<String, ArrayList<MetricFamilySamples.Sample>> entry : extendedSamples.entrySet()) {
-          mfs.add(new MetricFamilySamples(baseName + "_" + entry.getKey(), Type.GAUGE, help(rule, unit, entry.getKey()), entry.getValue()));
+          mfs.add(new MetricFamilySamples(baseName + "_" + safeName(toSnakeCase(entry.getKey())), Type.GAUGE, help(rule, unit, entry.getKey()), entry.getValue()));
         }
       }
     }

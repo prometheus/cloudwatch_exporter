@@ -320,6 +320,6 @@ public class CloudWatchCollectorTest {
             new Datapoint().withTimestamp(new Date()).withExtendedStatistics(extendedStatistics)));
 
     assertEquals(1.0, registry.getSampleValue("aws_elb_latency_p95", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
-    assertEquals(2.0, registry.getSampleValue("aws_elb_latency_p99.99", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
+    assertEquals(2.0, registry.getSampleValue("aws_elb_latency_p99_99", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
   }
 }
