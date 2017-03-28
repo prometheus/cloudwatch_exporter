@@ -17,6 +17,7 @@ import com.amazonaws.services.cloudwatch.model.Metric;
 import io.prometheus.client.CollectorRegistry;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import org.junit.Before;
@@ -302,5 +303,23 @@ public class CloudWatchCollectorTest {
 
     CloudWatchCollector cn_collector = new CloudWatchCollector("---\nregion: cn-north-1\nmetrics: []\n");
     assertEquals("https://monitoring.cn-north-1.amazonaws.com.cn", cn_collector.getMonitoringEndpoint());
+  }
+
+  @Test
+  public void testExtendedStatistics() throws Exception {
+    new CloudWatchCollector(
+        "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: Latency\n  aws_extended_statistics:\n  - p95\n  - p99.99", client).register(registry);
+
+    HashMap<String, Double> extendedStatistics = new HashMap<String, Double>();
+    extendedStatistics.put("p95", 1.0);
+    extendedStatistics.put("p99.99", 2.0);
+
+    Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest)argThat(
+        new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("Latency"))))
+        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
+            new Datapoint().withTimestamp(new Date()).withExtendedStatistics(extendedStatistics)));
+
+    assertEquals(1.0, registry.getSampleValue("aws_elb_latency_p95", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
+    assertEquals(2.0, registry.getSampleValue("aws_elb_latency_p99.99", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
   }
 }
