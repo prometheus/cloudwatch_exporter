@@ -43,6 +43,7 @@ public class CloudWatchCollector extends Collector {
       int rangeSeconds;
       int delaySeconds;
       List<String> awsStatistics;
+      List<String> awsExtendedStatistics;
       List<String> awsDimensions;
       Map<String,List<String>> awsDimensionSelect;
       Map<String,List<String>> awsDimensionSelectRegex;
@@ -132,8 +133,11 @@ public class CloudWatchCollector extends Collector {
           }
           if (yamlMetricRule.containsKey("aws_statistics")) {
             rule.awsStatistics = (List<String>)yamlMetricRule.get("aws_statistics");
-          } else {
+          } else if (!yamlMetricRule.containsKey("aws_extended_statistics")) {
             rule.awsStatistics = new ArrayList(Arrays.asList("Sum", "SampleCount", "Minimum", "Maximum", "Average"));
+          }
+          if (yamlMetricRule.containsKey("aws_extended_statistics")) {
+            rule.awsExtendedStatistics = (List<String>)yamlMetricRule.get("aws_extended_statistics");
           }
           if (yamlMetricRule.containsKey("period_seconds")) {
             rule.periodSeconds = ((Number)yamlMetricRule.get("period_seconds")).intValue();
@@ -295,6 +299,7 @@ public class CloudWatchCollector extends Collector {
         request.setNamespace(rule.awsNamespace);
         request.setMetricName(rule.awsMetricName);
         request.setStatistics(rule.awsStatistics);
+        request.setExtendedStatistics(rule.awsExtendedStatistics);
         request.setEndTime(startDate);
         request.setStartTime(endDate);
         request.setPeriod(rule.periodSeconds);
@@ -306,6 +311,7 @@ public class CloudWatchCollector extends Collector {
         List<MetricFamilySamples.Sample> minimumSamples = new ArrayList<MetricFamilySamples.Sample>();
         List<MetricFamilySamples.Sample> maximumSamples = new ArrayList<MetricFamilySamples.Sample>();
         List<MetricFamilySamples.Sample> averageSamples = new ArrayList<MetricFamilySamples.Sample>();
+        HashMap<String, ArrayList<MetricFamilySamples.Sample>> extendedSamples = new HashMap<String, ArrayList<MetricFamilySamples.Sample>>();
 
         String unit = null;
 
@@ -351,6 +357,17 @@ public class CloudWatchCollector extends Collector {
             averageSamples.add(new MetricFamilySamples.Sample(
                 baseName + "_average", labelNames, labelValues, dp.getAverage()));
           }
+          if (dp.getExtendedStatistics() != null) {
+            for (Map.Entry<String, Double> entry : dp.getExtendedStatistics().entrySet()) {
+              ArrayList<MetricFamilySamples.Sample> samples = extendedSamples.get(entry.getKey());
+              if (samples == null) {
+                samples = new ArrayList<MetricFamilySamples.Sample>();
+                extendedSamples.put(entry.getKey(), samples);
+              }
+              samples.add(new MetricFamilySamples.Sample(
+                  baseName + "_" + safeName(toSnakeCase(entry.getKey())), labelNames, labelValues, entry.getValue()));
+            }
+          }
         }
 
         if (!sumSamples.isEmpty()) {
@@ -367,6 +384,9 @@ public class CloudWatchCollector extends Collector {
         }
         if (!averageSamples.isEmpty()) {
           mfs.add(new MetricFamilySamples(baseName + "_average", Type.GAUGE, help(rule, unit, "Average"), averageSamples));
+        }
+        for (Map.Entry<String, ArrayList<MetricFamilySamples.Sample>> entry : extendedSamples.entrySet()) {
+          mfs.add(new MetricFamilySamples(baseName + "_" + safeName(toSnakeCase(entry.getKey())), Type.GAUGE, help(rule, unit, entry.getKey()), entry.getValue()));
         }
       }
     }
