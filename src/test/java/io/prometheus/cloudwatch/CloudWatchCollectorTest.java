@@ -326,9 +326,13 @@ public class CloudWatchCollectorTest {
   @Test
   public void testDynamoIndexDimensions() throws Exception {
     new CloudWatchCollector(
-        "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/DynamoDB\n  aws_metric_name: ConsumedReadCapacityUnits\n  aws_dimensions:\n  - TableName\n  - GlobalSecondaryIndexName\n- aws_namespace: AWS/DynamoDB\n  aws_metric_name: ConsumedReadCapacityUnits\n  aws_dimensions:\n  - TableName", client).register(registry);
+        "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/DynamoDB\n  aws_metric_name: ConsumedReadCapacityUnits\n  aws_dimensions:\n  - TableName\n  - GlobalSecondaryIndexName\n- aws_namespace: AWS/DynamoDB\n  aws_metric_name: OnlineIndexConsumedWriteCapacity\n  aws_dimensions:\n  - TableName\n  - GlobalSecondaryIndexName\n- aws_namespace: AWS/DynamoDB\n  aws_metric_name: ConsumedReadCapacityUnits\n  aws_dimensions:\n  - TableName", client).register(registry);
     Mockito.when(client.listMetrics((ListMetricsRequest)argThat(
         new ListMetricsRequestMatcher().Namespace("AWS/DynamoDB").MetricName("ConsumedReadCapacityUnits").Dimensions("TableName", "GlobalSecondaryIndexName"))))
+        .thenReturn(new ListMetricsResult().withMetrics(
+          new Metric().withDimensions(new Dimension().withName("TableName").withValue("myTable"), new Dimension().withName("GlobalSecondaryIndexName").withValue("myIndex"))));
+    Mockito.when(client.listMetrics((ListMetricsRequest)argThat(
+        new ListMetricsRequestMatcher().Namespace("AWS/DynamoDB").MetricName("OnlineIndexConsumedWriteCapacity").Dimensions("TableName", "GlobalSecondaryIndexName"))))
         .thenReturn(new ListMetricsResult().withMetrics(
           new Metric().withDimensions(new Dimension().withName("TableName").withValue("myTable"), new Dimension().withName("GlobalSecondaryIndexName").withValue("myIndex"))));
     Mockito.when(client.listMetrics((ListMetricsRequest)argThat(
@@ -339,13 +343,18 @@ public class CloudWatchCollectorTest {
     Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/DynamoDB").MetricName("ConsumedReadCapacityUnits").Dimension("TableName", "myTable").Dimension("GlobalSecondaryIndexName", "myIndex"))))
         .thenReturn(new GetMetricStatisticsResult().withDatapoints(
+            new Datapoint().withTimestamp(new Date()).withSum(1.0)));
+    Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest)argThat(
+        new GetMetricStatisticsRequestMatcher().Namespace("AWS/DynamoDB").MetricName("OnlineIndexConsumedWriteCapacity").Dimension("TableName", "myTable").Dimension("GlobalSecondaryIndexName", "myIndex"))))
+        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
             new Datapoint().withTimestamp(new Date()).withSum(2.0)));
     Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/DynamoDB").MetricName("ConsumedReadCapacityUnits").Dimension("TableName", "myTable"))))
         .thenReturn(new GetMetricStatisticsResult().withDatapoints(
             new Datapoint().withTimestamp(new Date()).withSum(3.0)));
 
-    assertEquals(2.0, registry.getSampleValue("aws_dynamodb_consumed_read_capacity_units_index_sum", new String[]{"job", "instance", "table_name", "global_secondary_index_name"}, new String[]{"aws_dynamodb", "", "myTable", "myIndex"}), .01);
+    assertEquals(1.0, registry.getSampleValue("aws_dynamodb_consumed_read_capacity_units_index_sum", new String[]{"job", "instance", "table_name", "global_secondary_index_name"}, new String[]{"aws_dynamodb", "", "myTable", "myIndex"}), .01);
+    assertEquals(2.0, registry.getSampleValue("aws_dynamodb_online_index_consumed_write_capacity_sum", new String[]{"job", "instance", "table_name", "global_secondary_index_name"}, new String[]{"aws_dynamodb", "", "myTable", "myIndex"}), .01);
     assertEquals(3.0, registry.getSampleValue("aws_dynamodb_consumed_read_capacity_units_sum", new String[]{"job", "instance", "table_name"}, new String[]{"aws_dynamodb", "", "myTable"}), .01);
   }
 }

@@ -53,6 +53,11 @@ public class CloudWatchCollector extends Collector {
     private static final Counter cloudwatchRequests = Counter.build()
       .name("cloudwatch_requests_total").help("API requests made to CloudWatch").register();
 
+    private static final List<String> brokenDynamoMetrics = Arrays.asList(
+            "ConsumedReadCapacityUnits", "ConsumedWriteCapacityUnits",
+            "ProvisionedReadCapacityUnits", "ProvisionedWriteCapacityUnits",
+            "ReadThrottleEvents", "WriteThrottleEvents");
+
     ArrayList<MetricRule> rules = new ArrayList<MetricRule>();
 
     public CloudWatchCollector(Reader in) throws IOException {
@@ -315,12 +320,9 @@ public class CloudWatchCollector extends Collector {
 
         String unit = null;
 
-        if (rule.awsNamespace.equals("AWS/DynamoDB") && rule.awsDimensions.contains("GlobalSecondaryIndexName")) {
-            /*
-             * Cloudwatch provides DynamoDB metrics with the same names but different meanings in
-             * both the [TableName] and [TableName, GlobalSecondaryIndexName] dimensions for the
-             * AWS/DynamoDB namespace. Without special handling this results in duplicate HELP text.
-             */
+        if (rule.awsNamespace.equals("AWS/DynamoDB")
+                && rule.awsDimensions.contains("GlobalSecondaryIndexName")
+                && brokenDynamoMetrics.contains(rule.awsMetricName)) {
             baseName += "_index";
         }
 
