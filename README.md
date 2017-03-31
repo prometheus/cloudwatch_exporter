@@ -70,17 +70,9 @@ In addition `cloudwatch_exporter_scrape_error` will be non-zero if an error
 occurred during the scrape, and `cloudwatch_exporter_scrape_duration_seconds`
 contains the duration of that scrape.
 
-### Metrics for DynamoDB Global Secondary Indexes
+### Special handling for certain DynamoDB metrics
 
-CloudWatch exposes some DynamoDB metrics with the same names in both the
-TableName and TableName + GlobalSecondaryIndexName dimensions. These metrics
-require special handling to avoid exporting duplicate HELP and and TYPE lines
-in the case where the exporter is configured to retrieve metrics for both tables
-and indexes.
-
-When exporting one of the problematic metrics listed below for an index the
-exporter will use a metric name in the format `aws_dynamodb_METRIC_index_STATISTIC`
-rather than the usual `aws_dynamodb_METRIC_STATISTIC`.
+The DynamoDB metrics listed below break the usual CloudWatch data model.
 
  * ConsumedReadCapacityUnits
  * ConsumedWriteCapacityUnits
@@ -88,6 +80,19 @@ rather than the usual `aws_dynamodb_METRIC_STATISTIC`.
  * ProvisionedWriteCapacityUnits
  * ReadThrottleEvents
  * WriteThrottleEvents
+
+When these metrics are requested in the TableName dimension CloudWatch will
+return data only for the table itself, not for its Global Secondary Indexes.
+Retrieving data for indexes requires requesting data across both the TableName
+and GlobalSecondaryIndexName dimensions. This behaviour is different to that
+of every other CloudWatch namespace and requires that the exporter handle these
+metrics differently to avoid generating duplicate HELP and TYPE lines.
+
+When exporting one of the problematic metrics for an index the exporter will use
+a metric name in the format `aws_dynamodb_METRIC_index_STATISTIC` rather than
+the usual `aws_dynamodb_METRIC_STATISTIC`. The regular naming scheme will still
+be used when exporting these metrics for a table, and when exporting any other
+DynamoDB metrics not listed above.
 
 ### Cost
 
