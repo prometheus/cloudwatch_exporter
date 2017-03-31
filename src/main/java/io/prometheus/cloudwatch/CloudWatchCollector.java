@@ -53,6 +53,11 @@ public class CloudWatchCollector extends Collector {
     private static final Counter cloudwatchRequests = Counter.build()
       .name("cloudwatch_requests_total").help("API requests made to CloudWatch").register();
 
+    private static final List<String> brokenDynamoMetrics = Arrays.asList(
+            "ConsumedReadCapacityUnits", "ConsumedWriteCapacityUnits",
+            "ProvisionedReadCapacityUnits", "ProvisionedWriteCapacityUnits",
+            "ReadThrottleEvents", "WriteThrottleEvents");
+
     ArrayList<MetricRule> rules = new ArrayList<MetricRule>();
 
     public CloudWatchCollector(Reader in) throws IOException {
@@ -314,6 +319,12 @@ public class CloudWatchCollector extends Collector {
         HashMap<String, ArrayList<MetricFamilySamples.Sample>> extendedSamples = new HashMap<String, ArrayList<MetricFamilySamples.Sample>>();
 
         String unit = null;
+
+        if (rule.awsNamespace.equals("AWS/DynamoDB")
+                && rule.awsDimensions.contains("GlobalSecondaryIndexName")
+                && brokenDynamoMetrics.contains(rule.awsMetricName)) {
+            baseName += "_index";
+        }
 
         for (List<Dimension> dimensions: getDimensions(rule)) {
           request.setDimensions(dimensions);
