@@ -7,7 +7,7 @@ An exporter for [Amazon CloudWatch](http://aws.amazon.com/cloudwatch/), for Prom
 
 `mvn package` to build.
 
-`java -jar target/cloudwatch_exporter-0.4-SNAPSHOT-jar-with-dependencies.jar 9106 example.yml` to run.
+`java -jar target/cloudwatch_exporter-0.5-SNAPSHOT-jar-with-dependencies.jar 9106 example.yml` to run.
 
 The most recent pre-built JAR can be found at http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22cloudwatch_exporter%22
 
