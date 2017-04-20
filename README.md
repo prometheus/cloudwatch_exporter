@@ -20,6 +20,7 @@ This includes the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment
 variables.
 
 The `cloudwatch:ListMetrics` and `cloudwatch:GetMetricStatistics` IAM permissions are required.
+If `fetch_load_balancer_tags` option is set `elasticloadbalancing:DescribeTags` is required too.
 
 ## Configuration
 The configuration is in YAML, an example with common options:
@@ -49,6 +50,7 @@ aws_extended_statistics | Optional. A list of extended statistics to retrieve. E
 delay_seconds | Optional. The newest data to request. Used to avoid collecting data that has not fully converged. Defaults to 600s. Can be set globally and per metric.
 range_seconds | Optional. How far back to request data for. Useful for cases such as Billing metrics that are only set every few hours. Defaults to 600s. Can be set globally and per metric.
 period_seconds | Optional. [Period](http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/cloudwatch_concepts.html#CloudWatchPeriods) to request the metric for. Only the most recent data point is used. Defaults to 60s. Can be set globally and per metric.
+fetch_load_balancer_tags | Optional. Flag wihich enable adding ELB tags to metric. Valid values: true and false. Default value false.
 
 The above config will export time series such as 
 ```

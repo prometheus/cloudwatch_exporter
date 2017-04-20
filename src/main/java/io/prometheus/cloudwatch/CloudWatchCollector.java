@@ -12,6 +12,9 @@ import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsResult;
 import com.amazonaws.services.cloudwatch.model.ListMetricsRequest;
 import com.amazonaws.services.cloudwatch.model.ListMetricsResult;
 import com.amazonaws.services.cloudwatch.model.Metric;
+import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
+import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClientBuilder;
+import com.amazonaws.services.elasticloadbalancing.model.*;
 import io.prometheus.client.Collector;
 import io.prometheus.client.Counter;
 import java.io.Reader;
@@ -32,7 +35,8 @@ import org.yaml.snakeyaml.Yaml;
 public class CloudWatchCollector extends Collector {
     private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
 
-    AmazonCloudWatchClient client;
+    AmazonCloudWatchClient cloudWatchClient;
+    AmazonElasticLoadBalancing elasticLoadBalancingClient;
 
     Region region;
 
@@ -48,6 +52,7 @@ public class CloudWatchCollector extends Collector {
       Map<String,List<String>> awsDimensionSelect;
       Map<String,List<String>> awsDimensionSelectRegex;
       String help;
+      boolean fetchLoadBalancerTags;
     }
 
     private static final Counter cloudwatchRequests = Counter.build()
@@ -61,18 +66,18 @@ public class CloudWatchCollector extends Collector {
     ArrayList<MetricRule> rules = new ArrayList<MetricRule>();
 
     public CloudWatchCollector(Reader in) throws IOException {
-        this((Map<String, Object>)new Yaml().load(in),null);
+        this((Map<String, Object>)new Yaml().load(in),null, null);
     }
     public CloudWatchCollector(String yamlConfig) {
-        this((Map<String, Object>)new Yaml().load(yamlConfig),null);
+        this((Map<String, Object>)new Yaml().load(yamlConfig),null, null);
     }
 
     /* For unittests. */
-    protected CloudWatchCollector(String jsonConfig, AmazonCloudWatchClient client) {
-        this((Map<String, Object>)new Yaml().load(jsonConfig), client);
+    protected CloudWatchCollector(String jsonConfig, AmazonCloudWatchClient cloudWatchClient, AmazonElasticLoadBalancing elasticLoadBalancingClient) {
+        this((Map<String, Object>)new Yaml().load(jsonConfig), cloudWatchClient, elasticLoadBalancingClient);
     }
 
-    private CloudWatchCollector(Map<String, Object> config, AmazonCloudWatchClient client) {
+    private CloudWatchCollector(Map<String, Object> config, AmazonCloudWatchClient cloudWatchClient, AmazonElasticLoadBalancing elasticLoadBalancingClient) {
         if(config == null) {  // Yaml config empty, set config to empty map.
             config = new HashMap<String, Object>(); 
         }
@@ -94,19 +99,25 @@ public class CloudWatchCollector extends Collector {
           defaultDelay = ((Number)config.get("delay_seconds")).intValue();
         }
 
-        if (client == null) {
+        if (cloudWatchClient == null) {
           if (config.containsKey("role_arn")) {
             STSAssumeRoleSessionCredentialsProvider credentialsProvider = new STSAssumeRoleSessionCredentialsProvider(
               (String) config.get("role_arn"),
               "cloudwatch_exporter"
             );
-            this.client = new AmazonCloudWatchClient(credentialsProvider);
+            this.cloudWatchClient = new AmazonCloudWatchClient(credentialsProvider);
           } else {
-            this.client = new AmazonCloudWatchClient();
+            this.cloudWatchClient = new AmazonCloudWatchClient();
           }
-          this.client.setEndpoint(getMonitoringEndpoint());
+          this.cloudWatchClient.setEndpoint(getMonitoringEndpoint());
         } else {
-          this.client = client;
+          this.cloudWatchClient = cloudWatchClient;
+        }
+
+        if (elasticLoadBalancingClient == null) {
+            this.elasticLoadBalancingClient = AmazonElasticLoadBalancingClientBuilder.defaultClient();
+        } else {
+            this.elasticLoadBalancingClient = elasticLoadBalancingClient;
         }
 
         if (!config.containsKey("metrics")) {
@@ -159,6 +170,10 @@ public class CloudWatchCollector extends Collector {
           } else {
             rule.delaySeconds = defaultDelay;
           }
+
+          if (yamlMetricRule.containsKey("fetch_load_balancer_tags")) {
+            rule.fetchLoadBalancerTags = (Boolean) yamlMetricRule.get("fetch_load_balancer_tags");
+          }
         }
     }
 
@@ -185,7 +200,7 @@ public class CloudWatchCollector extends Collector {
       String nextToken = null;
       do {
         request.setNextToken(nextToken);
-        ListMetricsResult result = client.listMetrics(request);
+        ListMetricsResult result = cloudWatchClient.listMetrics(request);
         cloudwatchRequests.inc();
         for (Metric metric: result.getMetrics()) {
           if (metric.getDimensions().size() != dimensionFilters.size()) {
@@ -329,7 +344,7 @@ public class CloudWatchCollector extends Collector {
         for (List<Dimension> dimensions: getDimensions(rule)) {
           request.setDimensions(dimensions);
 
-          GetMetricStatisticsResult result = client.getMetricStatistics(request);
+          GetMetricStatisticsResult result = cloudWatchClient.getMetricStatistics(request);
           cloudwatchRequests.inc();
           Datapoint dp = getNewestDatapoint(result.getDatapoints());
           if (dp == null) {
@@ -346,6 +361,7 @@ public class CloudWatchCollector extends Collector {
           for (Dimension d: dimensions) {
             labelNames.add(safeName(toSnakeCase(d.getName())));
             labelValues.add(d.getValue());
+            addLoadBalancerTags(rule, d, labelNames, labelValues);
           }
 
           if (dp.getSum() != null) {
@@ -398,6 +414,21 @@ public class CloudWatchCollector extends Collector {
         }
         for (Map.Entry<String, ArrayList<MetricFamilySamples.Sample>> entry : extendedSamples.entrySet()) {
           mfs.add(new MetricFamilySamples(baseName + "_" + safeName(toSnakeCase(entry.getKey())), Type.GAUGE, help(rule, unit, entry.getKey()), entry.getValue()));
+        }
+      }
+    }
+
+    private void addLoadBalancerTags(MetricRule rule, Dimension dimension, List<String> labelNames, List<String> labelValues) {
+      if (!rule.fetchLoadBalancerTags || !"AWS/ELB".equals(rule.awsNamespace) || !"LoadBalancerName".equals(dimension.getName())) {
+        return;
+      }
+
+      DescribeTagsResult result = elasticLoadBalancingClient.describeTags(new DescribeTagsRequest().withLoadBalancerNames(Arrays.asList(dimension.getValue())));
+
+      if (result.getTagDescriptions() != null && !result.getTagDescriptions().isEmpty()) {
+        for (Tag tag : result.getTagDescriptions().get(0).getTags()) {
+          labelNames.add("tag_" + safeName(toSnakeCase(tag.getKey().replaceAll(":", "_"))));
+          labelValues.add(tag.getValue());
         }
       }
     }
