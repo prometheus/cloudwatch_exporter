@@ -63,7 +63,7 @@ All metrics are exported as gauges.
 Timestamps from CloudWatch are not passed to Prometheus, pending resolution of
 [#398](https://github.com/prometheus/prometheus/issues/398). CloudWatch has
 been observed to sometimes take minutes for reported values to converge. The
-default `delay_seconds` will result in data that is at least 5 minutes old
+default `delay_seconds` will result in data that is at least 10 minutes old
 being requested to mitigate this.
 
 In addition `cloudwatch_exporter_scrape_error` will be non-zero if an error
