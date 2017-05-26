@@ -9,7 +9,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 public class WebServer {
    public static void main(String[] args) throws Exception {
      if (args.length < 2) {
-       System.err.println("Usage: WebServer <port> <yml configuration file>");
+       System.err.println("Usage: WebServer <port> <yml configuration file> [metrics path]");
        System.exit(1);
      }
      CloudWatchCollector cc = new CloudWatchCollector(new FileReader(args[1])).register();
@@ -19,7 +19,13 @@ public class WebServer {
      ServletContextHandler context = new ServletContextHandler();
      context.setContextPath("/");
      server.setHandler(context);
-     context.addServlet(new ServletHolder(new MetricsServlet()), "/metrics");
+
+     String metricsPath = "/metrics";
+     if (args.length == 3){
+       metricsPath = args[2];
+     }
+
+     context.addServlet(new ServletHolder(new MetricsServlet()), metricsPath);
      context.addServlet(new ServletHolder(new HomePageServlet()), "/");
      server.start();
      server.join();
