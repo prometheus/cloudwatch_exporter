@@ -12,6 +12,10 @@ import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsResult;
 import com.amazonaws.services.cloudwatch.model.ListMetricsRequest;
 import com.amazonaws.services.cloudwatch.model.ListMetricsResult;
 import com.amazonaws.services.cloudwatch.model.Metric;
+import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClient;
+import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest;
+import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult;
+import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription;
 import io.prometheus.client.Collector;
 import io.prometheus.client.Counter;
 import java.io.Reader;
@@ -33,6 +37,7 @@ public class CloudWatchCollector extends Collector {
     private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
 
     AmazonCloudWatchClient client;
+    AmazonElasticLoadBalancingClient elbClient;
 
     Region region;
 
@@ -95,8 +100,10 @@ public class CloudWatchCollector extends Collector {
               "cloudwatch_exporter"
             );
             this.client = new AmazonCloudWatchClient(credentialsProvider);
+            this.elbClient = new AmazonElasticLoadBalancingClient(credentialsProvider);
           } else {
             this.client = new AmazonCloudWatchClient();
+              this.elbClient = new AmazonElasticLoadBalancingClient();
           }
           this.client.setEndpoint(getMonitoringEndpoint());
         } else {
@@ -157,7 +164,7 @@ public class CloudWatchCollector extends Collector {
       return "https://" + region.getServiceEndpoint("monitoring");
     }
 
-    private List<List<Dimension>> getDimensions(MetricRule rule) {
+    private List<List<Dimension>> getDimensions(MetricRule rule, List<String> aliveElbNames) {
       List<List<Dimension>> dimensions = new ArrayList<List<Dimension>>();
       if (rule.awsDimensions == null) {
         dimensions.add(new ArrayList<Dimension>());
@@ -184,7 +191,7 @@ public class CloudWatchCollector extends Collector {
             // so filter them out.
             continue;
           }
-          if (useMetric(rule, metric)) {
+          if (useMetric(rule, metric, aliveElbNames)) {
             dimensions.add(metric.getDimensions());
           }
         }
@@ -197,7 +204,10 @@ public class CloudWatchCollector extends Collector {
     /**
      * Check if a metric should be used according to `aws_dimension_select` or `aws_dimension_select_regex`
      */
-    private boolean useMetric(MetricRule rule, Metric metric) {
+    private boolean useMetric(MetricRule rule, Metric metric, List<String> aliveElbNames) {
+      if (rule.awsNamespace.equals("AWS/ELB") && metricIsForDeadELB(metric, aliveElbNames)){
+          return false;
+      }
       if (rule.awsDimensionSelect == null && rule.awsDimensionSelectRegex == null) {
         return true;
       }
@@ -208,6 +218,19 @@ public class CloudWatchCollector extends Collector {
         return true;
       }
       return false;
+    }
+
+    private boolean metricIsForDeadELB(Metric metric, List<String> aliveElbNames) {
+        for (Dimension dimension : metric.getDimensions()) {
+            String dimensionName = dimension.getName();
+            String dimensionValue = dimension.getValue();
+            if (dimensionName.equals("LoadBalancerName") && (! aliveElbNames.contains(dimensionValue))) {
+                LOGGER.log(Level.FINER, "Filtered out dead ELB: " + dimensionValue);
+                return true;
+            }
+        }
+        return false;
+
     }
 
     /**
@@ -288,6 +311,7 @@ public class CloudWatchCollector extends Collector {
 
     private void scrape(List<MetricFamilySamples> mfs) {
       long start = System.currentTimeMillis();
+      List<String> aliveElbNames = getListOfAliveElbNames();
       for (MetricRule rule: rules) {
         Date startDate = new Date(start - 1000 * rule.delaySeconds);
         Date endDate = new Date(start - 1000 * (rule.delaySeconds + rule.rangeSeconds));
@@ -309,7 +333,7 @@ public class CloudWatchCollector extends Collector {
 
         String unit = null;
 
-        for (List<Dimension> dimensions: getDimensions(rule)) {
+        for (List<Dimension> dimensions: getDimensions(rule,aliveElbNames)) {
           request.setDimensions(dimensions);
 
           GetMetricStatisticsResult result = client.getMetricStatistics(request);
@@ -367,6 +391,16 @@ public class CloudWatchCollector extends Collector {
           mfs.add(new MetricFamilySamples(baseName + "_average", Type.GAUGE, help(rule, unit, "Average"), averageSamples));
         }
       }
+    }
+
+    private List<String> getListOfAliveElbNames() {
+        List<String> aliveElbNames = new ArrayList<String>();
+        DescribeLoadBalancersRequest request = new DescribeLoadBalancersRequest();
+        DescribeLoadBalancersResult lbs = elbClient.describeLoadBalancers(request);
+        for (LoadBalancerDescription elbDescription : lbs.getLoadBalancerDescriptions()){
+            aliveElbNames.add(elbDescription.getLoadBalancerName());
+        }
+        return aliveElbNames;
     }
 
     public List<MetricFamilySamples> collect() {
