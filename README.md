@@ -110,14 +110,18 @@ requests (as of Jan 2015), that is around $45 per month. The
 ## Docker Image
 
 To run the CloudWatch exporter on Docker, you can use the [prom/cloudwatch-exporter](https://hub.docker.com/r/prom/cloudwatch-exporter/)
-image. It exposes port 9106 and expects the config in `/config.yml`. To
+image. It exposes port 9106 and expects the config in `/config/config.yml`. To
 configure it, you can either bind-mount a config from your host:
 
 ```
-$ docker run -p 9106 -v /path/on/host/config.yml:/config.yml prom/cloudwatch-exporter
+$ docker run -p 9106 -v /path/on/host/config.yml:/config/config.yml prom/cloudwatch-exporter
 ```
 
-Or you create a config file named config.yml along with following
+Why run in /config/config.yml instead of /config.yml?  Because in kubernetes 
+(a fellow CNCF project) you cannot mount a configmap (the standard way of 
+defining your config) on / and only in a directory.
+
+Or you create a config file named /config/config.yml along with following
 Dockerfile in the same directory and build it with `docker build`:
 
 ```
