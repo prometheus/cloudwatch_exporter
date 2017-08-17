@@ -117,10 +117,6 @@ configure it, you can either bind-mount a config from your host:
 $ docker run -p 9106 -v /path/on/host/config.yml:/config/config.yml prom/cloudwatch-exporter
 ```
 
-Why run in /config/config.yml instead of /config.yml?  Because in kubernetes 
-(a fellow CNCF project) you cannot mount a configmap (the standard way of 
-defining your config) on / and only in a directory.
-
 Or you create a config file named /config/config.yml along with following
 Dockerfile in the same directory and build it with `docker build`:
 
