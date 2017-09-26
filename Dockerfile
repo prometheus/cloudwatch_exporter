@@ -1,18 +1,16 @@
-FROM wehkamp/jre:1.8
+FROM wehkamp/jre:8.121.13-r0_02
 MAINTAINER Prometheus Team <prometheus-developers@googlegroups.com>
-LABEL container.name=wehkamp/prometheus-cloudwatch-exporter:1.0
+LABEL container.name=wehkamp/prometheus-cloudwatch-exporter:elasticsearch
 
 EXPOSE 9106
 
 WORKDIR /cloudwatch_exporter
 ADD . /cloudwatch_exporter
-RUN echo 'http://dl-3.alpinelinux.org/alpine/edge/testing' >> /etc/apk/repositories \
-    && echo 'http://dl-3.alpinelinux.org/alpine/edge/community' >> /etc/apk/repositories \
-    && apk update \
-    && apk add maven openjdk8-jre \
+RUN apk update \
+    && apk add maven openjdk8 \
     && mvn package \
     && mv target/cloudwatch_exporter-*-with-dependencies.jar /cloudwatch_exporter.jar \
-    && apk del maven openjdk8-jre \
+    && apk del maven openjdk8 \
     && rm -rf /cloudwatch_exporter
 
 WORKDIR /

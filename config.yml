@@ -43,3 +43,27 @@ metrics:
   aws_statistics: [Maximum, Sum]
   aws_dimension_select_regex:
     LoadBalancerName: ["${LOADBALANCERNAME_REGEX}"]
+
+- aws_namespace: AWS/ES
+  aws_metric_name: FreeStorageSpace
+  aws_dimensions: [DomainName, ClientId]
+  aws_statistics: [Average]
+  aws_dimension_select_regex:
+    DomainName: ["${ES_DOMAIN_NAME_REGEX}"]
+    ClientId: ["${ES_DOMAIN_CLIENT_ID}"]
+
+- aws_namespace: AWS/ES
+  aws_metric_name: CPUUtilization
+  aws_dimensions: [DomainName, ClientId]
+  aws_statistics: [Average]
+  aws_dimension_select_regex:
+    DomainName: ["${ES_DOMAIN_NAME_REGEX}"]
+    ClientId: ["${ES_DOMAIN_CLIENT_ID}"]
+
+- aws_namespace: AWS/ES
+  aws_metric_name: DiskQueueDepth
+  aws_dimensions: [DomainName, ClientId]
+  aws_statistics: [Average]
+  aws_dimension_select_regex:
+    DomainName: ["${ES_DOMAIN_NAME_REGEX}"]
+    ClientId: ["${ES_DOMAIN_CLIENT_ID}"]
