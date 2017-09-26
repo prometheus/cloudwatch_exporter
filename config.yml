@@ -67,3 +67,11 @@ metrics:
   aws_dimension_select_regex:
     DomainName: ["${ES_DOMAIN_NAME_REGEX}"]
     ClientId: ["${ES_DOMAIN_CLIENT_ID}"]
+
+- aws_namespace: AWS/ES
+  aws_metric_name: ClusterStatus.green
+  aws_dimensions: [DomainName, ClientId]
+  aws_statistics: [Average]
+  aws_dimension_select_regex:
+    DomainName: ["${ES_DOMAIN_NAME_REGEX}"]
+    ClientId: ["${ES_DOMAIN_CLIENT_ID}"]
