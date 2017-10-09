@@ -61,7 +61,7 @@ public class CloudWatchCollector extends Collector {
     ArrayList<MetricRule> rules = new ArrayList<MetricRule>();
 
     public CloudWatchCollector(Reader in) throws IOException {
-        this((Map<String, Object>)new Yaml().load(in),null);
+        loadConfig(in, null);
     }
     public CloudWatchCollector(String yamlConfig) {
         this((Map<String, Object>)new Yaml().load(yamlConfig),null);
@@ -73,6 +73,20 @@ public class CloudWatchCollector extends Collector {
     }
 
     private CloudWatchCollector(Map<String, Object> config, AmazonCloudWatchClient client) {
+        loadConfig(config, client);
+    }
+
+    protected void reloadConfig(Reader in) throws IOException {
+        this.rules.clear();
+        this.region = null;
+
+        loadConfig(in, this.client);
+    }
+    protected void loadConfig(Reader in, AmazonCloudWatchClient client) throws IOException {
+        loadConfig((Map<String, Object>)new Yaml().load(in), client);
+    }
+
+    private void loadConfig(Map<String, Object> config, AmazonCloudWatchClient client) {
         if(config == null) {  // Yaml config empty, set config to empty map.
             config = new HashMap<String, Object>(); 
         }

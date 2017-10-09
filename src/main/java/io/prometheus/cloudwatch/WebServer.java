@@ -20,6 +20,7 @@ public class WebServer {
      context.setContextPath("/");
      server.setHandler(context);
      context.addServlet(new ServletHolder(new MetricsServlet()), "/metrics");
+     context.addServlet(new ServletHolder(new DynamicReloadServlet(cc, args[1])), "/-/reload");
      context.addServlet(new ServletHolder(new HomePageServlet()), "/");
      server.start();
      server.join();
