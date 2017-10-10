@@ -297,15 +297,6 @@ public class CloudWatchCollectorTest {
   }
 
   @Test
-  public void testGetMonitoringEndpoint() throws Exception {
-    CloudWatchCollector us_collector = new CloudWatchCollector("---\nregion: us-east-1\nmetrics: []\n");
-    assertEquals("https://monitoring.us-east-1.amazonaws.com", us_collector.getMonitoringEndpoint());
-
-    CloudWatchCollector cn_collector = new CloudWatchCollector("---\nregion: cn-north-1\nmetrics: []\n");
-    assertEquals("https://monitoring.cn-north-1.amazonaws.com.cn", cn_collector.getMonitoringEndpoint());
-  }
-
-  @Test
   public void testExtendedStatistics() throws Exception {
     new CloudWatchCollector(
         "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: Latency\n  aws_extended_statistics:\n  - p95\n  - p99.99", client).register(registry);

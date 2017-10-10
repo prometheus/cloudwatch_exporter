@@ -34,7 +34,7 @@ public class CloudWatchCollector extends Collector {
 
     AmazonCloudWatchClient client;
 
-    Region region;
+    ArrayList<MetricRule> rules;
 
     static class MetricRule {
       String awsNamespace;
@@ -58,8 +58,6 @@ public class CloudWatchCollector extends Collector {
             "ProvisionedReadCapacityUnits", "ProvisionedWriteCapacityUnits",
             "ReadThrottleEvents", "WriteThrottleEvents");
 
-    ArrayList<MetricRule> rules = new ArrayList<MetricRule>();
-
     public CloudWatchCollector(Reader in) throws IOException {
         loadConfig(in, null);
     }
@@ -76,10 +74,19 @@ public class CloudWatchCollector extends Collector {
         loadConfig(config, client);
     }
 
-    protected void reloadConfig(Reader in) throws IOException {
-        this.rules.clear();
-        this.region = null;
+    private ArrayList<MetricRule> getRules() {
+        synchronized (rules) {
+            return rules;
+        }
+    }
 
+    private void setRules(ArrayList<MetricRule> rules) {
+        synchronized (rules) {
+            this.rules = rules;
+        }
+    }
+
+    protected void loadConfig(Reader in) throws IOException {
         loadConfig(in, this.client);
     }
     protected void loadConfig(Reader in, AmazonCloudWatchClient client) throws IOException {
@@ -88,12 +95,11 @@ public class CloudWatchCollector extends Collector {
 
     private void loadConfig(Map<String, Object> config, AmazonCloudWatchClient client) {
         if(config == null) {  // Yaml config empty, set config to empty map.
-            config = new HashMap<String, Object>(); 
+            config = new HashMap<String, Object>();
         }
         if (!config.containsKey("region")) {
           throw new IllegalArgumentException("Must provide region");
         }
-        region = RegionUtils.getRegion((String) config.get("region"));
 
         int defaultPeriod = 60;
         if (config.containsKey("period_seconds")) {
@@ -118,7 +124,8 @@ public class CloudWatchCollector extends Collector {
           } else {
             this.client = new AmazonCloudWatchClient();
           }
-          this.client.setEndpoint(getMonitoringEndpoint());
+          Region region = RegionUtils.getRegion((String) config.get("region"));
+          this.client.setEndpoint(getMonitoringEndpoint(region));
         } else {
           this.client = client;
         }
@@ -126,6 +133,9 @@ public class CloudWatchCollector extends Collector {
         if (!config.containsKey("metrics")) {
           throw new IllegalArgumentException("Must provide metrics");
         }
+
+        ArrayList<MetricRule> rules = new ArrayList<MetricRule>();
+
         for (Object ruleObject : (List<Map<String,Object>>) config.get("metrics")) {
           Map<String, Object> yamlMetricRule = (Map<String, Object>)ruleObject;
           MetricRule rule = new MetricRule();
@@ -174,9 +184,11 @@ public class CloudWatchCollector extends Collector {
             rule.delaySeconds = defaultDelay;
           }
         }
+
+        setRules(rules);
     }
 
-    public String getMonitoringEndpoint() {
+    private String getMonitoringEndpoint(Region region) {
       return "https://" + region.getServiceEndpoint("monitoring");
     }
 
@@ -311,7 +323,7 @@ public class CloudWatchCollector extends Collector {
 
     private void scrape(List<MetricFamilySamples> mfs) {
       long start = System.currentTimeMillis();
-      for (MetricRule rule: rules) {
+      for (MetricRule rule: getRules()) {
         Date startDate = new Date(start - 1000 * rule.delaySeconds);
         Date endDate = new Date(start - 1000 * (rule.delaySeconds + rule.rangeSeconds));
         GetMetricStatisticsRequest request = new GetMetricStatisticsRequest();
@@ -419,7 +431,7 @@ public class CloudWatchCollector extends Collector {
     public List<MetricFamilySamples> collect() {
       long start = System.nanoTime();
       double error = 0;
-      List<MetricFamilySamples> mfs = new ArrayList<MetricFamilySamples>(); 
+      List<MetricFamilySamples> mfs = new ArrayList<MetricFamilySamples>();
       try {
         scrape(mfs);
       } catch (Exception e) {

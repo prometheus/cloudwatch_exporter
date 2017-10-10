@@ -6,7 +6,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,7 +24,7 @@ public class DynamicReloadServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         LOGGER.log(Level.INFO, "Reloading configuration file");
 
-        this.collector.reloadConfig(new FileReader(this.configFilePath));
+        this.collector.loadConfig(new FileReader(this.configFilePath));
 
         resp.setContentType("text/html");
         resp.getWriter().print("OK");
