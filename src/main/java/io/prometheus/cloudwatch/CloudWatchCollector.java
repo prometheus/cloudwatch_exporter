@@ -188,7 +188,7 @@ public class CloudWatchCollector extends Collector {
         setRules(rules);
     }
 
-    private String getMonitoringEndpoint(Region region) {
+    public String getMonitoringEndpoint(Region region) {
       return "https://" + region.getServiceEndpoint("monitoring");
     }
 
