@@ -14,6 +14,8 @@ import com.amazonaws.services.cloudwatch.model.ListMetricsResult;
 import com.amazonaws.services.cloudwatch.model.Metric;
 import io.prometheus.client.Collector;
 import io.prometheus.client.Counter;
+
+import java.io.FileReader;
 import java.io.Reader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -89,13 +91,15 @@ public class CloudWatchCollector extends Collector {
         }
     }
 
-    protected void loadConfig(Reader in) throws IOException {
-        loadConfig(in, getClient());
+    protected void reloadConfig() throws IOException {
+        LOGGER.log(Level.INFO, "Reloading configuration");
+
+        loadConfig(new FileReader(WebServer.configFilePath), getClient());
     }
+
     protected void loadConfig(Reader in, AmazonCloudWatchClient client) throws IOException {
         loadConfig((Map<String, Object>)new Yaml().load(in), client);
     }
-
     private void loadConfig(Map<String, Object> config, AmazonCloudWatchClient client) {
         if(config == null) {  // Yaml config empty, set config to empty map.
             config = new HashMap<String, Object>();
