@@ -26,7 +26,7 @@ public class DynamicReloadServlet extends HttpServlet {
 
         this.collector.loadConfig(new FileReader(this.configFilePath));
 
-        resp.setContentType("text/html");
+        resp.setContentType("text/plain");
         resp.getWriter().print("OK");
     }
 }
