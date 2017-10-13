@@ -32,9 +32,10 @@ import org.yaml.snakeyaml.Yaml;
 public class CloudWatchCollector extends Collector {
     private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
 
-    AmazonCloudWatchClient client;
-
-    ArrayList<MetricRule> rules;
+    static class ActiveConfig {
+        ArrayList<MetricRule> rules;
+        AmazonCloudWatchClient client;
+    }
 
     static class MetricRule {
       String awsNamespace;
@@ -49,6 +50,8 @@ public class CloudWatchCollector extends Collector {
       Map<String,List<String>> awsDimensionSelectRegex;
       String help;
     }
+
+    ActiveConfig activeConfig = new ActiveConfig();
 
     private static final Counter cloudwatchRequests = Counter.build()
       .name("cloudwatch_requests_total").help("API requests made to CloudWatch").register();
@@ -74,20 +77,20 @@ public class CloudWatchCollector extends Collector {
         loadConfig(config, client);
     }
 
-    private ArrayList<MetricRule> getRules() {
-        synchronized (rules) {
-            return rules;
+    private AmazonCloudWatchClient getClient() {
+        synchronized (activeConfig) {
+            return activeConfig.client;
         }
     }
 
-    private void setRules(ArrayList<MetricRule> rules) {
-        synchronized (rules) {
-            this.rules = rules;
+    private ArrayList<MetricRule> getRules() {
+        synchronized (activeConfig) {
+            return activeConfig.rules;
         }
     }
 
     protected void loadConfig(Reader in) throws IOException {
-        loadConfig(in, this.client);
+        loadConfig(in, getClient());
     }
     protected void loadConfig(Reader in, AmazonCloudWatchClient client) throws IOException {
         loadConfig((Map<String, Object>)new Yaml().load(in), client);
@@ -120,14 +123,12 @@ public class CloudWatchCollector extends Collector {
               (String) config.get("role_arn"),
               "cloudwatch_exporter"
             );
-            this.client = new AmazonCloudWatchClient(credentialsProvider);
+            client = new AmazonCloudWatchClient(credentialsProvider);
           } else {
-            this.client = new AmazonCloudWatchClient();
+            client = new AmazonCloudWatchClient();
           }
           Region region = RegionUtils.getRegion((String) config.get("region"));
-          this.client.setEndpoint(getMonitoringEndpoint(region));
-        } else {
-          this.client = client;
+          client.setEndpoint(getMonitoringEndpoint(region));
         }
 
         if (!config.containsKey("metrics")) {
@@ -185,7 +186,14 @@ public class CloudWatchCollector extends Collector {
           }
         }
 
-        setRules(rules);
+        loadConfig(rules, client);
+    }
+
+    private void loadConfig(ArrayList<MetricRule> rules, AmazonCloudWatchClient client) {
+        synchronized (activeConfig) {
+            activeConfig.client = client;
+            activeConfig.rules = rules;
+        }
     }
 
     public String getMonitoringEndpoint(Region region) {
@@ -211,7 +219,7 @@ public class CloudWatchCollector extends Collector {
       String nextToken = null;
       do {
         request.setNextToken(nextToken);
-        ListMetricsResult result = client.listMetrics(request);
+        ListMetricsResult result = getClient().listMetrics(request);
         cloudwatchRequests.inc();
         for (Metric metric: result.getMetrics()) {
           if (metric.getDimensions().size() != dimensionFilters.size()) {
@@ -355,7 +363,7 @@ public class CloudWatchCollector extends Collector {
         for (List<Dimension> dimensions: getDimensions(rule)) {
           request.setDimensions(dimensions);
 
-          GetMetricStatisticsResult result = client.getMetricStatistics(request);
+          GetMetricStatisticsResult result = getClient().getMetricStatistics(request);
           cloudwatchRequests.inc();
           Datapoint dp = getNewestDatapoint(result.getDatapoints());
           if (dp == null) {
