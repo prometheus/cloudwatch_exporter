@@ -1,6 +1,6 @@
 FROM wehkamp/jre:8.121.13-r0_02
 MAINTAINER Prometheus Team <prometheus-developers@googlegroups.com>
-LABEL container.name=wehkamp/prometheus-cloudwatch-exporter:1.1
+LABEL container.name=wehkamp/prometheus-cloudwatch-exporter:1.2
 
 EXPOSE 9106
 
