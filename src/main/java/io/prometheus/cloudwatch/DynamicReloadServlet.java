@@ -10,6 +10,11 @@ import java.util.logging.Logger;
 
 public class DynamicReloadServlet extends HttpServlet {
     private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
+    private static CloudWatchCollector collector;
+
+    public DynamicReloadServlet(CloudWatchCollector collector) {
+        this.collector = collector;
+    }
 
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setStatus(405);
@@ -18,7 +23,7 @@ public class DynamicReloadServlet extends HttpServlet {
     }
 
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        WebServer.collector.reloadConfig();
+        collector.reloadConfig();
 
         resp.setContentType("text/plain");
         resp.getWriter().print("OK");

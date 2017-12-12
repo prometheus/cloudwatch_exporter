@@ -14,7 +14,6 @@ import sun.misc.SignalHandler;
 public class WebServer {
 
     public static String configFilePath;
-    public static CloudWatchCollector collector;
 
     public static void main(String[] args) throws Exception {
         if (args.length < 2) {
@@ -23,9 +22,9 @@ public class WebServer {
         }
 
         configFilePath = args[1];
-        collector = new CloudWatchCollector(new FileReader(configFilePath)).register();
+        CloudWatchCollector collector = new CloudWatchCollector(new FileReader(configFilePath)).register();
 
-        ReloadSignalHandler.start();
+        ReloadSignalHandler.start(collector);
 
         int port = Integer.parseInt(args[0]);
         Server server = new Server(port);
@@ -33,7 +32,7 @@ public class WebServer {
         context.setContextPath("/");
         server.setHandler(context);
         context.addServlet(new ServletHolder(new MetricsServlet()), "/metrics");
-        context.addServlet(new ServletHolder(new DynamicReloadServlet()), "/-/reload");
+        context.addServlet(new ServletHolder(new DynamicReloadServlet(collector)), "/-/reload");
         context.addServlet(new ServletHolder(new HomePageServlet()), "/");
         server.start();
         server.join();
