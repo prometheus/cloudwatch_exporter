@@ -99,9 +99,9 @@ DynamoDB metrics not listed above.
 There are two ways to reload configuration:
 
 1. Send a SIGHUP signal to the pid: `kill -HUP 1234`
-2. POST to the `reload` endpoint: `curl -X localhost:9107/-/reload`
+2. POST to the `reload` endpoint: `curl -X localhost:9106/-/reload`
 
-If an error occurs during the reload, see check the exporter's log output.
+If an error occurs during the reload, check the exporter's log output.
 
 ### Cost
 
