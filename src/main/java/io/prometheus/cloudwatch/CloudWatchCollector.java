@@ -34,9 +34,14 @@ import org.yaml.snakeyaml.Yaml;
 public class CloudWatchCollector extends Collector {
     private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
 
-    static class ActiveConfig {
+    static class ActiveConfig implements Cloneable {
         ArrayList<MetricRule> rules;
         AmazonCloudWatchClient client;
+
+        @Override
+        public Object clone() throws CloneNotSupportedException {
+            return super.clone();
+        }
     }
 
     static class MetricRule {
@@ -79,22 +84,10 @@ public class CloudWatchCollector extends Collector {
         loadConfig(config, client);
     }
 
-    private AmazonCloudWatchClient getClient() {
-        synchronized (activeConfig) {
-            return activeConfig.client;
-        }
-    }
-
-    private ArrayList<MetricRule> getRules() {
-        synchronized (activeConfig) {
-            return activeConfig.rules;
-        }
-    }
-
     protected void reloadConfig() throws IOException {
         LOGGER.log(Level.INFO, "Reloading configuration");
 
-        loadConfig(new FileReader(WebServer.configFilePath), getClient());
+        loadConfig(new FileReader(WebServer.configFilePath), activeConfig.client);
     }
 
     protected void loadConfig(Reader in, AmazonCloudWatchClient client) throws IOException {
@@ -204,7 +197,7 @@ public class CloudWatchCollector extends Collector {
       return "https://" + region.getServiceEndpoint("monitoring");
     }
 
-    private List<List<Dimension>> getDimensions(MetricRule rule) {
+    private List<List<Dimension>> getDimensions(MetricRule rule, AmazonCloudWatchClient client) {
       List<List<Dimension>> dimensions = new ArrayList<List<Dimension>>();
       if (rule.awsDimensions == null) {
         dimensions.add(new ArrayList<Dimension>());
@@ -223,7 +216,7 @@ public class CloudWatchCollector extends Collector {
       String nextToken = null;
       do {
         request.setNextToken(nextToken);
-        ListMetricsResult result = getClient().listMetrics(request);
+        ListMetricsResult result = client.listMetrics(request);
         cloudwatchRequests.inc();
         for (Metric metric: result.getMetrics()) {
           if (metric.getDimensions().size() != dimensionFilters.size()) {
@@ -333,9 +326,11 @@ public class CloudWatchCollector extends Collector {
           + " Unit: " + unit;
     }
 
-    private void scrape(List<MetricFamilySamples> mfs) {
+    private void scrape(List<MetricFamilySamples> mfs) throws CloneNotSupportedException {
+      ActiveConfig config = (ActiveConfig) activeConfig.clone();
+
       long start = System.currentTimeMillis();
-      for (MetricRule rule: getRules()) {
+      for (MetricRule rule: config.rules) {
         Date startDate = new Date(start - 1000 * rule.delaySeconds);
         Date endDate = new Date(start - 1000 * (rule.delaySeconds + rule.rangeSeconds));
         GetMetricStatisticsRequest request = new GetMetricStatisticsRequest();
@@ -364,10 +359,10 @@ public class CloudWatchCollector extends Collector {
             baseName += "_index";
         }
 
-        for (List<Dimension> dimensions: getDimensions(rule)) {
+        for (List<Dimension> dimensions: getDimensions(rule, config.client)) {
           request.setDimensions(dimensions);
 
-          GetMetricStatisticsResult result = getClient().getMetricStatistics(request);
+          GetMetricStatisticsResult result = config.client.getMetricStatistics(request);
           cloudwatchRequests.inc();
           Datapoint dp = getNewestDatapoint(result.getDatapoints());
           if (dp == null) {

@@ -1,6 +1,5 @@
 package io.prometheus.cloudwatch;
 
-import io.prometheus.cloudwatch.WebServer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import sun.misc.Signal;
