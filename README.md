@@ -94,6 +94,15 @@ the usual `aws_dynamodb_METRIC_STATISTIC`. The regular naming scheme will still
 be used when exporting these metrics for a table, and when exporting any other
 DynamoDB metrics not listed above.
 
+### Reloading Configuration
+
+There are two ways to reload configuration:
+
+1. Send a SIGHUP signal to the pid: `kill -HUP 1234`
+2. POST to the `reload` endpoint: `curl -X localhost:9106/-/reload`
+
+If an error occurs during the reload, check the exporter's log output.
+
 ### Cost
 
 Amazon charges for every API request, see the [current charges](http://aws.amazon.com/cloudwatch/pricing/).

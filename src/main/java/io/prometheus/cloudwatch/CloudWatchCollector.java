@@ -14,6 +14,8 @@ import com.amazonaws.services.cloudwatch.model.ListMetricsResult;
 import com.amazonaws.services.cloudwatch.model.Metric;
 import io.prometheus.client.Collector;
 import io.prometheus.client.Counter;
+
+import java.io.FileReader;
 import java.io.Reader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,9 +34,15 @@ import org.yaml.snakeyaml.Yaml;
 public class CloudWatchCollector extends Collector {
     private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
 
-    AmazonCloudWatchClient client;
+    static class ActiveConfig implements Cloneable {
+        ArrayList<MetricRule> rules;
+        AmazonCloudWatchClient client;
 
-    Region region;
+        @Override
+        public Object clone() throws CloneNotSupportedException {
+            return super.clone();
+        }
+    }
 
     static class MetricRule {
       String awsNamespace;
@@ -50,6 +58,8 @@ public class CloudWatchCollector extends Collector {
       String help;
     }
 
+    ActiveConfig activeConfig = new ActiveConfig();
+
     private static final Counter cloudwatchRequests = Counter.build()
       .name("cloudwatch_requests_total").help("API requests made to CloudWatch").register();
 
@@ -58,10 +68,8 @@ public class CloudWatchCollector extends Collector {
             "ProvisionedReadCapacityUnits", "ProvisionedWriteCapacityUnits",
             "ReadThrottleEvents", "WriteThrottleEvents");
 
-    ArrayList<MetricRule> rules = new ArrayList<MetricRule>();
-
     public CloudWatchCollector(Reader in) throws IOException {
-        this((Map<String, Object>)new Yaml().load(in),null);
+        loadConfig(in, null);
     }
     public CloudWatchCollector(String yamlConfig) {
         this((Map<String, Object>)new Yaml().load(yamlConfig),null);
@@ -73,13 +81,25 @@ public class CloudWatchCollector extends Collector {
     }
 
     private CloudWatchCollector(Map<String, Object> config, AmazonCloudWatchClient client) {
+        loadConfig(config, client);
+    }
+
+    protected void reloadConfig() throws IOException {
+        LOGGER.log(Level.INFO, "Reloading configuration");
+
+        loadConfig(new FileReader(WebServer.configFilePath), activeConfig.client);
+    }
+
+    protected void loadConfig(Reader in, AmazonCloudWatchClient client) throws IOException {
+        loadConfig((Map<String, Object>)new Yaml().load(in), client);
+    }
+    private void loadConfig(Map<String, Object> config, AmazonCloudWatchClient client) {
         if(config == null) {  // Yaml config empty, set config to empty map.
-            config = new HashMap<String, Object>(); 
+            config = new HashMap<String, Object>();
         }
         if (!config.containsKey("region")) {
           throw new IllegalArgumentException("Must provide region");
         }
-        region = RegionUtils.getRegion((String) config.get("region"));
 
         int defaultPeriod = 60;
         if (config.containsKey("period_seconds")) {
@@ -100,18 +120,20 @@ public class CloudWatchCollector extends Collector {
               (String) config.get("role_arn"),
               "cloudwatch_exporter"
             );
-            this.client = new AmazonCloudWatchClient(credentialsProvider);
+            client = new AmazonCloudWatchClient(credentialsProvider);
           } else {
-            this.client = new AmazonCloudWatchClient();
+            client = new AmazonCloudWatchClient();
           }
-          this.client.setEndpoint(getMonitoringEndpoint());
-        } else {
-          this.client = client;
+          Region region = RegionUtils.getRegion((String) config.get("region"));
+          client.setEndpoint(getMonitoringEndpoint(region));
         }
 
         if (!config.containsKey("metrics")) {
           throw new IllegalArgumentException("Must provide metrics");
         }
+
+        ArrayList<MetricRule> rules = new ArrayList<MetricRule>();
+
         for (Object ruleObject : (List<Map<String,Object>>) config.get("metrics")) {
           Map<String, Object> yamlMetricRule = (Map<String, Object>)ruleObject;
           MetricRule rule = new MetricRule();
@@ -160,13 +182,22 @@ public class CloudWatchCollector extends Collector {
             rule.delaySeconds = defaultDelay;
           }
         }
+
+        loadConfig(rules, client);
     }
 
-    public String getMonitoringEndpoint() {
+    private void loadConfig(ArrayList<MetricRule> rules, AmazonCloudWatchClient client) {
+        synchronized (activeConfig) {
+            activeConfig.client = client;
+            activeConfig.rules = rules;
+        }
+    }
+
+    public String getMonitoringEndpoint(Region region) {
       return "https://" + region.getServiceEndpoint("monitoring");
     }
 
-    private List<List<Dimension>> getDimensions(MetricRule rule) {
+    private List<List<Dimension>> getDimensions(MetricRule rule, AmazonCloudWatchClient client) {
       List<List<Dimension>> dimensions = new ArrayList<List<Dimension>>();
       if (rule.awsDimensions == null) {
         dimensions.add(new ArrayList<Dimension>());
@@ -295,9 +326,11 @@ public class CloudWatchCollector extends Collector {
           + " Unit: " + unit;
     }
 
-    private void scrape(List<MetricFamilySamples> mfs) {
+    private void scrape(List<MetricFamilySamples> mfs) throws CloneNotSupportedException {
+      ActiveConfig config = (ActiveConfig) activeConfig.clone();
+
       long start = System.currentTimeMillis();
-      for (MetricRule rule: rules) {
+      for (MetricRule rule: config.rules) {
         Date startDate = new Date(start - 1000 * rule.delaySeconds);
         Date endDate = new Date(start - 1000 * (rule.delaySeconds + rule.rangeSeconds));
         GetMetricStatisticsRequest request = new GetMetricStatisticsRequest();
@@ -326,10 +359,10 @@ public class CloudWatchCollector extends Collector {
             baseName += "_index";
         }
 
-        for (List<Dimension> dimensions: getDimensions(rule)) {
+        for (List<Dimension> dimensions: getDimensions(rule, config.client)) {
           request.setDimensions(dimensions);
 
-          GetMetricStatisticsResult result = client.getMetricStatistics(request);
+          GetMetricStatisticsResult result = config.client.getMetricStatistics(request);
           cloudwatchRequests.inc();
           Datapoint dp = getNewestDatapoint(result.getDatapoints());
           if (dp == null) {
@@ -405,7 +438,7 @@ public class CloudWatchCollector extends Collector {
     public List<MetricFamilySamples> collect() {
       long start = System.nanoTime();
       double error = 0;
-      List<MetricFamilySamples> mfs = new ArrayList<MetricFamilySamples>(); 
+      List<MetricFamilySamples> mfs = new ArrayList<MetricFamilySamples>();
       try {
         scrape(mfs);
       } catch (Exception e) {
