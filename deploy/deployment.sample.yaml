@@ -17,7 +17,7 @@ spec:
     metadata:
       labels:
         app: prometheus-cloudwatch-exporter 
-        version: 0.4
+        version: "0.4"
     spec:
       containers:
       - env:
@@ -27,7 +27,7 @@ spec:
           value: {{aws_secret_access_key}}
         image: {{org}}/cloudwatch-exporter:{{tag}}
         imagePullPolicy: IfNotPresent
-        name: voice-67b3b31
+        name: prometheus-cloudwatch-exporter 
         ports:
         - containerPort: 9106
           protocol: TCP
@@ -41,8 +41,6 @@ spec:
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
       dnsPolicy: ClusterFirst
-      imagePullSecrets:
-      - name: {{image_secret}}
       restartPolicy: Always
       schedulerName: default-scheduler
       securityContext: {}

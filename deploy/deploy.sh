@@ -11,32 +11,27 @@ IMAGE_NAME='cloudwatch-exporter'
 IMAGE_SECRET='dev-secret-docker'
 DEPLOYMENT_YAML='deploy/deployment.yaml'
 
-if [[ $GIT_UNTRACKED_FILES -ne 0 || ${GIT_UNSTAGED_DIFF} -ne 0 || ${GIT_STAGED_DIFF} -ne 0 ]]; then
-    echo "[ERROR]: Deployment not started as there are local changes"
-    exit 1
-fi
-
 echo "Pulling latest code"
-git pull origin master
+#git pull origin master
 
 echo "Building image"
 TAG=`git rev-parse HEAD`
-docker build -t ${IMAGE_NAME}:${TAG} .
+docker build -t ${ORG}/${IMAGE_NAME}:${TAG} .
 
 echo "Pushing new image"
-docker push ${IMAGE_NAME}:${TAG}
+docker push ${ORG}/${IMAGE_NAME}:${TAG}
 
 echo "Creating new deployment yaml"
 cp deploy/deployment.sample.yaml ${DEPLOYMENT_YAML}
 sed -i "s#{{tag}}#${TAG}#g" ${DEPLOYMENT_YAML}
 sed -i "s#{{org}}#${ORG}#g" ${DEPLOYMENT_YAML}
-sed -i "s#{{aws_acess_key_id}}#${AWS_ACCESS_KEY_ID}#g" ${DEPLOYMENT_YAML}
+sed -i "s#{{aws_access_key_id}}#${AWS_ACCESS_KEY_ID}#g" ${DEPLOYMENT_YAML}
 sed -i "s#{{aws_secret_access_key}}#${AWS_SECRET_ACCESS_KEY}#g" ${DEPLOYMENT_YAML}
-sed -i "s#{{image_secret}}#${IMAGE_SECRET}g" ${DEPLOYMENT_YAML}
+sed -i "s#{{image_secret}}#${IMAGE_SECRET}#g" ${DEPLOYMENT_YAML}
 
 echo "Rolling update first status"
 kubectl apply -f ${DEPLOYMENT_YAML}
 kubectl get pods -n ${NAMESPACE} | grep cloudwatch
 
 echo "Check rollout status using"
-echo kubectl get pods -n ${NAMESPACE} 
+echo kubectl get pods -n ${NAMESPACE} | grep cloudwatch 
