@@ -140,3 +140,8 @@ metrics:
   aws_metric_name: WriteIOPS
   aws_dimensions: [NodeID, ClusterIdentifier]
   aws_statistics: [Average]
+
+- aws_namespace: AWS/SQS
+  aws_metric_name: ApproximateNumberOfMessagesVisible
+  aws_dimensions: [QueueName]
+  aws_statistics: [Average]
