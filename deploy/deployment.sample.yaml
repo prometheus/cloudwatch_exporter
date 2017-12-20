@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   labels:
     app: prometheus-cloudwatch-exporter 
-    version: latest
+    version: "0.4" 
   name: prometheus-cloudwatch-exporter
   namespace: monitoring
 spec:
