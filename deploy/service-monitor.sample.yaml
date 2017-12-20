@@ -2,18 +2,17 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   namespace: monitoring
-  name: prometheus-cloudwatch-servicemonitor
+  name: cloudwatch-exporter
   labels:
-    k8s-apps: http
+    k8s-app: cloudwatch-exporter
 spec:
-  jobLabel: k8s-app
+  jobLabel: app
   selector:
-    matchExpressions:
-    - {key: k8s-app, operator: Exists}
+    matchLabels:
+      app: prometheus-cloudwatch-exporter 
   namespaceSelector:
     matchNames:
-    - kube-system
     - monitoring
   endpoints:
   - port: sqs-metrics
-    interval: 15s
+    interval: 30s
