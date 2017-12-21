@@ -35,10 +35,10 @@ sed -i "s#{{aws_secret_access_key}}#${AWS_SECRET_ACCESS_KEY}#g" ${DEPLOYMENT_YAM
 sed -i "s#{{image_secret}}#${IMAGE_SECRET}#g" ${DEPLOYMENT_YAML}
 
 echo "Rolling update first status"
-kubectl apply -f ${DEPLOYMENT_YAML}
-kubectl apply -f ${SERVICE_YAML}
-kubectl apply -f ${SERVICE_MONITOR_YAML}
-kubectl get pods -n ${NAMESPACE}
+kubectl --context=k8sd.practodev.com apply -f ${DEPLOYMENT_YAML}
+kubectl --context=k8sd.practodev.com apply -f ${SERVICE_YAML}
+kubectl --context=k8sd.practodev.com apply -f ${SERVICE_MONITOR_YAML}
+kubectl --context=k8sd.practodev.com get pods -n ${NAMESPACE}
 
 echo "Check rollout status using"
 echo "kubectl get pods -n ${NAMESPACE}"

@@ -1,9 +1,11 @@
 CloudWatch Exporter
 =====
+An exporter for [Amazon CloudWatch](http://aws.amazon.com/cloudwatch/), for Prometheus.
 
 ## Deploying to Kubernetes
 
-An exporter for [Amazon CloudWatch](http://aws.amazon.com/cloudwatch/), for Prometheus.
+- Edit `config.yml`
+- Deploy using `./deploy/deploy.sh`
 
 ## Building and running
 
