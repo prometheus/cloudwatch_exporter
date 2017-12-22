@@ -7,6 +7,8 @@ An exporter for [Amazon CloudWatch](http://aws.amazon.com/cloudwatch/), for Prom
 - Edit `config.yml`
 - Deploy using
 ```
+export AWS_ACCESS_KEY_ID='sample-aws-access-key'
+export AWS_SECRET_ACCESS_KEY='sample-aws-access-secret'
 ./deploy/deploy.sh
 ```
 

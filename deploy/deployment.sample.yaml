@@ -5,7 +5,7 @@ metadata:
     app: prometheus-cloudwatch-exporter 
     version: "0.4" 
   name: prometheus-cloudwatch-exporter
-  namespace: monitoring
+  namespace: central 
 spec:
   replicas: 1
   strategy:
@@ -41,6 +41,8 @@ spec:
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
       dnsPolicy: ClusterFirst
+      imagePullSecrets:
+      - name: {{image_secret}} 
       restartPolicy: Always
       schedulerName: default-scheduler
       securityContext: {}
