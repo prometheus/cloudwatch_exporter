@@ -5,7 +5,10 @@ An exporter for [Amazon CloudWatch](http://aws.amazon.com/cloudwatch/), for Prom
 ## Deploying to Kubernetes
 
 - Edit `config.yml`
-- Deploy using `./deploy/deploy.sh`
+- Deploy using
+```
+./deploy/deploy.sh
+```
 
 ## Building and running
 
