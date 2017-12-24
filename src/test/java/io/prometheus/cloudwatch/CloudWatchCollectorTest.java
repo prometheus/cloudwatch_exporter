@@ -130,7 +130,7 @@ public class CloudWatchCollectorTest {
   @Test
   public void testMetricPeriod() {
     new CloudWatchCollector(
-            "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  period_seconds: 100\n  range_seconds: 200\n  delay_seconds: 300", client).register(registry);
+            "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  period_seconds: 100\n  range_seconds: 200\n  delay_seconds: 300\n  prometheus_metric_name_prefix: aws_elb_mylb", client).register(registry);
 
     Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest) anyObject()))
             .thenReturn(new GetMetricStatisticsResult());

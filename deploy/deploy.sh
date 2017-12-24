@@ -5,10 +5,6 @@ set -e
 GIT_UNTRACKED_FILES=`git ls-files --others --exclude-standard | wc -l`
 GIT_UNSTAGED_DIFF=`git diff --no-ext-diff | wc -l`
 GIT_STAGED_DIFF=`git diff-index --cached HEAD -- | wc -l`
-NAMESPACE='monitoring'
-ORG='practodev'
-IMAGE_NAME='cloudwatch-exporter'
-IMAGE_SECRET='dev-secret-docker'
 DEPLOYMENT_YAML='deploy/deployment.yaml'
 SERVICE_YAML='deploy/service.yaml'
 SERVICE_MONITOR_YAML='deploy/service-monitor.yaml'
@@ -18,6 +14,7 @@ echo "Pulling latest code"
 
 echo "Building image"
 TAG=`git rev-parse HEAD`
+docker run -v `pwd`:/cloudwatch_exporter -v $M2_DIR:/root/.m2 ${ORG}/${BUILD_IMAGE_NAME} /bin/bash /cloudwatch_exporter/deploy/build.sh
 docker build -t ${ORG}/${IMAGE_NAME}:${TAG} .
 
 echo "Pushing new image"

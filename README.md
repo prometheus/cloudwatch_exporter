@@ -9,6 +9,13 @@ An exporter for [Amazon CloudWatch](http://aws.amazon.com/cloudwatch/), for Prom
 ```
 export AWS_ACCESS_KEY_ID='sample-aws-access-key'
 export AWS_SECRET_ACCESS_KEY='sample-aws-access-secret'
+export NAMESPACE='sample-namespace-to-deploy'
+export ORG='sample-container-registry-org'
+export IMAGE_NAME='sample-exporter-image-name'
+export IMAGE_SECRET='sample-k8s-deployment-image-secret'
+export M2_DIR='/home/ubuntu/.m2'
+export BUILD_IMAGE_NAME='sample-java-image-to-use-for-build'
+
 ./deploy/deploy.sh
 ```
 

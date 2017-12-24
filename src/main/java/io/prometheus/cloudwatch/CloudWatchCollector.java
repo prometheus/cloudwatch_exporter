@@ -115,9 +115,11 @@ public class CloudWatchCollector extends Collector {
           defaultDelay = ((Number)config.get("delay_seconds")).intValue();
         }
 
-        prometheusMetricNamePrefix = safeName((String)config.get("aws_namespace").toLowerCase() + "_" + toSnakeCase(config.get("aws_metric_name")));
+	String prometheusMetricNamePrefix = safeName(((String) config.get("aws_namespace")).toLowerCase() + "_" + toSnakeCase((String) config.get("aws_metric_name")));
+
+      // String prometheusMetricNamePrefix = safeName(((String) config.get("aws_namespace")).toLowerCase() + "_" + toSnakeCase(((String) config.get("aws_metric_name")).string()));
         if (config.containsKey("prometheus_metric_name_prefix")) {
-            prometheusMetricNamePrefix = ((String)config.get("prometheus_metric_name_prefix")).string();
+            prometheusMetricNamePrefix = ((String) config.get("prometheus_metric_name_prefix"));
         }
 
         if (client == null) {
