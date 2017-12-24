@@ -2,7 +2,7 @@ CloudWatch Exporter
 =====
 An exporter for [Amazon CloudWatch](http://aws.amazon.com/cloudwatch/), for Prometheus.
 
-## Deploying to Kubernetes
+## Building and running in Kubernetes
 
 - Edit `config.yml`
 - Deploy using
@@ -19,7 +19,7 @@ export BUILD_IMAGE_NAME='sample-java-image-to-use-for-build'
 ./deploy/deploy.sh
 ```
 
-## Building and running
+## Building and running locally
 
 `mvn package` to build.
 
