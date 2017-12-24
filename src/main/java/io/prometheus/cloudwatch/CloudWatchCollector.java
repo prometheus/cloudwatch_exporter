@@ -115,13 +115,6 @@ public class CloudWatchCollector extends Collector {
           defaultDelay = ((Number)config.get("delay_seconds")).intValue();
         }
 
-	String prometheusMetricNamePrefix = safeName(((String) config.get("aws_namespace")).toLowerCase() + "_" + toSnakeCase((String) config.get("aws_metric_name")));
-
-      // String prometheusMetricNamePrefix = safeName(((String) config.get("aws_namespace")).toLowerCase() + "_" + toSnakeCase(((String) config.get("aws_metric_name")).string()));
-        if (config.containsKey("prometheus_metric_name_prefix")) {
-            prometheusMetricNamePrefix = ((String) config.get("prometheus_metric_name_prefix"));
-        }
-
         if (client == null) {
           if (config.containsKey("role_arn")) {
             STSAssumeRoleSessionCredentialsProvider credentialsProvider = new STSAssumeRoleSessionCredentialsProvider(
@@ -150,10 +143,15 @@ public class CloudWatchCollector extends Collector {
             throw new IllegalArgumentException("Must provide aws_namespace and aws_metric_name");
           }
 
-          rule.prometheusMetricNamePrefix = prometheusMetricNamePrefix;
-
           rule.awsNamespace = (String)yamlMetricRule.get("aws_namespace");
           rule.awsMetricName = (String)yamlMetricRule.get("aws_metric_name");
+
+          if (!yamlMetricRule.containsKey("prometheus_metric_name_prefix")) {
+              rule.prometheusMetricNamePrefix = safeName(rule.awsNamespace.toLowerCase() + "_" + toSnakeCase(rule.awsMetricName));
+          } else {
+              rule.prometheusMetricNamePrefix = safeName((String)yamlMetricRule.get("prometheus_metric_name_prefix"));
+          }
+
           if (yamlMetricRule.containsKey("help")) {
             rule.help = (String)yamlMetricRule.get("help");
           }
