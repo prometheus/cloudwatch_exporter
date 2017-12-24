@@ -9,4 +9,5 @@ WORKDIR /
 RUN mkdir /config
 
 ADD config.yml /config/
+ADD target/cloudwatch_exporter-0.5-SNAPSHOT.jar /cloudwatch_exporter.jar
 ENTRYPOINT [ "java", "-jar", "/cloudwatch_exporter.jar", "9106", "/config/config.yml" ]

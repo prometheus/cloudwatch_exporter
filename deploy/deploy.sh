@@ -13,8 +13,9 @@ echo "Pulling latest code"
 #git pull origin master
 
 echo "Building image"
+echo `pwd`
 TAG=`git rev-parse HEAD`
-docker run -v `pwd`:/cloudwatch_exporter -v $M2_DIR:/root/.m2 ${ORG}/${BUILD_IMAGE_NAME} /bin/bash /cloudwatch_exporter/deploy/build.sh
+docker run -v `pwd`:/cloudwatch_exporter -v ${M2_DIR}:/root/.m2 ${ORG}/${BUILD_IMAGE_NAME} /bin/bash /cloudwatch_exporter/deploy/build.sh
 docker build -t ${ORG}/${IMAGE_NAME}:${TAG} .
 
 echo "Pushing new image"
