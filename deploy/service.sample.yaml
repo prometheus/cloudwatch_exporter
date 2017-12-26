@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: central 
+  labels:
+    app: prometheus-cloudwatch-exporter
+    version: "0.4"
+  annotations:
+    alpha.monitoring.coreos.com/non-namespaced: "true"
+  name: prometheus-cloudwatch-exporter
+spec:
+  ports:
+  - name: sqs-metrics
+    port: 9106
+    targetPort: 9106 
+    protocol: TCP
+  selector:
+    app: prometheus-cloudwatch-exporter 

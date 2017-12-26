@@ -45,6 +45,7 @@ public class CloudWatchCollector extends Collector {
     }
 
     static class MetricRule {
+      String prometheusMetricNamePrefix;
       String awsNamespace;
       String awsMetricName;
       int periodSeconds;
@@ -141,8 +142,16 @@ public class CloudWatchCollector extends Collector {
           if (!yamlMetricRule.containsKey("aws_namespace") || !yamlMetricRule.containsKey("aws_metric_name")) {
             throw new IllegalArgumentException("Must provide aws_namespace and aws_metric_name");
           }
+
           rule.awsNamespace = (String)yamlMetricRule.get("aws_namespace");
           rule.awsMetricName = (String)yamlMetricRule.get("aws_metric_name");
+
+          if (!yamlMetricRule.containsKey("prometheus_metric_name_prefix")) {
+              rule.prometheusMetricNamePrefix = safeName(rule.awsNamespace.toLowerCase() + "_" + toSnakeCase(rule.awsMetricName));
+          } else {
+              rule.prometheusMetricNamePrefix = safeName((String)yamlMetricRule.get("prometheus_metric_name_prefix"));
+          }
+
           if (yamlMetricRule.containsKey("help")) {
             rule.help = (String)yamlMetricRule.get("help");
           }
@@ -342,7 +351,7 @@ public class CloudWatchCollector extends Collector {
         request.setStartTime(endDate);
         request.setPeriod(rule.periodSeconds);
 
-        String baseName = safeName(rule.awsNamespace.toLowerCase() + "_" + toSnakeCase(rule.awsMetricName));
+        String baseName = rule.prometheusMetricNamePrefix;
         String jobName = safeName(rule.awsNamespace.toLowerCase());
         List<MetricFamilySamples.Sample> sumSamples = new ArrayList<MetricFamilySamples.Sample>();
         List<MetricFamilySamples.Sample> sampleCountSamples = new ArrayList<MetricFamilySamples.Sample>();
@@ -474,4 +483,3 @@ public class CloudWatchCollector extends Collector {
       }
     }
 }
-

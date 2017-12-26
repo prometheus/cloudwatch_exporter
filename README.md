@@ -1,9 +1,25 @@
 CloudWatch Exporter
 =====
-
 An exporter for [Amazon CloudWatch](http://aws.amazon.com/cloudwatch/), for Prometheus.
 
-## Building and running
+## Building and running in Kubernetes
+
+- Edit `config.yml`
+- Deploy using
+```
+export AWS_ACCESS_KEY_ID='sample-aws-access-key'
+export AWS_SECRET_ACCESS_KEY='sample-aws-access-secret'
+export NAMESPACE='sample-namespace-to-deploy'
+export ORG='sample-container-registry-org'
+export IMAGE_NAME='sample-exporter-image-name'
+export IMAGE_SECRET='sample-k8s-deployment-image-secret'
+export M2_DIR='/home/ubuntu/.m2'
+export BUILD_IMAGE_NAME='sample-java-image-to-use-for-build'
+
+./deploy/deploy.sh
+```
+
+## Building and running locally
 
 `mvn package` to build.
 
@@ -27,7 +43,8 @@ The configuration is in YAML, an example with common options:
 ---
 region: eu-west-1
 metrics:
- - aws_namespace: AWS/ELB
+ - prometheus_metric_name_prefix: aws_elb_mylb
+   aws_namespace: AWS/ELB
    aws_metric_name: RequestCount
    aws_dimensions: [AvailabilityZone, LoadBalancerName]
    aws_dimension_select:
@@ -39,6 +56,7 @@ Name     | Description
 region   | Required. The AWS region to connect to.
 role_arn   | Optional. The AWS role to assume. Useful for retrieving cross account metrics.
 metrics  | Required. A list of CloudWatch metrics to retrieve and export
+prometheus_metric_name_prefix | Optional. Prefix for the prometheus metric name. by default it is `{aws_namespace}_{aws_metric_name}`
 aws_namespace  | Required. Namespace of the CloudWatch metric.
 aws_metric_name  | Required. Metric name of the CloudWatch metric.
 aws_dimensions | Optional. Which dimension to fan out over.
@@ -50,7 +68,7 @@ delay_seconds | Optional. The newest data to request. Used to avoid collecting d
 range_seconds | Optional. How far back to request data for. Useful for cases such as Billing metrics that are only set every few hours. Defaults to 600s. Can be set globally and per metric.
 period_seconds | Optional. [Period](http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/cloudwatch_concepts.html#CloudWatchPeriods) to request the metric for. Only the most recent data point is used. Defaults to 60s. Can be set globally and per metric.
 
-The above config will export time series such as 
+The above config will export time series such as
 ```
 # HELP aws_elb_request_count_sum CloudWatch metric AWS/ELB RequestCount Dimensions: ["AvailabilityZone","LoadBalancerName"] Statistic: Sum Unit: Count
 # TYPE aws_elb_request_count_sum gauge

@@ -1,0 +1,49 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: prometheus-cloudwatch-exporter 
+    version: "0.4" 
+  name: prometheus-cloudwatch-exporter
+  namespace: central 
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: prometheus-cloudwatch-exporter 
+        version: "0.4"
+    spec:
+      containers:
+      - env:
+        - name: AWS_ACCESS_KEY_ID 
+          value: {{aws_access_key_id}}
+        - name: AWS_SECRET_ACCESS_KEY
+          value: {{aws_secret_access_key}}
+        image: {{org}}/cloudwatch-exporter:{{tag}}
+        imagePullPolicy: IfNotPresent
+        name: prometheus-cloudwatch-exporter 
+        ports:
+        - containerPort: 9106
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 200m
+            memory: 600Mi
+          requests:
+            cpu: 100m
+            memory: 300Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+      - name: {{image_secret}} 
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
