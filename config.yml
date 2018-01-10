@@ -91,3 +91,31 @@ metrics:
   aws_dimension_select_regex:
     DomainName: ["${ES_DOMAIN_NAME_REGEX}"]
     ClientId: ["${ES_DOMAIN_CLIENT_ID}"]
+
+- aws_namespace: AWS/Lambda
+  aws_metric_name: Invocations
+  aws_dimensions: [FunctionName]
+
+- aws_namespace: AWS/Lambda
+  aws_metric_name: Errors
+  aws_dimensions: [FunctionName]
+
+- aws_namespace: AWS/Lambda
+  aws_metric_name: Duration
+  aws_dimensions: [FunctionName]
+
+- aws_namespace: AWS/Lambda
+  aws_metric_name: Dead Letter Error
+  aws_dimensions: [FunctionName]
+
+- aws_namespace: AWS/Lambda
+  aws_metric_name: Throttles
+  aws_dimensions: [FunctionName]
+
+- aws_namespace: AWS/Lambda
+  aws_metric_name: IteratorAge
+  aws_dimensions: [FunctionName]
+
+- aws_namespace: AWS/Lambda
+  aws_metric_name: ConcurrentExecutions
+  aws_dimensions: [FunctionName]
