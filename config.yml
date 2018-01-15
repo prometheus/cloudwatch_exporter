@@ -1,0 +1,121 @@
+---
+region: eu-west-1
+
+# Request data that spans this range:
+range_seconds: 120
+# Request data that is already this old:
+delay_seconds: 120
+# How often do we query AWS?
+period_seconds: 120
+
+metrics:
+- aws_namespace: AWS/ELB
+  aws_metric_name: HealthyHostCount
+  aws_dimensions: [AvailabilityZone, LoadBalancerName]
+  aws_statistics: [Average]
+  aws_dimension_select_regex:
+    LoadBalancerName: ["${LOADBALANCERNAME_REGEX}"]
+
+- aws_namespace: AWS/ELB
+  aws_metric_name: UnHealthyHostCount
+  aws_dimensions: [AvailabilityZone, LoadBalancerName]
+  aws_statistics: [Average]
+  aws_dimension_select_regex:
+    LoadBalancerName: ["${LOADBALANCERNAME_REGEX}"]
+
+- aws_namespace: AWS/ELB
+  aws_metric_name: RequestCount
+  aws_dimensions: [AvailabilityZone, LoadBalancerName]
+  aws_statistics: [Sum]
+  aws_dimension_select_regex:
+    LoadBalancerName: ["${LOADBALANCERNAME_REGEX}"]
+
+- aws_namespace: AWS/ELB
+  aws_metric_name: Latency
+  aws_dimensions: [AvailabilityZone, LoadBalancerName]
+  aws_statistics: [Average]
+  aws_dimension_select_regex:
+    LoadBalancerName: ["${LOADBALANCERNAME_REGEX}"]
+
+- aws_namespace: AWS/ELB
+  aws_metric_name: SurgeQueueLength
+  aws_dimensions: [AvailabilityZone, LoadBalancerName]
+  aws_statistics: [Maximum, Sum]
+  aws_dimension_select_regex:
+    LoadBalancerName: ["${LOADBALANCERNAME_REGEX}"]
+
+- aws_namespace: AWS/ES
+  aws_metric_name: FreeStorageSpace
+  aws_dimensions: [DomainName, ClientId]
+  aws_statistics: [Average]
+  aws_dimension_select_regex:
+    DomainName: ["${ES_DOMAIN_NAME_REGEX}"]
+    ClientId: ["${ES_DOMAIN_CLIENT_ID}"]
+
+- aws_namespace: AWS/ES
+  aws_metric_name: CPUUtilization
+  aws_dimensions: [DomainName, ClientId]
+  aws_statistics: [Average]
+  aws_dimension_select_regex:
+    DomainName: ["${ES_DOMAIN_NAME_REGEX}"]
+    ClientId: ["${ES_DOMAIN_CLIENT_ID}"]
+
+- aws_namespace: AWS/ES
+  aws_metric_name: DiskQueueDepth
+  aws_dimensions: [DomainName, ClientId]
+  aws_statistics: [Average]
+  aws_dimension_select_regex:
+    DomainName: ["${ES_DOMAIN_NAME_REGEX}"]
+    ClientId: ["${ES_DOMAIN_CLIENT_ID}"]
+
+- aws_namespace: AWS/ES
+  aws_metric_name: ClusterStatus.green
+  aws_dimensions: [DomainName, ClientId]
+  aws_statistics: [Average]
+  aws_dimension_select_regex:
+    DomainName: ["${ES_DOMAIN_NAME_REGEX}"]
+    ClientId: ["${ES_DOMAIN_CLIENT_ID}"]
+
+- aws_namespace: AWS/ES
+  aws_metric_name: ClusterStatus.yellow
+  aws_dimensions: [DomainName, ClientId]
+  aws_statistics: [Average]
+  aws_dimension_select_regex:
+    DomainName: ["${ES_DOMAIN_NAME_REGEX}"]
+    ClientId: ["${ES_DOMAIN_CLIENT_ID}"]
+
+- aws_namespace: AWS/ES
+  aws_metric_name: ClusterStatus.red
+  aws_dimensions: [DomainName, ClientId]
+  aws_statistics: [Average]
+  aws_dimension_select_regex:
+    DomainName: ["${ES_DOMAIN_NAME_REGEX}"]
+    ClientId: ["${ES_DOMAIN_CLIENT_ID}"]
+
+- aws_namespace: AWS/Lambda
+  aws_metric_name: Invocations
+  aws_dimensions: [FunctionName]
+
+- aws_namespace: AWS/Lambda
+  aws_metric_name: Errors
+  aws_dimensions: [FunctionName]
+
+- aws_namespace: AWS/Lambda
+  aws_metric_name: Duration
+  aws_dimensions: [FunctionName]
+
+- aws_namespace: AWS/Lambda
+  aws_metric_name: Dead Letter Error
+  aws_dimensions: [FunctionName]
+
+- aws_namespace: AWS/Lambda
+  aws_metric_name: Throttles
+  aws_dimensions: [FunctionName]
+
+- aws_namespace: AWS/Lambda
+  aws_metric_name: IteratorAge
+  aws_dimensions: [FunctionName]
+
+- aws_namespace: AWS/Lambda
+  aws_metric_name: ConcurrentExecutions
+  aws_dimensions: [FunctionName]
