@@ -7,7 +7,9 @@ An exporter for [Amazon CloudWatch](http://aws.amazon.com/cloudwatch/), for Prom
 
 `mvn package` to build.
 
-`java -jar target/cloudwatch_exporter-0.1-SNAPSHOT-jar-with-dependencies.jar 9106 example.yml` to run.
+`java -jar target/cloudwatch_exporter-*-SNAPSHOT-jar-with-dependencies.jar 9106 example.yml` to run.
+
+The most recent pre-built JAR can be found at http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22cloudwatch_exporter%22
 
 ## Credentials and permissions
 
@@ -60,12 +62,45 @@ All metrics are exported as gauges.
 Timestamps from CloudWatch are not passed to Prometheus, pending resolution of
 [#398](https://github.com/prometheus/prometheus/issues/398). CloudWatch has
 been observed to sometimes take minutes for reported values to converge. The
-default `delay_seconds` will result in data that is at least 5 minutes old
+default `delay_seconds` will result in data that is at least 10 minutes old
 being requested to mitigate this.
 
 In addition `cloudwatch_exporter_scrape_error` will be non-zero if an error
 occurred during the scrape, and `cloudwatch_exporter_scrape_duration_seconds`
 contains the duration of that scrape.
+
+### Special handling for certain DynamoDB metrics
+
+The DynamoDB metrics listed below break the usual CloudWatch data model.
+
+ * ConsumedReadCapacityUnits
+ * ConsumedWriteCapacityUnits
+ * ProvisionedReadCapacityUnits
+ * ProvisionedWriteCapacityUnits
+ * ReadThrottleEvents
+ * WriteThrottleEvents
+
+When these metrics are requested in the TableName dimension CloudWatch will
+return data only for the table itself, not for its Global Secondary Indexes.
+Retrieving data for indexes requires requesting data across both the TableName
+and GlobalSecondaryIndexName dimensions. This behaviour is different to that
+of every other CloudWatch namespace and requires that the exporter handle these
+metrics differently to avoid generating duplicate HELP and TYPE lines.
+
+When exporting one of the problematic metrics for an index the exporter will use
+a metric name in the format `aws_dynamodb_METRIC_index_STATISTIC` rather than
+the usual `aws_dynamodb_METRIC_STATISTIC`. The regular naming scheme will still
+be used when exporting these metrics for a table, and when exporting any other
+DynamoDB metrics not listed above.
+
+### Reloading Configuration
+
+There are two ways to reload configuration:
+
+1. Send a SIGHUP signal to the pid: `kill -HUP 1234`
+2. POST to the `reload` endpoint: `curl -X localhost:9106/-/reload`
+
+If an error occurs during the reload, check the exporter's log output.
 
 ### Cost
 
@@ -82,15 +117,15 @@ requests (as of Jan 2015), that is around $45 per month. The
 
 ## Docker Image
 
-To run the CloudWatch exporter on Docker, you can use the [prom/cloudwatch-exporter](https://registry.hub.docker.com/u/prom/cloudwatch-exporter)
-image. It exposes port 9106 and expects the config in `/config.yml`. To
+To run the CloudWatch exporter on Docker, you can use the [prom/cloudwatch-exporter](https://hub.docker.com/r/prom/cloudwatch-exporter/)
+image. It exposes port 9106 and expects the config in `/config/config.yml`. To
 configure it, you can either bind-mount a config from your host:
 
 ```
-$ docker run -p 9106 -v /path/on/host/config.yml:/config.yml prom/cloudwatch-exporter
+$ docker run -p 9106 -v /path/on/host/config.yml:/config/config.yml prom/cloudwatch-exporter
 ```
 
-Or you create a config file named config.yml along with following
+Or you create a config file named /config/config.yml along with following
 Dockerfile in the same directory and build it with `docker build`:
 
 ```

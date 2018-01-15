@@ -3,7 +3,7 @@
 
   <groupId>io.prometheus.cloudwatch</groupId>
   <artifactId>cloudwatch_exporter</artifactId>
-  <version>0.2-SNAPSHOT</version>
+  <version>0.1.1-SNAPSHOT</version>
   <description>
     An exporter for AWS CloudWatch metrics, for use with Prometheus.
   </description>
@@ -46,12 +46,12 @@
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-cloudwatch</artifactId>
-      <version>1.10.34</version>
+      <version>1.11.86</version>
     </dependency>
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-sts</artifactId>
-      <version>1.10.34</version>
+      <version>1.11.86</version>
     </dependency>
     <dependency>
       <groupId>org.yaml</groupId>
@@ -61,12 +61,12 @@
     <dependency>
       <groupId>io.prometheus</groupId>
       <artifactId>simpleclient</artifactId>
-      <version>0.0.11</version>
+      <version>0.0.21</version>
     </dependency>
     <dependency>
       <groupId>io.prometheus</groupId>
       <artifactId>simpleclient_servlet</artifactId>
-      <version>0.0.11</version>
+      <version>0.0.21</version>
     </dependency>
     <dependency>
         <groupId>org.eclipse.jetty</groupId>

@@ -13,6 +13,7 @@ RUN apk update \
     && apk del maven openjdk8 \
     && rm -rf /cloudwatch_exporter
 
+
 WORKDIR /
 COPY config.yml /
 ENTRYPOINT [ "java", "-jar", "/cloudwatch_exporter.jar", "9106", "/config.yml" ]
