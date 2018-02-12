@@ -3,11 +3,11 @@
 
   <groupId>io.prometheus.cloudwatch</groupId>
   <artifactId>cloudwatch_exporter</artifactId>
-  <version>0.1.1-SNAPSHOT</version>
+  <version>0.5-SNAPSHOT</version>
   <description>
     An exporter for AWS CloudWatch metrics, for use with Prometheus.
   </description>
-  <url>http://github.com/prometheus/cloudwatch_exporter</url>
+  <url>http://github.com/sansible/cloudwatch_exporter</url>
 
   <parent>
       <groupId>org.sonatype.oss</groupId>
@@ -35,9 +35,9 @@
   </licenses>
 
   <scm>
-      <connection>scm:git:git@github.com:prometheus/cloudwatch_exporter.git</connection>
-      <developerConnection>scm:git:git@github.com:prometheus/cloudwatch_exporter.git</developerConnection>
-      <url>git@github.com:prometheus/cloudwatch_exporter.git</url>
+      <connection>scm:git:git@github.com:sansible/cloudwatch_exporter.git</connection>
+      <developerConnection>scm:git:git@github.com:sansible/cloudwatch_exporter.git</developerConnection>
+      <url>git@github.com:sansible/cloudwatch_exporter.git</url>
       <tag>HEAD</tag>
   </scm>
 
