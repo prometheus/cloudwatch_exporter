@@ -12,6 +12,7 @@ import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsResult;
 import com.amazonaws.services.cloudwatch.model.ListMetricsRequest;
 import com.amazonaws.services.cloudwatch.model.ListMetricsResult;
 import com.amazonaws.services.cloudwatch.model.Metric;
+import com.amazonaws.services.cloudwatch.model.StandardUnit;
 import io.prometheus.client.Collector;
 import io.prometheus.client.Counter;
 
@@ -212,7 +213,6 @@ public class CloudWatchCollector extends Collector {
         dimensionFilters.add(new DimensionFilter().withName(dimension));
       }
       request.setDimensions(dimensionFilters);
-
       String nextToken = null;
       do {
         request.setNextToken(nextToken);
@@ -230,7 +230,89 @@ public class CloudWatchCollector extends Collector {
         }
         nextToken = result.getNextToken();
       } while (nextToken != null);
+      List<List<Dimension>> defaultDimensions = getDimensionDefaults(rule, client.listMetrics(request)); 
+      List<List<Dimension>> allDimensions = new ArrayList<List<Dimension>>(dimensions.size() + defaultDimensions.size());
+      if (dimensions.size() == 0 ) {
+        allDimensions = defaultDimensions;
+      } else if (defaultDimensions.size() == 0) {
+        allDimensions = dimensions;
+      } else { 
+        allDimensions = dedupeDimensions(defaultDimensions,dimensions);
+      }
+      return allDimensions;
+    }
 
+    /**
+     * Deduplicate the list of metrics and dimensions when combining found dimensions and defaulted dimensions.
+     */
+    private List<List<Dimension>> dedupeDimensions(List<List<Dimension>> defaultDimensions, List<List<Dimension>> foundDimensions) {
+      List<List<Dimension>> dimensions = new ArrayList<List<Dimension>>();
+      for (List<Dimension> defaultDimList : defaultDimensions) {
+        boolean foundMatch = false;
+        for (List<Dimension> foundDimList : foundDimensions) {
+          int matchDimCount = 0;
+          for (Dimension defaultDim : defaultDimList ) {
+            for (Dimension foundDim : foundDimList ) {
+              if (defaultDim.getName().equals(foundDim.getName()) && defaultDim.getValue().equals(foundDim.getValue())) {
+                matchDimCount++;
+              }
+              if ((defaultDimList.size() == matchDimCount) && (foundDimList.size() >= defaultDimList.size())) {
+                dimensions.add(foundDimList);
+                foundMatch = true;
+                break;
+              }
+            }
+            if (foundMatch) {
+              break;
+            }
+          }
+        }
+        if (!foundMatch) {
+          dimensions.add(defaultDimList);
+        }
+      }
+      return dimensions; 
+    }
+
+    /**
+     * Generate a list default values for all metrics and dimensions to cope with missing data from CloudWatch.
+     */
+    private List<List<Dimension>> getDimensionDefaults(MetricRule rule, ListMetricsResult result) {
+      List<List<Dimension>> dimensions = new ArrayList<List<Dimension>>();
+
+      List<DimensionFilter> dimensionFilters = new ArrayList<DimensionFilter>();
+      for (String dimension: rule.awsDimensions) {
+        dimensionFilters.add(new DimensionFilter().withName(dimension));
+      }
+        for ( String outerKey : rule.awsDimensions ) {
+          if (rule.awsDimensionSelect != null && rule.awsDimensionSelect.containsKey(outerKey)) {
+            for (String outerRuleDimension : rule.awsDimensionSelect.get(outerKey)) {
+              Dimension outerDim = new Dimension();
+              outerDim.setName(outerKey);
+              outerDim.setValue(outerRuleDimension);
+              for ( String innerKey : rule.awsDimensions ) {
+                  if (rule.awsDimensionSelect != null && rule.awsDimensionSelect.containsKey(innerKey)) {
+                    for ( String innerRuleDimension : rule.awsDimensionSelect.get(innerKey)) {
+                      if (!outerKey.equals(innerKey)) {
+                        List<Dimension> dimList = new ArrayList<Dimension>();
+                        dimList.add(outerDim);
+                        Dimension innerDim = new Dimension();
+                        innerDim.setName(innerKey);
+                        innerDim.setValue(innerRuleDimension);
+                        dimList.add(innerDim);
+                        dimensions.add(dimList);
+                      }
+                    }
+                  } else {
+                    List<Dimension> dimList = new ArrayList<Dimension>();
+                    dimList.add(outerDim);
+                    dimensions.add(dimList);
+                  }
+                }
+            }
+            break;
+          }
+        }
       return dimensions;
     }
 
@@ -364,9 +446,30 @@ public class CloudWatchCollector extends Collector {
 
           GetMetricStatisticsResult result = config.client.getMetricStatistics(request);
           cloudwatchRequests.inc();
-          Datapoint dp = getNewestDatapoint(result.getDatapoints());
+          Datapoint dp = null;
+          if (result != null ) {
+            dp = getNewestDatapoint(result.getDatapoints());
+          }
           if (dp == null) {
-            continue;
+            /*
+             * insert defaulting code here
+             */  
+            dp = new Datapoint();
+            for (String statistic : rule.awsStatistics ) {
+              if (statistic.equals("Sum")) {
+                dp.setSum(0.0);
+              } else if (statistic.equals("SampleCount")) {
+                dp.setSampleCount(0.0);
+              } else if (statistic.equals("Minimum")) {
+                dp.setMinimum(0.0);
+              } else if (statistic.equals("Maximum")) { 
+                dp.setMaximum(0.0);
+              } else if (statistic.equals("Average")) {
+                dp.setAverage(0.0);
+              }
+            }
+            dp.setUnit(StandardUnit.Count);
+            //continue;
           }
           unit = dp.getUnit();
 
@@ -380,7 +483,6 @@ public class CloudWatchCollector extends Collector {
             labelNames.add(safeName(toSnakeCase(d.getName())));
             labelValues.add(d.getValue());
           }
-
           if (dp.getSum() != null) {
             sumSamples.add(new MetricFamilySamples.Sample(
                 baseName + "_sum", labelNames, labelValues, dp.getSum()));
@@ -412,6 +514,7 @@ public class CloudWatchCollector extends Collector {
                   baseName + "_" + safeName(toSnakeCase(entry.getKey())), labelNames, labelValues, entry.getValue()));
             }
           }
+
         }
 
         if (!sumSamples.isEmpty()) {
