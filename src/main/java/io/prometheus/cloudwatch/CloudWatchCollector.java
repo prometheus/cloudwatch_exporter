@@ -4,6 +4,7 @@ import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
+import com.amazonaws.services.cloudwatch.model.AmazonCloudWatchException;
 import com.amazonaws.services.cloudwatch.model.Datapoint;
 import com.amazonaws.services.cloudwatch.model.Dimension;
 import com.amazonaws.services.cloudwatch.model.DimensionFilter;
@@ -63,10 +64,15 @@ public class CloudWatchCollector extends Collector {
     private static final Counter cloudwatchRequests = Counter.build()
       .name("cloudwatch_requests_total").help("API requests made to CloudWatch").register();
 
+    private static final Counter cloudwatchRateExceeded = Counter.build()
+      .name("cloudwatch_rate_limit_exceeded_total").help("API requests rate limited by CloudWatch").register();
+
     private static final List<String> brokenDynamoMetrics = Arrays.asList(
             "ConsumedReadCapacityUnits", "ConsumedWriteCapacityUnits",
             "ProvisionedReadCapacityUnits", "ProvisionedWriteCapacityUnits",
             "ReadThrottleEvents", "WriteThrottleEvents");
+
+    private static final int rateLimitRetries = 10;
 
     public CloudWatchCollector(Reader in) throws IOException {
         loadConfig(in, null);
@@ -216,8 +222,17 @@ public class CloudWatchCollector extends Collector {
       String nextToken = null;
       do {
         request.setNextToken(nextToken);
-        ListMetricsResult result = client.listMetrics(request);
-        cloudwatchRequests.inc();
+
+        ListMetricsResult result = null;
+        for (int i = 0; i < rateLimitRetries; ++i) {
+          try {
+            cloudwatchRequests.inc();
+            result = client.listMetrics(request);
+          } catch (AmazonCloudWatchException ex) {
+            handleRateLimitedCloudWatchException(ex, i + 1);
+          }
+        }
+
         for (Metric metric: result.getMetrics()) {
           if (metric.getDimensions().size() != dimensionFilters.size()) {
             // AWS returns all the metrics with dimensions beyond the ones we ask for,
@@ -326,6 +341,27 @@ public class CloudWatchCollector extends Collector {
           + " Unit: " + unit;
     }
 
+    private void handleRateLimitedCloudWatchException(AmazonCloudWatchException ex, int attempt) {
+      final int baseSleep = 100;
+      final int maxSleep = 5000;
+
+      if ("Throttling".equals(ex.getErrorCode())) {
+        cloudwatchRateExceeded.inc();
+        if (attempt == rateLimitRetries) {
+          LOGGER.log(Level.WARNING, "CloudWatch rate limit exceeded " + rateLimitRetries + " times. Giving up.");
+          throw ex;
+        }
+
+        int sleep = (int)Math.min(maxSleep, baseSleep * Math.pow(2, attempt - 1));
+        LOGGER.log(Level.INFO, "CloudWatch rate limit exceeded. Sleeping " + sleep + "ms before retrying");
+        try {
+          Thread.sleep(sleep);
+        } catch (InterruptedException e) {}
+      } else {
+        throw ex;
+      }
+    }
+
     private void scrape(List<MetricFamilySamples> mfs) throws CloneNotSupportedException {
       ActiveConfig config = (ActiveConfig) activeConfig.clone();
 
@@ -362,8 +398,16 @@ public class CloudWatchCollector extends Collector {
         for (List<Dimension> dimensions: getDimensions(rule, config.client)) {
           request.setDimensions(dimensions);
 
-          GetMetricStatisticsResult result = config.client.getMetricStatistics(request);
-          cloudwatchRequests.inc();
+          GetMetricStatisticsResult result = null;
+          for (int i = 0; i < rateLimitRetries; ++i) {
+            try {
+              cloudwatchRequests.inc();
+              result = config.client.getMetricStatistics(request);
+            } catch (AmazonCloudWatchException ex) {
+              handleRateLimitedCloudWatchException(ex, i + 1);
+            }
+          }
+
           Datapoint dp = getNewestDatapoint(result.getDatapoints());
           if (dp == null) {
             continue;
