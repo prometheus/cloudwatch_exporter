@@ -4,6 +4,7 @@ import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
+import com.amazonaws.services.cloudwatch.model.AmazonCloudWatchException;
 import com.amazonaws.services.cloudwatch.model.Datapoint;
 import com.amazonaws.services.cloudwatch.model.Dimension;
 import com.amazonaws.services.cloudwatch.model.DimensionFilter;
@@ -62,6 +63,10 @@ public class CloudWatchCollector extends Collector {
 
     private static final Counter cloudwatchRequests = Counter.build()
       .name("cloudwatch_requests_total").help("API requests made to CloudWatch").register();
+
+    private static final Counter cloudwatchErrorRequests = Counter.build()
+      .name("cloudwatch_error_total").help("API requests that failed")
+      .labelNames("aws_error_code", "api").register();
 
     private static final List<String> brokenDynamoMetrics = Arrays.asList(
             "ConsumedReadCapacityUnits", "ConsumedWriteCapacityUnits",
@@ -216,8 +221,15 @@ public class CloudWatchCollector extends Collector {
       String nextToken = null;
       do {
         request.setNextToken(nextToken);
-        ListMetricsResult result = client.listMetrics(request);
-        cloudwatchRequests.inc();
+        ListMetricsResult result;
+        try {
+          result = client.listMetrics(request);
+          cloudwatchRequests.inc();
+        } catch (AmazonCloudWatchException ex) {
+          cloudwatchErrorRequests.labels(ex.getErrorCode(), "listMetrics").inc();
+          throw ex;
+        }
+
         for (Metric metric: result.getMetrics()) {
           if (metric.getDimensions().size() != dimensionFilters.size()) {
             // AWS returns all the metrics with dimensions beyond the ones we ask for,
@@ -362,8 +374,15 @@ public class CloudWatchCollector extends Collector {
         for (List<Dimension> dimensions: getDimensions(rule, config.client)) {
           request.setDimensions(dimensions);
 
-          GetMetricStatisticsResult result = config.client.getMetricStatistics(request);
-          cloudwatchRequests.inc();
+          GetMetricStatisticsResult result;
+          try {
+            result = config.client.getMetricStatistics(request);
+            cloudwatchRequests.inc();
+          } catch (AmazonCloudWatchException ex) {
+            cloudwatchErrorRequests.labels(ex.getErrorCode(), "getMetricStatistics").inc();
+            throw ex;
+          }
+
           Datapoint dp = getNewestDatapoint(result.getDatapoints());
           if (dp == null) {
             continue;

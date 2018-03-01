@@ -116,6 +116,15 @@ If you have 100 API requests every minute, with the price of USD$10 per million
 requests (as of Jan 2015), that is around $45 per month. The
 `cloudwatch_requests_total` counter tracks how many requests are being made.
 
+### Internal Metrics
+
+The exporter provides internal metrics for monitoring CloudWatch API progress and errors.
+
+Name                       | Labels               | Description
+---------------------------------------------------------------
+cloudwatch_requests_total  | (None)               | The total number of successful CloudWatch requests.
+cloudwatch_error_total     | aws_error_code, api  | The total number of errors from failed CloudWatch requests. Useful for monitoring `Throttling` error codes so that you can reduce query rates or request limit increases from AWS.
+
 ## Docker Image
 
 To run the CloudWatch exporter on Docker, you can use the [prom/cloudwatch-exporter](https://hub.docker.com/r/prom/cloudwatch-exporter/)
