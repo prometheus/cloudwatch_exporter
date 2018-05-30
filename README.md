@@ -60,11 +60,11 @@ aws_elb_request_count_sum{job="aws_elb",load_balancer_name="myotherlb",availabil
 
 All metrics are exported as gauges.
 
-Timestamps from CloudWatch are not passed to Prometheus, pending resolution of
-[#398](https://github.com/prometheus/prometheus/issues/398). CloudWatch has
-been observed to sometimes take minutes for reported values to converge. The
+CloudWatch has been observed to sometimes take minutes for reported values to converge. The
 default `delay_seconds` will result in data that is at least 10 minutes old
-being requested to mitigate this.
+being requested to mitigate this. The samples exposed will have the timestamps of the
+data from CloudWatch, so usual staleness semantics will not apply and values will persist
+for 5m for instant vectors.
 
 In addition `cloudwatch_exporter_scrape_error` will be non-zero if an error
 occurred during the scrape, and `cloudwatch_exporter_scrape_duration_seconds`
