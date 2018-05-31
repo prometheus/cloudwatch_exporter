@@ -383,23 +383,23 @@ public class CloudWatchCollector extends Collector {
 
           if (dp.getSum() != null) {
             sumSamples.add(new MetricFamilySamples.Sample(
-                baseName + "_sum", labelNames, labelValues, dp.getSum()));
+                baseName + "_sum", labelNames, labelValues, dp.getSum(), dp.getTimestamp().getTime()));
           }
           if (dp.getSampleCount() != null) {
             sampleCountSamples.add(new MetricFamilySamples.Sample(
-                baseName + "_sample_count", labelNames, labelValues, dp.getSampleCount()));
+                baseName + "_sample_count", labelNames, labelValues, dp.getSampleCount(), dp.getTimestamp().getTime()));
           }
           if (dp.getMinimum() != null) {
             minimumSamples.add(new MetricFamilySamples.Sample(
-                baseName + "_minimum", labelNames, labelValues, dp.getMinimum()));
+                baseName + "_minimum", labelNames, labelValues, dp.getMinimum(), dp.getTimestamp().getTime()));
           }
           if (dp.getMaximum() != null) {
             maximumSamples.add(new MetricFamilySamples.Sample(
-                baseName + "_maximum",labelNames, labelValues, dp.getMaximum()));
+                baseName + "_maximum",labelNames, labelValues, dp.getMaximum(), dp.getTimestamp().getTime()));
           }
           if (dp.getAverage() != null) {
             averageSamples.add(new MetricFamilySamples.Sample(
-                baseName + "_average", labelNames, labelValues, dp.getAverage()));
+                baseName + "_average", labelNames, labelValues, dp.getAverage(), dp.getTimestamp().getTime()));
           }
           if (dp.getExtendedStatistics() != null) {
             for (Map.Entry<String, Double> entry : dp.getExtendedStatistics().entrySet()) {
@@ -409,7 +409,7 @@ public class CloudWatchCollector extends Collector {
                 extendedSamples.put(entry.getKey(), samples);
               }
               samples.add(new MetricFamilySamples.Sample(
-                  baseName + "_" + safeName(toSnakeCase(entry.getKey())), labelNames, labelValues, entry.getValue()));
+                  baseName + "_" + safeName(toSnakeCase(entry.getKey())), labelNames, labelValues, entry.getValue(), dp.getTimestamp().getTime()));
             }
           }
         }
