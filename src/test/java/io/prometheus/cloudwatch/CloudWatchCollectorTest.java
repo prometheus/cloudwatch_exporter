@@ -199,11 +199,11 @@ public class CloudWatchCollectorTest {
                     new Datapoint().withTimestamp(timestamp).withAverage(1.0)));
 
     assertMetricTimestampEquals(registry, "aws_elb_request_count_average", timestamp.getTime());
-    assertMetricTimestampEquals(registry, "aws_elb_httpcode_backend_2_xx_average", 0);
+    assertMetricTimestampEquals(registry, "aws_elb_httpcode_backend_2_xx_average", null);
 
   }
 
-  void assertMetricTimestampEquals(CollectorRegistry registry, String name, long expectedTimestamp) {
+  void assertMetricTimestampEquals(CollectorRegistry registry, String name, Long expectedTimestamp) {
     Enumeration<Collector.MetricFamilySamples> metricFamilySamplesEnumeration = registry.metricFamilySamples();
     Set<String> metricNames = new HashSet<String>();
     while(metricFamilySamplesEnumeration.hasMoreElements()) {
@@ -211,7 +211,7 @@ public class CloudWatchCollectorTest {
       for(Collector.MetricFamilySamples.Sample s: samples.samples) {
         metricNames.add(s.name);
         if(s.name.equals(name)) {
-          assertEquals(expectedTimestamp, (long)s.timestampMs);
+          assertEquals(expectedTimestamp, (Long)s.timestampMs);
           return;
         }
       }
