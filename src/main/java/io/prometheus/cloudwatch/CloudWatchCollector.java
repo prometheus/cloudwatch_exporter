@@ -116,8 +116,8 @@ public class CloudWatchCollector extends Collector {
         }
 
         boolean defaultCloudwatchTimestamp = true;
-        if (config.containsKey("cloudwatch_timestamp")) {
-            defaultCloudwatchTimestamp = (Boolean)config.get("cloudwatch_timestamp");
+        if (config.containsKey("set_timestamp")) {
+            defaultCloudwatchTimestamp = (Boolean)config.get("set_timestamp");
         }
 
         if (client == null) {
@@ -187,8 +187,8 @@ public class CloudWatchCollector extends Collector {
           } else {
             rule.delaySeconds = defaultDelay;
           }
-          if (yamlMetricRule.containsKey("cloudwatch_timestamp")) {
-              rule.cloudwatchTimestamp = (Boolean)yamlMetricRule.get("cloudwatch_timestamp");
+          if (yamlMetricRule.containsKey("set_timestamp")) {
+              rule.cloudwatchTimestamp = (Boolean)yamlMetricRule.get("set_timestamp");
           } else {
               rule.cloudwatchTimestamp = defaultCloudwatchTimestamp;
           }

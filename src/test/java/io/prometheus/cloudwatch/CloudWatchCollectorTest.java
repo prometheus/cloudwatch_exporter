@@ -18,12 +18,21 @@ import com.amazonaws.services.cloudwatch.model.Metric;
 import io.prometheus.client.Collector;
 import io.prometheus.client.CollectorRegistry;
 
-import java.util.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 public class CloudWatchCollectorTest {
   AmazonCloudWatchClient client;
@@ -184,7 +193,7 @@ public class CloudWatchCollectorTest {
   @Test
   public void testCloudwatchTimestamps() throws Exception {
     new CloudWatchCollector(
-            "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  cloudwatch_timestamp: true\n- aws_namespace: AWS/ELB\n  aws_metric_name: HTTPCode_Backend_2XX\n  cloudwatch_timestamp: false"
+            "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  set_timestamp: true\n- aws_namespace: AWS/ELB\n  aws_metric_name: HTTPCode_Backend_2XX\n  set_timestamp: false"
             , client).register(registry);
 
     Date timestamp = new Date();
