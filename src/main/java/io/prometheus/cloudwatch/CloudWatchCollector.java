@@ -392,7 +392,7 @@ public class CloudWatchCollector extends Collector {
             labelValues.add(d.getValue());
           }
 
-          long timestamp = 0;
+          Long timestamp = null;
           if (rule.cloudwatchTimestamp) {
             timestamp = dp.getTimestamp().getTime();
           }
