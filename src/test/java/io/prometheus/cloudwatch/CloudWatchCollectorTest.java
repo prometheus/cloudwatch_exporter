@@ -1,7 +1,6 @@
 package io.prometheus.cloudwatch;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.argThat;
 
@@ -16,11 +15,10 @@ import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsResult;
 import com.amazonaws.services.cloudwatch.model.ListMetricsRequest;
 import com.amazonaws.services.cloudwatch.model.ListMetricsResult;
 import com.amazonaws.services.cloudwatch.model.Metric;
+import io.prometheus.client.Collector;
 import io.prometheus.client.CollectorRegistry;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+
+import java.util.*;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -181,6 +179,44 @@ public class CloudWatchCollectorTest {
     assertEquals(3.0, registry.getSampleValue("aws_elb_request_count_minimum", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
     assertEquals(4.0, registry.getSampleValue("aws_elb_request_count_sample_count", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
     assertEquals(5.0, registry.getSampleValue("aws_elb_request_count_sum", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
+  }
+
+  @Test
+  public void testCloudwatchTimestamps() throws Exception {
+    new CloudWatchCollector(
+            "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  cloudwatch_timestamp: true\n- aws_namespace: AWS/ELB\n  aws_metric_name: HTTPCode_Backend_2XX\n  cloudwatch_timestamp: false"
+            , client).register(registry);
+
+    Date timestamp = new Date();
+    Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest)argThat(
+            new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount"))))
+            .thenReturn(new GetMetricStatisticsResult().withDatapoints(
+                    new Datapoint().withTimestamp(timestamp).withAverage(1.0)));
+
+    Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest)argThat(
+            new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("HTTPCode_Backend_2XX"))))
+            .thenReturn(new GetMetricStatisticsResult().withDatapoints(
+                    new Datapoint().withTimestamp(timestamp).withAverage(1.0)));
+
+    assertMetricTimestampEquals(registry, "aws_elb_request_count_average", timestamp.getTime());
+    assertMetricTimestampEquals(registry, "aws_elb_httpcode_backend_2_xx_average", 0);
+
+  }
+
+  void assertMetricTimestampEquals(CollectorRegistry registry, String name, long expectedTimestamp) {
+    Enumeration<Collector.MetricFamilySamples> metricFamilySamplesEnumeration = registry.metricFamilySamples();
+    Set<String> metricNames = new HashSet<String>();
+    while(metricFamilySamplesEnumeration.hasMoreElements()) {
+      Collector.MetricFamilySamples samples = metricFamilySamplesEnumeration.nextElement();
+      for(Collector.MetricFamilySamples.Sample s: samples.samples) {
+        metricNames.add(s.name);
+        if(s.name.equals(name)) {
+          assertEquals(expectedTimestamp, (long)s.timestampMs);
+          return;
+        }
+      }
+    }
+    fail(String.format("Metric %s not found in registry. Metrics found: %s", name, metricNames));
   }
 
   @Test

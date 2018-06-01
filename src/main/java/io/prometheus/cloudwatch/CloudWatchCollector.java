@@ -56,6 +56,7 @@ public class CloudWatchCollector extends Collector {
       Map<String,List<String>> awsDimensionSelect;
       Map<String,List<String>> awsDimensionSelectRegex;
       String help;
+      boolean cloudwatchTimestamp;
     }
 
     ActiveConfig activeConfig = new ActiveConfig();
@@ -112,6 +113,11 @@ public class CloudWatchCollector extends Collector {
         int defaultDelay = 600;
         if (config.containsKey("delay_seconds")) {
           defaultDelay = ((Number)config.get("delay_seconds")).intValue();
+        }
+
+        boolean defaultCloudwatchTimestamp = true;
+        if (config.containsKey("cloudwatch_timestamp")) {
+            defaultCloudwatchTimestamp = (Boolean)config.get("cloudwatch_timestamp");
         }
 
         if (client == null) {
@@ -180,6 +186,11 @@ public class CloudWatchCollector extends Collector {
             rule.delaySeconds = ((Number)yamlMetricRule.get("delay_seconds")).intValue();
           } else {
             rule.delaySeconds = defaultDelay;
+          }
+          if (yamlMetricRule.containsKey("cloudwatch_timestamp")) {
+              rule.cloudwatchTimestamp = (Boolean)yamlMetricRule.get("cloudwatch_timestamp");
+          } else {
+              rule.cloudwatchTimestamp = defaultCloudwatchTimestamp;
           }
         }
 
@@ -381,25 +392,30 @@ public class CloudWatchCollector extends Collector {
             labelValues.add(d.getValue());
           }
 
+          long timestamp = 0;
+          if (rule.cloudwatchTimestamp) {
+            timestamp = dp.getTimestamp().getTime();
+          }
+
           if (dp.getSum() != null) {
             sumSamples.add(new MetricFamilySamples.Sample(
-                baseName + "_sum", labelNames, labelValues, dp.getSum(), dp.getTimestamp().getTime()));
+                baseName + "_sum", labelNames, labelValues, dp.getSum(), timestamp));
           }
           if (dp.getSampleCount() != null) {
             sampleCountSamples.add(new MetricFamilySamples.Sample(
-                baseName + "_sample_count", labelNames, labelValues, dp.getSampleCount(), dp.getTimestamp().getTime()));
+                baseName + "_sample_count", labelNames, labelValues, dp.getSampleCount(), timestamp));
           }
           if (dp.getMinimum() != null) {
             minimumSamples.add(new MetricFamilySamples.Sample(
-                baseName + "_minimum", labelNames, labelValues, dp.getMinimum(), dp.getTimestamp().getTime()));
+                baseName + "_minimum", labelNames, labelValues, dp.getMinimum(), timestamp));
           }
           if (dp.getMaximum() != null) {
             maximumSamples.add(new MetricFamilySamples.Sample(
-                baseName + "_maximum",labelNames, labelValues, dp.getMaximum(), dp.getTimestamp().getTime()));
+                baseName + "_maximum",labelNames, labelValues, dp.getMaximum(), timestamp));
           }
           if (dp.getAverage() != null) {
             averageSamples.add(new MetricFamilySamples.Sample(
-                baseName + "_average", labelNames, labelValues, dp.getAverage(), dp.getTimestamp().getTime()));
+                baseName + "_average", labelNames, labelValues, dp.getAverage(), timestamp));
           }
           if (dp.getExtendedStatistics() != null) {
             for (Map.Entry<String, Double> entry : dp.getExtendedStatistics().entrySet()) {
@@ -409,7 +425,7 @@ public class CloudWatchCollector extends Collector {
                 extendedSamples.put(entry.getKey(), samples);
               }
               samples.add(new MetricFamilySamples.Sample(
-                  baseName + "_" + safeName(toSnakeCase(entry.getKey())), labelNames, labelValues, entry.getValue(), dp.getTimestamp().getTime()));
+                  baseName + "_" + safeName(toSnakeCase(entry.getKey())), labelNames, labelValues, entry.getValue(), timestamp));
             }
           }
         }
