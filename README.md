@@ -121,13 +121,19 @@ requests (as of Jan 2015), that is around $45 per month. The
 
 To run the CloudWatch exporter on Docker, you can use the [prom/cloudwatch-exporter](https://hub.docker.com/r/prom/cloudwatch-exporter/)
 image. It exposes port 9106 and expects the config in `/config/config.yml`. To
-configure it, you can either bind-mount a config from your host:
+configure it, you can bind-mount a config from your host:
 
 ```
 $ docker run -p 9106 -v /path/on/host/config.yml:/config/config.yml prom/cloudwatch-exporter
 ```
 
-Or you create a config file named /config/config.yml along with following
+Specify the config as the CMD:
+
+```
+$ docker run -p 9106 -v /path/on/host/us-west-1.yml:/config/us-west-1.yml prom/cloudwatch-export /config/us-west-1.yml
+```
+
+Or create a config file named /config/config.yml along with following
 Dockerfile in the same directory and build it with `docker build`:
 
 ```
