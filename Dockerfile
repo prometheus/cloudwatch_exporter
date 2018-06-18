@@ -12,4 +12,5 @@ WORKDIR /
 RUN mkdir /config
 
 ONBUILD ADD config.yml /config/
-ENTRYPOINT [ "java", "-jar", "/cloudwatch_exporter.jar", "9106", "/config/config.yml" ]
+ENTRYPOINT [ "java", "-jar", "/cloudwatch_exporter.jar", "9106"]
+CMD ["/config/config.yml"]
