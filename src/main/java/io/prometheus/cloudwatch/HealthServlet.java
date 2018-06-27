@@ -10,6 +10,8 @@ public class HealthServlet extends HttpServlet {
 
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("text/html");
-        resp.getWriter().print("OK");
+        resp.getWriter().print("<!doctype html><html lang=en>" + 
+            "<head><meta charset=utf-8><title>cloudwatch exporter</title></head>" +
+            "<body>ok</body></html>");
     }
 }
