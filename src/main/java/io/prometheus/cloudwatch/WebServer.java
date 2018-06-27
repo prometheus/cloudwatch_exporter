@@ -33,6 +33,8 @@ public class WebServer {
         server.setHandler(context);
         context.addServlet(new ServletHolder(new MetricsServlet()), "/metrics");
         context.addServlet(new ServletHolder(new DynamicReloadServlet(collector)), "/-/reload");
+        context.addServlet(new ServletHolder(new HealthServlet()), "/-/healthy");
+        context.addServlet(new ServletHolder(new HealthServlet()), "/-/ready");
         context.addServlet(new ServletHolder(new HomePageServlet()), "/");
         server.start();
         server.join();
