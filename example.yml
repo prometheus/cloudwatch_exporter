@@ -144,9 +144,6 @@ metrics:
 - aws_namespace: AWS/S3
   aws_metric_name: BucketSizeBytes
   aws_dimensions: [BucketName, StorageType]
-  aws_dimension_select:
-    BucketName: [my.awesome.bucket] # Omit this to collect all BucketName
-    Storage_Type: [StandardStorage] # Omit this to collect all Storage_Type
   aws_statistics: [Maximum]
   range_seconds: 172800
   period_seconds: 86400
