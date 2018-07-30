@@ -140,6 +140,23 @@ metrics:
   aws_metric_name: WriteIOPS
   aws_dimensions: [NodeID, ClusterIdentifier]
   aws_statistics: [Average]
+  
+- aws_namespace: AWS/S3
+  aws_metric_name: BucketSizeBytes
+  aws_dimensions: [BucketName, StorageType]
+  aws_dimension_select:
+    BucketName: [my.awesome.bucket] # Omit this to collect all BucketName
+    Storage_Type: [StandardStorage] # Omit this to collect all Storage_Type
+  aws_statistics: [Maximum]
+  range_seconds: 172800
+  period_seconds: 86400
+  
+- aws_namespace: AWS/S3
+  aws_metric_name: NumberOfObjects
+  aws_dimensions: [BucketName, StorageType]
+  aws_statistics: [Maximum]
+  range_seconds: 172800
+  period_seconds: 86400
 
 # For CloudFront metrics, you have to set the region to us-east-1
 - aws_namespace: AWS/CloudFront
