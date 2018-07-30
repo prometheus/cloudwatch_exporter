@@ -141,17 +141,19 @@ metrics:
   aws_dimensions: [NodeID, ClusterIdentifier]
   aws_statistics: [Average]
 
+# S3 Storage metrics are published to Cloudwatch 1x per day with a timestamp of midnight UTC, hence period_seconds: 86400
+# Publishing does not always occur at the same time, but it will occur before the next day, hence range_seconds: 172800
 - aws_namespace: AWS/S3
   aws_metric_name: BucketSizeBytes
   aws_dimensions: [BucketName, StorageType]
-  aws_statistics: [Maximum]
+  aws_statistics: [Average] # Valid statistics (https://docs.aws.amazon.com/AmazonS3/latest/dev/cloudwatch-monitoring.html): Average
   range_seconds: 172800
   period_seconds: 86400
 
 - aws_namespace: AWS/S3
   aws_metric_name: NumberOfObjects
   aws_dimensions: [BucketName, StorageType]
-  aws_statistics: [Maximum]
+  aws_statistics: [Average] # Valid statistics (https://docs.aws.amazon.com/AmazonS3/latest/dev/cloudwatch-monitoring.html): Average
   range_seconds: 172800
   period_seconds: 86400
 
