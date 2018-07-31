@@ -1,6 +1,4 @@
 FROM openjdk:10 as builder
-MAINTAINER Prometheus Team <prometheus-developers@googlegroups.com>
-EXPOSE 9106
 
 WORKDIR /cloudwatch_exporter
 ADD . /cloudwatch_exporter
@@ -9,6 +7,9 @@ RUN apt-get -qy update && apt-get -qy install maven && mvn package && \
     rm -rf /cloudwatch_exporter && apt-get -qy remove --purge maven && apt-get -qy autoremove
 
 FROM openjdk:10-jre-slim as runner
+MAINTAINER Prometheus Team <prometheus-developers@googlegroups.com>
+EXPOSE 9106
+
 WORKDIR /
 RUN mkdir /config
 ONBUILD ADD config.yml /config/
