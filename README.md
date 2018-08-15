@@ -61,15 +61,27 @@ aws_elb_request_count_sum{job="aws_elb",load_balancer_name="myotherlb",availabil
 
 All metrics are exported as gauges.
 
+In addition `cloudwatch_exporter_scrape_error` will be non-zero if an error
+occurred during the scrape, and `cloudwatch_exporter_scrape_duration_seconds`
+contains the duration of that scrape.
+
+### Timestamps
+
 CloudWatch has been observed to sometimes take minutes for reported values to converge. The
 default `delay_seconds` will result in data that is at least 10 minutes old
 being requested to mitigate this. The samples exposed will have the timestamps of the
 data from CloudWatch, so usual staleness semantics will not apply and values will persist
 for 5m for instant vectors.
 
-In addition `cloudwatch_exporter_scrape_error` will be non-zero if an error
-occurred during the scrape, and `cloudwatch_exporter_scrape_duration_seconds`
-contains the duration of that scrape.
+In practice this means that if you evaluate an instant vector at the current
+time, you will not see data from CloudWatch. An expression such as
+`aws_elb_request_count_sum offset 10m` will allow you to access the data, and
+should be used in recording rules and alerts.
+
+For certain metrics which update relatively rarely, such as from S3,
+`set_timestamp` should be configured to false so that they are not exposed with
+a timestamp. This is as the true timestamp from CloudWatch could be so old that
+Prometheus would reject the sample.
 
 ### Special handling for certain DynamoDB metrics
 
@@ -114,7 +126,7 @@ to do API requests to determine what metrics to request. This should be
 negligible compared to the requests for the metrics themselves.
 
 If you have 100 API requests every minute, with the price of USD$10 per million
-requests (as of Jan 2015), that is around $45 per month. The
+requests (as of Aug 2018), that is around $45 per month. The
 `cloudwatch_requests_total` counter tracks how many requests are being made.
 
 ## Docker Image
