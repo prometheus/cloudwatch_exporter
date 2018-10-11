@@ -20,6 +20,7 @@ import java.io.Reader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -210,6 +211,30 @@ public class CloudWatchCollector extends Collector {
     }
 
     private List<List<Dimension>> getDimensions(MetricRule rule, AmazonCloudWatchClient client) {
+        if (
+                rule.awsDimensions != null &&
+                rule.awsDimensions.size() == 1 &&
+                rule.awsDimensionSelect != null &&
+                rule.awsDimensionSelect.size() == 1 &&
+                rule.awsDimensionSelect.containsKey(rule.awsDimensions.get(0))
+        ) {
+            // The list of dimensions is known so no need to request it from cloudwatch.
+            String name = rule.awsDimensions.get(0);
+            List<String> values = rule.awsDimensionSelect.get(name);
+            List<List<Dimension>> dimensions = new ArrayList<List<Dimension>>(values.size());
+            for (String value : values) {
+                Dimension dimension = new Dimension();
+                dimension.setName(name);
+                dimension.setValue(value);
+                dimensions.add(Collections.singletonList(dimension));
+            }
+            return dimensions;
+        } else {
+            return listDimensions(rule, client);
+        }
+    }
+
+    private List<List<Dimension>> listDimensions(MetricRule rule, AmazonCloudWatchClient client) {
       List<List<Dimension>> dimensions = new ArrayList<List<Dimension>>();
       if (rule.awsDimensions == null) {
         dimensions.add(new ArrayList<Dimension>());
