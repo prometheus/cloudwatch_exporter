@@ -62,7 +62,8 @@ public class CloudWatchCollector extends Collector {
     ActiveConfig activeConfig = new ActiveConfig();
 
     private static final Counter cloudwatchRequests = Counter.build()
-      .name("cloudwatch_requests_total").help("API requests made to CloudWatch").register();
+            .labelNames("action", "namespace")
+            .name("cloudwatch_requests_total").help("API requests made to CloudWatch").register();
 
     private static final List<String> brokenDynamoMetrics = Arrays.asList(
             "ConsumedReadCapacityUnits", "ConsumedWriteCapacityUnits",
@@ -228,7 +229,7 @@ public class CloudWatchCollector extends Collector {
       do {
         request.setNextToken(nextToken);
         ListMetricsResult result = client.listMetrics(request);
-        cloudwatchRequests.inc();
+        cloudwatchRequests.labels("listMetrics", rule.awsNamespace).inc();
         for (Metric metric: result.getMetrics()) {
           if (metric.getDimensions().size() != dimensionFilters.size()) {
             // AWS returns all the metrics with dimensions beyond the ones we ask for,
@@ -374,7 +375,7 @@ public class CloudWatchCollector extends Collector {
           request.setDimensions(dimensions);
 
           GetMetricStatisticsResult result = config.client.getMetricStatistics(request);
-          cloudwatchRequests.inc();
+          cloudwatchRequests.labels("getMetricStatistics", rule.awsNamespace).inc();
           Datapoint dp = getNewestDatapoint(result.getDatapoints());
           if (dp == null) {
             continue;
