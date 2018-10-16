@@ -296,6 +296,25 @@ public class CloudWatchCollectorTest {
   }
 
   @Test
+  public void testAllSelectDimensionsKnown() throws Exception {
+    new CloudWatchCollector(
+            "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancerName\n  aws_dimension_select:\n    LoadBalancerName:\n    - myLB\n    AvailabilityZone:\n    - a\n    - b", client).register(registry);
+    Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest)argThat(
+            new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimension("AvailabilityZone", "a").Dimension("LoadBalancerName", "myLB"))))
+            .thenReturn(new GetMetricStatisticsResult().withDatapoints(
+                    new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
+
+    Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest)argThat(
+            new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimension("AvailabilityZone", "b").Dimension("LoadBalancerName", "myLB"))))
+            .thenReturn(new GetMetricStatisticsResult().withDatapoints(
+                    new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
+
+    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "a", "myLB"}), .01);
+    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "b", "myLB"}), .01);
+    assertNull(registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "a", "myOtherLB"}));
+  }
+
+  @Test
   public void testDimensionSelectRegex() throws Exception {
     new CloudWatchCollector(
         "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancerName\n  aws_dimension_select_regex:\n    LoadBalancerName:\n    - myLB(.*)", client).register(registry);

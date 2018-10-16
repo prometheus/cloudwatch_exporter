@@ -213,25 +213,39 @@ public class CloudWatchCollector extends Collector {
     private List<List<Dimension>> getDimensions(MetricRule rule, AmazonCloudWatchClient client) {
         if (
                 rule.awsDimensions != null &&
-                rule.awsDimensions.size() == 1 &&
                 rule.awsDimensionSelect != null &&
-                rule.awsDimensionSelect.size() == 1 &&
-                rule.awsDimensionSelect.containsKey(rule.awsDimensions.get(0))
+                rule.awsDimensions.size() > 0 &&
+                rule.awsDimensions.size() == rule.awsDimensionSelect.size() &&
+                rule.awsDimensionSelect.keySet().containsAll(rule.awsDimensions)
         ) {
-            // The list of dimensions is known so no need to request it from cloudwatch.
-            String name = rule.awsDimensions.get(0);
-            List<String> values = rule.awsDimensionSelect.get(name);
-            List<List<Dimension>> dimensions = new ArrayList<List<Dimension>>(values.size());
-            for (String value : values) {
-                Dimension dimension = new Dimension();
-                dimension.setName(name);
-                dimension.setValue(value);
-                dimensions.add(Collections.singletonList(dimension));
-            }
-            return dimensions;
+            // The full list of dimensions is known so no need to request it from cloudwatch.
+            return permuteDimensions(rule.awsDimensions, rule.awsDimensionSelect);
         } else {
             return listDimensions(rule, client);
         }
+    }
+
+    private List<List<Dimension>> permuteDimensions(List<String> dimensions, Map<String, List<String>> dimensionValues) {
+        ArrayList<List<Dimension>> result = new ArrayList<List<Dimension>>();
+
+        if (dimensions.size() == 0) {
+            result.add(new ArrayList<Dimension>());
+        } else {
+            List<String> dimensionsCopy = new ArrayList<String>(dimensions);
+            String dimensionName = dimensionsCopy.remove(dimensionsCopy.size() - 1);
+            for (List<Dimension> permutation : permuteDimensions(dimensionsCopy, dimensionValues)) {
+                for (String dimensionValue : dimensionValues.get(dimensionName)) {
+                    Dimension dimension = new Dimension();
+                    dimension.setValue(dimensionValue);
+                    dimension.setName(dimensionName);
+                    ArrayList<Dimension> permutationCopy = new ArrayList<Dimension>(permutation);
+                    permutationCopy.add(dimension);
+                    result.add(permutationCopy);
+                }
+            }
+        }
+
+        return result;
     }
 
     private List<List<Dimension>> listDimensions(MetricRule rule, AmazonCloudWatchClient client) {
