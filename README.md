@@ -27,12 +27,12 @@ The configuration is in YAML, an example with common options:
 ---
 region: eu-west-1
 metrics:
- - aws_namespace: AWS/ELB
-   aws_metric_name: RequestCount
-   aws_dimensions: [AvailabilityZone, LoadBalancerName]
-   aws_dimension_select:
-     LoadBalancerName: [myLB]
-   aws_statistics: [Sum]
+  - aws_namespace: AWS/ELB
+    aws_metric_name: RequestCount
+    aws_dimensions: [AvailabilityZone, LoadBalancerName]
+    aws_dimension_select:
+      LoadBalancerName: [myLB]
+    aws_statistics: [Sum]
 ```
 Name     | Description
 ---------|------------
@@ -51,7 +51,7 @@ range_seconds | Optional. How far back to request data for. Useful for cases suc
 period_seconds | Optional. [Period](http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/cloudwatch_concepts.html#CloudWatchPeriods) to request the metric for. Only the most recent data point is used. Defaults to 60s. Can be set globally and per metric.
 set_timestamp | Optional. Boolean for whether to set the Prometheus metric timestamp as the original Cloudwatch timestamp. For some metrics which are updated very infrequently (such as S3/BucketSize), Prometheus may refuse to scrape them if this is set to true (see #100). Defaults to true. Can be set globally and per metric.
 
-The above config will export time series such as 
+The above config will export time series such as
 ```
 # HELP aws_elb_request_count_sum CloudWatch metric AWS/ELB RequestCount Dimensions: ["AvailabilityZone","LoadBalancerName"] Statistic: Sum Unit: Count
 # TYPE aws_elb_request_count_sum gauge
