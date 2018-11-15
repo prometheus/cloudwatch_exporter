@@ -1,7 +1,7 @@
 CloudWatch Exporter for S3, API Gateway, Cloudwatch Events, Lambda
 =====
 
-# Usage
+## Usage
 * Run and mount the config passing your AWS creds
 ```
 $ docker run -e AWS_ACCESS_KEY_ID='' \
