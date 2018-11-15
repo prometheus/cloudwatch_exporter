@@ -1,0 +1,42 @@
+---
+region: eu-west-2
+metrics:
+ - aws_namespace: AWS/Lambda
+   aws_metric_name: Duration
+   aws_dimensions: [FunctionName, Resource, ExecutedVersion]
+   period_seconds: 1
+
+ - aws_namespace: AWS/Lambda
+   aws_metric_name: Errors
+   aws_dimensions: [FunctionName, Resource, ExecutedVersion]
+   period_seconds: 1
+
+ - aws_namespace: AWS/Lambda
+   aws_metric_name: Invocations
+   aws_dimensions: [FunctionName, Resource, ExecutedVersion]
+   period_seconds: 1
+
+ - aws_namespace: AWS/Lambda
+   aws_metric_name: Throttles
+   aws_dimensions: [FunctionName, Resource, ExecutedVersion]
+   period_seconds: 1
+
+ - aws_namespace: AWS/Lambda
+   aws_metric_name: ConcurrentExecutions
+   aws_dimensions: [FunctionName, Resource, ExecutedVersion]
+   period_seconds: 1
+
+ - aws_namespace: AWS/Lambda
+   aws_metric_name: UnreservedConcurrentExecutions
+   aws_dimensions: [FunctionName, Resource, ExecutedVersion]
+   period_seconds: 1
+
+ - aws_namespace: AWS/Lambda
+   aws_metric_name: IteratorAge
+   aws_dimensions: [FunctionName, Resource, ExecutedVersion]
+   period_seconds: 1
+
+ - aws_namespace: AWS/Lambda
+   aws_metric_name: DeadLetterErrors
+   aws_dimensions: [FunctionName, Resource, ExecutedVersion]
+   period_seconds: 1
