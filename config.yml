@@ -1,6 +1,7 @@
 ---
 region: eu-west-2
 metrics:
+   # Lambda Metrics
  - aws_namespace: AWS/Lambda
    aws_metric_name: Duration
    aws_dimensions: [FunctionName, Resource, ExecutedVersion]
@@ -39,4 +40,167 @@ metrics:
  - aws_namespace: AWS/Lambda
    aws_metric_name: DeadLetterErrors
    aws_dimensions: [FunctionName, Resource, ExecutedVersion]
+   period_seconds: 1
+
+   # S3 Metrics
+ - aws_namespace: AWS/S3
+   aws_metric_name:
+   aws_dimensions: [BucketName, StorageType]
+   period_seconds: 1
+
+ - aws_namespace: AWS/S3
+   aws_metric_name: NumberOfObjects
+   aws_dimensions: [BucketName, StorageType]
+   period_seconds: 1
+
+ - aws_namespace: AWS/S3
+   aws_metric_name: AllRequests
+   aws_dimensions: [BucketName, StorageType]
+   period_seconds: 1
+
+ - aws_namespace: AWS/S3
+   aws_metric_name: GetRequests
+   aws_dimensions: [BucketName, StorageType]
+   period_seconds: 1
+
+ - aws_namespace: AWS/S3
+   aws_metric_name: PutRequests
+   aws_dimensions: [BucketName, StorageType]
+   period_seconds: 1
+
+ - aws_namespace: AWS/S3
+   aws_metric_name: DeleteRequests
+   aws_dimensions: [BucketName, StorageType]
+   period_seconds: 1
+
+ - aws_namespace: AWS/S3
+   aws_metric_name: HeadRequests
+   aws_dimensions: [BucketName, StorageType]
+   period_seconds: 1
+
+ - aws_namespace: AWS/S3
+   aws_metric_name: HeadRequests
+   aws_dimensions: [BucketName, StorageType]
+   period_seconds: 1
+
+ - aws_namespace: AWS/S3
+   aws_metric_name: PostRequests
+   aws_dimensions: [BucketName, StorageType]
+   period_seconds: 1
+
+ - aws_namespace: AWS/S3
+   aws_metric_name: SelectRequests
+   aws_dimensions: [BucketName, StorageType]
+   period_seconds: 1
+
+ - aws_namespace: AWS/S3
+   aws_metric_name: SelectScannedBytes
+   aws_dimensions: [BucketName, StorageType]
+   period_seconds: 1
+
+ - aws_namespace: AWS/S3
+   aws_metric_name: SelectReturnedBytes
+   aws_dimensions: [BucketName, StorageType]
+   period_seconds: 1
+
+ - aws_namespace: AWS/S3
+   aws_metric_name: ListRequests
+   aws_dimensions: [BucketName, StorageType]
+   period_seconds: 1
+
+ - aws_namespace: AWS/S3
+   aws_metric_name: BytesDownloaded
+   aws_dimensions: [BucketName, StorageType]
+   period_seconds: 1
+
+ - aws_namespace: AWS/S3
+   aws_metric_name: BytesUploaded
+   aws_dimensions: [BucketName, StorageType]
+   period_seconds: 1
+
+ - aws_namespace: AWS/S3
+   aws_metric_name: 4xxErrors
+   aws_dimensions: [BucketName, StorageType]
+   period_seconds: 1
+
+ - aws_namespace: AWS/S3
+   aws_metric_name: 5xxErrors
+   aws_dimensions: [BucketName, StorageType]
+   period_seconds: 1
+
+ - aws_namespace: AWS/S3
+   aws_metric_name: FirstByteLatency
+   aws_dimensions: [BucketName, StorageType]
+   period_seconds: 1
+
+ - aws_namespace: AWS/S3
+   aws_metric_name: TotalRequestLatency
+   aws_dimensions: [BucketName, StorageType]
+   period_seconds: 1
+
+   # API Gateway Metrics
+ - aws_namespace: AWS/ApiGateway
+   aws_metric_name: 4XXError
+   aws_dimensions: [ApiName, Method, Resource, Stage]
+   period_seconds: 1
+
+ - aws_namespace: AWS/ApiGateway
+   aws_metric_name: 5XXError
+   aws_dimensions: [ApiName, Method, Resource, Stage]
+   period_seconds: 1
+
+ - aws_namespace: AWS/ApiGateway
+   aws_metric_name: CacheHitCount
+   aws_dimensions: [ApiName, Method, Resource, Stage]
+   period_seconds: 1
+
+ - aws_namespace: AWS/ApiGateway
+   aws_metric_name: CacheMissCount
+   aws_dimensions: [ApiName, Method, Resource, Stage]
+   period_seconds: 1
+
+ - aws_namespace: AWS/ApiGateway
+   aws_metric_name: Count
+   aws_dimensions: [ApiName, Method, Resource, Stage]
+   period_seconds: 1
+
+ - aws_namespace: AWS/ApiGateway
+   aws_metric_name: IntegrationLatency
+   aws_dimensions: [ApiName, Method, Resource, Stage]
+   period_seconds: 1
+
+ - aws_namespace: AWS/ApiGateway
+   aws_metric_name: Latency
+   aws_dimensions: [ApiName, Method, Resource, Stage]
+   period_seconds: 1
+
+   # Cloudwatch Events Metrics
+ - aws_namespace: AWS/Events
+   aws_metric_name: DeadLetterInvocations
+   aws_dimensions: [RuleName]
+   period_seconds: 1
+
+ - aws_namespace: AWS/Events
+   aws_metric_name: Invocations
+   aws_dimensions: [RuleName]
+   period_seconds: 1
+
+ - aws_namespace: AWS/Events
+   aws_metric_name: FailedInvocations
+   aws_dimensions: [RuleName]
+   period_seconds: 1
+
+ - aws_namespace: AWS/Events
+   aws_metric_name: TriggeredRules
+   aws_dimensions: [RuleName]
+   period_seconds: 1
+
+ - aws_namespace: AWS/Events
+   aws_metric_name: MatchedEvents
+   aws_dimensions: [RuleName]
+   period_seconds: 1
+
+ - aws_namespace: AWS/Events
+   aws_metric_name: ThrottledRules
+   aws_dimensions: [RuleName]
    period_seconds: 1
