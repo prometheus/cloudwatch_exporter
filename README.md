@@ -1,4 +1,4 @@
-Prometheus Exporter for S3, API Gateway and Cloudwatch Events Lambda Cloudwatch Metrics
+Prometheus Exporter for S3, API Gateway and Cloudwatch Events and Lambda Cloudwatch Metrics
 =====
 
 ## Usage
