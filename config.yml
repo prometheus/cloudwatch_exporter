@@ -44,7 +44,7 @@ metrics:
 
    # S3 Metrics
  - aws_namespace: AWS/S3
-   aws_metric_name:
+   aws_metric_name: BucketSizeBytes
    aws_dimensions: [BucketName, StorageType]
    period_seconds: 1
 
