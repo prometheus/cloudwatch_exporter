@@ -61,6 +61,8 @@ aws_elb_request_count_sum{job="aws_elb",load_balancer_name="myotherlb",availabil
 
 All metrics are exported as gauges.
 
+Cloudwatch reports data either always or under some cases, example only if there is a non-zero value. The CloudWatch Exporter mirrors this behavior, so you should refer to the Cloudwatch documentation to find out if your metric is always reported or not.
+
 In addition `cloudwatch_exporter_scrape_error` will be non-zero if an error
 occurred during the scrape, and `cloudwatch_exporter_scrape_duration_seconds`
 contains the duration of that scrape.
