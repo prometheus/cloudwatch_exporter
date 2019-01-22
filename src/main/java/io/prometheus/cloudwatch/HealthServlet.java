@@ -8,8 +8,20 @@ import java.io.IOException;
 
 public class HealthServlet extends HttpServlet {
 
+    private final CloudWatchCollector collector;
+
+    public HealthServlet(CloudWatchCollector collector) {
+        super();
+        this.collector = collector;
+    }
+
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("text/plain");
-        resp.getWriter().print("ok");
+        if (collector.isScrapeError()) {
+            resp.getWriter().print(CloudWatchCollector.SCRAPE_ERROR_MSG);
+            resp.setStatus(500);
+        } else {
+            resp.getWriter().print("ok");
+        }
     }
 }

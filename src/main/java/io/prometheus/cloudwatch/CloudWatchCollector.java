@@ -32,7 +32,10 @@ import java.util.regex.Pattern;
 import org.yaml.snakeyaml.Yaml;
 
 public class CloudWatchCollector extends Collector {
+    public static final String SCRAPE_ERROR_MSG = "CloudWatch scrape failed";
+
     private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
+    private boolean scrapeError;
 
     static class ActiveConfig implements Cloneable {
         ArrayList<MetricRule> rules;
@@ -84,6 +87,14 @@ public class CloudWatchCollector extends Collector {
 
     private CloudWatchCollector(Map<String, Object> config, AmazonCloudWatchClient client) {
         loadConfig(config, client);
+    }
+
+    public boolean isScrapeError() {
+        return this.scrapeError;
+    }
+
+    public void setScrapeError(boolean scrapeError) {
+        this.scrapeError = scrapeError;
     }
 
     protected void reloadConfig() throws IOException {
@@ -454,13 +465,16 @@ public class CloudWatchCollector extends Collector {
 
     public List<MetricFamilySamples> collect() {
       long start = System.nanoTime();
-      double error = 0;
+      double error;
       List<MetricFamilySamples> mfs = new ArrayList<MetricFamilySamples>();
       try {
         scrape(mfs);
+        error = 0;
+        scrapeError = false;
       } catch (Exception e) {
+        LOGGER.log(Level.WARNING, SCRAPE_ERROR_MSG, e);
         error = 1;
-        LOGGER.log(Level.WARNING, "CloudWatch scrape failed", e);
+        scrapeError = true;
       }
       List<MetricFamilySamples.Sample> samples = new ArrayList<MetricFamilySamples.Sample>();
       samples.add(new MetricFamilySamples.Sample(
@@ -491,4 +505,3 @@ public class CloudWatchCollector extends Collector {
       }
     }
 }
-
