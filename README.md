@@ -142,7 +142,7 @@ $ docker run -p 9106 -v /path/on/host/config.yml:/config/config.yml prom/cloudwa
 Specify the config as the CMD:
 
 ```
-$ docker run -p 9106 -v /path/on/host/us-west-1.yml:/config/us-west-1.yml prom/cloudwatch-export /config/us-west-1.yml
+$ docker run -p 9106 -v /path/on/host/us-west-1.yml:/config/us-west-1.yml prom/cloudwatch-exporter /config/us-west-1.yml
 ```
 
 Or create a config file named /config/config.yml along with following
