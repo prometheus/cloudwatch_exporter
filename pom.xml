@@ -55,14 +55,15 @@
     </dependency>
     <!--
       Older versions of jackson-databind have remote code execution vulnerabilities
-      CVEs - 2018-5968, 2017-17485, 2017-7525, 2017-15095, 2018-7489
+      CVEs - 2018-5968, 2017-17485, 2017-7525, 2017-15095, 2018-7489, 2018-19360, 
+      2018-19361, 2018-19362
       This cannot be upgraded directly in aws-java-sdk because it requires
       jackson-databind 2.6 to support Java 6 customers
     -->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.9.7</version>
+      <version>2.9.8</version>
     </dependency>
     <dependency>
       <groupId>org.yaml</groupId>
