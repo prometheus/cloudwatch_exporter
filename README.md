@@ -5,6 +5,8 @@ An exporter for [Amazon CloudWatch](http://aws.amazon.com/cloudwatch/), for Prom
 
 ## Building and running
 
+Cloudwatch Exporter requires at least Java 8.
+
 `mvn package` to build.
 
 `java -jar target/cloudwatch_exporter-*-SNAPSHOT-jar-with-dependencies.jar 9106 example.yml` to run.
