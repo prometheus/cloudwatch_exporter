@@ -126,7 +126,8 @@ to do API requests to determine what metrics to request. This should be
 negligible compared to the requests for the metrics themselves.
 
 In the case that all `aws_dimensions` are provided in the `aws_dimension_select` list, the exporter will not perform the
-above api request, which might also reduce the cost.
+above API request.  It will request all possible combination of values for those dimensions.
+This will reduce cost as the values for the dimensions do not need to be queried anymore, assuming that all possible value combinations are present in CloudWatch.
 
 If you have 100 API requests every minute, with the price of USD$10 per million
 requests (as of Aug 2018), that is around $45 per month. The
