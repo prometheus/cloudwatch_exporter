@@ -362,27 +362,32 @@ public class CloudWatchCollector extends Collector {
           + " Unit: " + unit;
     }
 
-    private String queryId(List<Dimension> dimensions, String stat) {
-      return dimensions.hashCode() + "-" + stat;
+    private String queryId(MetricRule rule, List<Dimension> dimensions, String stat) {
+      String seperator = "-";
+      return new StringBuilder()
+              .append(rule.awsNamespace)
+              .append(seperator)
+              .append(rule.awsMetricName)
+              .append(seperator)
+              .append(dimensions.hashCode())
+              .append(seperator)
+              .append(stat)
+              .toString();
     }
 
-    private MetricDataQuery metricDataQuery(String metricName,
-                                            List<Dimension> dimensions,
-                                            String namespace,
-                                            int periodSecs,
-                                            String stat) {
+    private MetricDataQuery metricDataQuery(MetricRule rule, List<Dimension> dimensions, String stat) {
       Metric metric = new Metric()
-              .withMetricName(metricName)
-              .withNamespace(namespace)
+              .withMetricName(rule.awsMetricName)
+              .withNamespace(rule.awsNamespace)
               .withDimensions(dimensions);
 
       MetricStat metricStat = new MetricStat()
               .withMetric(metric)
-              .withPeriod(periodSecs)
+              .withPeriod(rule.periodSeconds)
               .withStat(stat);
 
       return new MetricDataQuery()
-              .withId(queryId(dimensions, stat))
+              .withId(queryId(rule, dimensions, stat))
               .withMetricStat(metricStat);
     }
 
@@ -390,10 +395,10 @@ public class CloudWatchCollector extends Collector {
       List<MetricDataQuery> queries = new ArrayList<MetricDataQuery>();
 
       for (String stat : rule.awsStatistics) {
-        queries.add(metricDataQuery(rule.awsMetricName, dimensions, rule.awsNamespace, rule.periodSeconds, stat));
+        queries.add(metricDataQuery(rule, dimensions, stat));
       }
       for (String stat : rule.awsExtendedStatistics) {
-        queries.add(metricDataQuery(rule.awsMetricName, dimensions, rule.awsNamespace, rule.periodSeconds, stat));
+        queries.add(metricDataQuery(rule, dimensions, stat));
       }
 
       return queries;
@@ -422,6 +427,17 @@ public class CloudWatchCollector extends Collector {
       return samples;
     }
 
+    private Map<String, MetricDataResult> fetchResults(ActiveConfig config, long start) {
+      Map<String, MetricDataResult> idsToResults = new HashMap<String, MetricDataResult>();
+      for (MetricRule rule : config.rules) {
+        GetMetricDataResult getResult = config.client.getMetricData(requestForRule(rule, config, start));
+        for (MetricDataResult result : getResult.getMetricDataResults()) {
+          idsToResults.put(result.getId(), result);
+        }
+      }
+      return idsToResults;
+    }
+
     private List<MetricFamilySamples> scrape2() throws CloneNotSupportedException {
       ActiveConfig config = (ActiveConfig) activeConfig.clone();
       List<MetricFamilySamples> samples = new ArrayList<MetricFamilySamples>();
@@ -430,18 +446,12 @@ public class CloudWatchCollector extends Collector {
 
       long start = System.currentTimeMillis();
 
-      Map<String, MetricDataResult> idsToResults = new HashMap<String, MetricDataResult>();
-      for (MetricRule rule : config.rules) {
-        GetMetricDataResult getResult = config.client.getMetricData(requestForRule(rule, config, start));
-        for (MetricDataResult result : getResult.getMetricDataResults()) {
-          idsToResults.put(result.getId(), result);
-        }
-      }
+      Map<String, MetricDataResult> idsToResults = fetchResults(config, start);
 
       return samples;
     }
 
-    private void scrape(List<MetricFamilySamples> mfs) throws CloneNotSupportedException {
+  private void scrape(List<MetricFamilySamples> mfs) throws CloneNotSupportedException {
       ActiveConfig config = (ActiveConfig) activeConfig.clone();
 
       long start = System.currentTimeMillis();
