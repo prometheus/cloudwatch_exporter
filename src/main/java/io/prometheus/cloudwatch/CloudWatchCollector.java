@@ -244,7 +244,7 @@ public class CloudWatchCollector extends Collector {
       request.setNamespace(rule.awsNamespace);
       request.setMetricName(rule.awsMetricName);
       List<DimensionFilter> dimensionFilters = new ArrayList<DimensionFilter>();
-      for (String dimension: rule.awsDimensions) {
+      for (String dimension : rule.awsDimensions) {
         dimensionFilters.add(new DimensionFilter().withName(dimension));
       }
       request.setDimensions(dimensionFilters);
@@ -254,7 +254,7 @@ public class CloudWatchCollector extends Collector {
         request.setNextToken(nextToken);
         ListMetricsResult result = client.listMetrics(request);
         cloudwatchRequests.labels("listMetrics", rule.awsNamespace).inc();
-        for (Metric metric: result.getMetrics()) {
+        for (Metric metric : result.getMetrics()) {
           if (metric.getDimensions().size() != dimensionFilters.size()) {
             // AWS returns all the metrics with dimensions beyond the ones we ask for,
             // so filter them out.
@@ -366,7 +366,11 @@ public class CloudWatchCollector extends Collector {
       return dimensions.hashCode() + "-" + stat;
     }
 
-    private MetricDataQuery metricDataQuery(String metricName, List<Dimension> dimensions, String namespace, int periodSecs, String stat) {
+    private MetricDataQuery metricDataQuery(String metricName,
+                                            List<Dimension> dimensions,
+                                            String namespace,
+                                            int periodSecs,
+                                            String stat) {
       Metric metric = new Metric()
               .withMetricName(metricName)
               .withNamespace(namespace)
@@ -385,10 +389,10 @@ public class CloudWatchCollector extends Collector {
     private List<MetricDataQuery> queriesForRuleDimensions(MetricRule rule, List<Dimension> dimensions) {
       List<MetricDataQuery> queries = new ArrayList<MetricDataQuery>();
 
-      for (String stat:rule.awsStatistics) {
+      for (String stat : rule.awsStatistics) {
         queries.add(metricDataQuery(rule.awsMetricName, dimensions, rule.awsNamespace, rule.periodSeconds, stat));
       }
-      for (String stat:rule.awsExtendedStatistics) {
+      for (String stat : rule.awsExtendedStatistics) {
         queries.add(metricDataQuery(rule.awsMetricName, dimensions, rule.awsNamespace, rule.periodSeconds, stat));
       }
 
@@ -405,7 +409,7 @@ public class CloudWatchCollector extends Collector {
               .withStartTime(startDate)
               .withEndTime(endDate);
 
-      for (List<Dimension> dimensions: getDimensions(rule, config.client)) {
+      for (List<Dimension> dimensions : getDimensions(rule, config.client)) {
         queries.addAll(queriesForRuleDimensions(rule, dimensions));
       }
       request.setMetricDataQueries(queries);
@@ -413,20 +417,26 @@ public class CloudWatchCollector extends Collector {
       return request;
     }
 
-    private List<MetricFamilySamples> mfsFromResult(MetricRule rule, GetMetricDataResult result) {
-      List<MetricFamilySamples> samples = new ArrayList<MetricFamilySamples>();
+    private List<MetricFamilySamples.Sample> mfssFromResult(MetricRule rule, GetMetricDataResult result) {
+      List<MetricFamilySamples.Sample> samples = new ArrayList<MetricFamilySamples.Sample>();
       return samples;
     }
 
     private List<MetricFamilySamples> scrape2() throws CloneNotSupportedException {
       ActiveConfig config = (ActiveConfig) activeConfig.clone();
       List<MetricFamilySamples> samples = new ArrayList<MetricFamilySamples>();
+      Map<String, List<MetricFamilySamples.Sample>> statsTypeToSamples =
+              new HashMap<String, List<MetricFamilySamples.Sample>>();
+
       long start = System.currentTimeMillis();
 
-      for (MetricRule rule: config.rules) {
-        GetMetricDataResult result = config.client.getMetricData(requestForRule(rule, config, start));
+      Map<String, MetricDataResult> idsToResults = new HashMap<String, MetricDataResult>();
+      for (MetricRule rule : config.rules) {
+        GetMetricDataResult getResult = config.client.getMetricData(requestForRule(rule, config, start));
+        for (MetricDataResult result : getResult.getMetricDataResults()) {
+          idsToResults.put(result.getId(), result);
+        }
       }
-
 
       return samples;
     }
