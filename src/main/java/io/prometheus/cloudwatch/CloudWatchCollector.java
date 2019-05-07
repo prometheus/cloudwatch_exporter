@@ -4,14 +4,7 @@ import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
-import com.amazonaws.services.cloudwatch.model.Datapoint;
-import com.amazonaws.services.cloudwatch.model.Dimension;
-import com.amazonaws.services.cloudwatch.model.DimensionFilter;
-import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsRequest;
-import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsResult;
-import com.amazonaws.services.cloudwatch.model.ListMetricsRequest;
-import com.amazonaws.services.cloudwatch.model.ListMetricsResult;
-import com.amazonaws.services.cloudwatch.model.Metric;
+import com.amazonaws.services.cloudwatch.model.*;
 import io.prometheus.client.Collector;
 import io.prometheus.client.Counter;
 
@@ -20,7 +13,6 @@ import java.io.Reader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -377,21 +369,89 @@ public class CloudWatchCollector extends Collector {
           + " Unit: " + unit;
     }
 
+    private String queryId(List<Dimension> dimensions, String stat) {
+      return dimensions.hashCode() + "-" + stat;
+    }
+
+    private MetricDataQuery metricDataQuery(String metricName, List<Dimension> dimensions, String namespace, int periodSecs, String stat) {
+      Metric metric = new Metric()
+              .withMetricName(metricName)
+              .withNamespace(namespace)
+              .withDimensions(dimensions);
+
+      MetricStat metricStat = new MetricStat()
+              .withMetric(metric)
+              .withPeriod(periodSecs)
+              .withStat(stat);
+
+      return new MetricDataQuery()
+              .withId(queryId(dimensions, stat))
+              .withMetricStat(metricStat);
+    }
+
+    private List<MetricDataQuery> queriesForRuleDimensions(MetricRule rule, List<Dimension> dimensions) {
+      List<MetricDataQuery> queries = new ArrayList<MetricDataQuery>();
+
+      for (String stat:rule.awsStatistics) {
+        queries.add(metricDataQuery(rule.awsMetricName, dimensions, rule.awsNamespace, rule.periodSeconds, stat));
+      }
+      for (String stat:rule.awsExtendedStatistics) {
+        queries.add(metricDataQuery(rule.awsMetricName, dimensions, rule.awsNamespace, rule.periodSeconds, stat));
+      }
+
+      return queries;
+    }
+
+    private GetMetricDataRequest requestForRule(MetricRule rule, ActiveConfig config, long start) {
+      List<MetricDataQuery> queries = new ArrayList<MetricDataQuery>();
+
+      Date startDate = new Date(start - 1000 * rule.delaySeconds);
+      Date endDate = new Date(start - 1000 * (rule.delaySeconds + rule.rangeSeconds));
+
+      GetMetricDataRequest request = new GetMetricDataRequest()
+              .withStartTime(startDate)
+              .withEndTime(endDate);
+
+      for (List<Dimension> dimensions: getDimensions(rule, config.client)) {
+        queries.addAll(queriesForRuleDimensions(rule, dimensions));
+      }
+      request.setMetricDataQueries(queries);
+
+      return request;
+    }
+
+    private List<MetricFamilySamples> mfsFromResult(MetricRule rule, GetMetricDataResult result) {
+      List<MetricFamilySamples> samples = new ArrayList<MetricFamilySamples>();
+    }
+
+    private List<MetricFamilySamples> scrape2() throws CloneNotSupportedException {
+      ActiveConfig config = (ActiveConfig) activeConfig.clone();
+      List<MetricFamilySamples> samples = new ArrayList<MetricFamilySamples>();
+      long start = System.currentTimeMillis();
+
+      for (MetricRule rule: config.rules) {
+        GetMetricDataResult result = config.client.getMetricData(requestForRule(rule, config, start));
+      }
+
+
+      return samples;
+    }
+
     private void scrape(List<MetricFamilySamples> mfs) throws CloneNotSupportedException {
       ActiveConfig config = (ActiveConfig) activeConfig.clone();
 
       long start = System.currentTimeMillis();
       for (MetricRule rule: config.rules) {
-        Date startDate = new Date(start - 1000 * rule.delaySeconds);
-        Date endDate = new Date(start - 1000 * (rule.delaySeconds + rule.rangeSeconds));
-        GetMetricStatisticsRequest request = new GetMetricStatisticsRequest();
-        request.setNamespace(rule.awsNamespace);
-        request.setMetricName(rule.awsMetricName);
-        request.setStatistics(rule.awsStatistics);
-        request.setExtendedStatistics(rule.awsExtendedStatistics);
-        request.setEndTime(startDate);
-        request.setStartTime(endDate);
-        request.setPeriod(rule.periodSeconds);
+        Date startDate = new Date(start - 1000 * rule.delaySeconds); //ok
+        Date endDate = new Date(start - 1000 * (rule.delaySeconds + rule.rangeSeconds)); //ok
+        GetMetricStatisticsRequest request = new GetMetricStatisticsRequest(); //ok
+        request.setNamespace(rule.awsNamespace); //ok
+        request.setMetricName(rule.awsMetricName); //ok
+        request.setStatistics(rule.awsStatistics); //ok
+        request.setExtendedStatistics(rule.awsExtendedStatistics); //ok
+        request.setEndTime(startDate); // OK
+        request.setStartTime(endDate); // OK
+        request.setPeriod(rule.periodSeconds); //ok
 
         String baseName = safeName(rule.awsNamespace.toLowerCase() + "_" + toSnakeCase(rule.awsMetricName));
         String jobName = safeName(rule.awsNamespace.toLowerCase());
