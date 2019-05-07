@@ -7,22 +7,15 @@ import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
 import com.amazonaws.services.cloudwatch.model.*;
 import io.prometheus.client.Collector;
 import io.prometheus.client.Counter;
+import org.yaml.snakeyaml.Yaml;
 
 import java.io.FileReader;
-import java.io.Reader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.Map;
-import java.util.HashMap;
+import java.io.Reader;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-
-import org.yaml.snakeyaml.Yaml;
 
 public class CloudWatchCollector extends Collector {
     private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
@@ -422,6 +415,7 @@ public class CloudWatchCollector extends Collector {
 
     private List<MetricFamilySamples> mfsFromResult(MetricRule rule, GetMetricDataResult result) {
       List<MetricFamilySamples> samples = new ArrayList<MetricFamilySamples>();
+      return samples;
     }
 
     private List<MetricFamilySamples> scrape2() throws CloneNotSupportedException {
