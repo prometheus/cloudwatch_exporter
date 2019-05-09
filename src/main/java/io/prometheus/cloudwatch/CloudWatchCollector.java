@@ -17,6 +17,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
+import com.google.common.collect.Lists;
+
+/**
+ *
+ */
 public class CloudWatchCollector extends Collector {
     private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
 
@@ -46,8 +51,12 @@ public class CloudWatchCollector extends Collector {
 
       List<String> allStats() {
         List<String> stats = new ArrayList<String>();
-        stats.addAll(this.awsStatistics);
-        stats.addAll(this.awsExtendedStatistics);
+        if (this.awsStatistics != null) {
+          stats.addAll(this.awsStatistics);
+        }
+        if (this.awsExtendedStatistics != null) {
+          stats.addAll(this.awsExtendedStatistics);
+        }
         return stats;
       }
     }
@@ -370,16 +379,15 @@ public class CloudWatchCollector extends Collector {
     }
 
     private static String queryId(MetricRule rule, List<Dimension> dimensions, String stat) {
-      final String separator = "-";
-      return new StringBuilder()
+      String idComponents = new StringBuilder()
               .append(rule.awsNamespace)
-              .append(separator)
               .append(rule.awsMetricName)
-              .append(separator)
               .append(dimensions.hashCode())
-              .append(separator)
               .append(stat)
               .toString();
+      // We cant't use the concatenated components as the ID directly because AWS will not accept special chars as ID
+      // Also, the ID must start with a letter, not a digit
+      return "q" + Integer.toUnsignedString(idComponents.hashCode());
     }
 
     private static MetricDataQuery metricDataQuery(MetricRule rule, List<Dimension> dimensions, String stat) {
@@ -408,43 +416,65 @@ public class CloudWatchCollector extends Collector {
       return queries;
     }
 
-    private GetMetricDataRequest requestForRule(MetricRule rule, ActiveConfig config, long start) {
-      List<MetricDataQuery> queries = new ArrayList<MetricDataQuery>();
+  /**
+   * Returns GetMetricData request for a rule. Returns null if there are metrics in CloudWatch matching the rule spec.
+   * Note that this will for example also be null if no dimensions for the metric are found by getDimensions.
+   * @param rule
+   * @param config
+   * @param start
+   * @return Request for a rule. null if there are metrics in CloudWatch matching the rule spec.
+   */
+    private List<GetMetricDataRequest> requestForRule(MetricRule rule, ActiveConfig config, long start) {
+      Date startDate = new Date(start - 1000 * (rule.delaySeconds + rule.rangeSeconds));
+      Date endDate = new Date(start - 1000 * rule.delaySeconds);
 
-      Date startDate = new Date(start - 1000 * rule.delaySeconds);
-      Date endDate = new Date(start - 1000 * (rule.delaySeconds + rule.rangeSeconds));
-
-      GetMetricDataRequest request = new GetMetricDataRequest()
-              .withStartTime(startDate)
-              .withEndTime(endDate);
+      List<GetMetricDataRequest> requests = new ArrayList<>();
+      List<MetricDataQuery> queries = new ArrayList<>();
 
       for (List<Dimension> dimensions : getDimensions(rule, config.client)) {
         queries.addAll(queriesForRuleDimensions(rule, dimensions));
       }
-      request.setMetricDataQueries(queries);
 
-      return request;
+      if (queries.isEmpty()) {
+        return null;
+      }
+
+      // GetMetricData will no accept more than 100 queries per request
+      List<List<MetricDataQuery>> queryChunks = Lists.partition(queries, 100);
+
+      for (List<MetricDataQuery> chunk : queryChunks) {
+        GetMetricDataRequest request = new GetMetricDataRequest()
+                .withStartTime(startDate)
+                .withEndTime(endDate)
+                .withScanBy(ScanBy.TimestampDescending);
+
+        request.setMetricDataQueries(queries);
+        requests.add(request);
+      }
+
+      return requests;
     }
 
-/*    private List<MetricFamilySamples.Sample> mfssFromResult(MetricRule rule, GetMetricDataResult result) {
-      List<MetricFamilySamples.Sample> samples = new ArrayList<MetricFamilySamples.Sample>();
-      return samples;
-    }*/
-
-    private Map<String, MetricDataResult> fetchResults(ActiveConfig config, long start) {
-      Map<String, MetricDataResult> idsToResults = new HashMap<String, MetricDataResult>();
-      for (MetricRule rule : config.rules) {
-        GetMetricDataResult getResult = config.client.getMetricData(requestForRule(rule, config, start));
-        for (MetricDataResult result : getResult.getMetricDataResults()) {
-          idsToResults.put(result.getId(), result);
+  private Map<String, MetricDataResult> fetchResults(ActiveConfig config, long start) {
+    Map<String, MetricDataResult> idsToResults = new HashMap<String, MetricDataResult>();
+    for (MetricRule rule : config.rules) {
+      for (GetMetricDataRequest request : requestForRule(rule, config, start)) {
+        if (request == null) {
+          continue;
+        } else {
+          cloudwatchRequests.labels("getMetricData", rule.awsNamespace).inc();
+          GetMetricDataResult getResult = config.client.getMetricData(request);
+          for (MetricDataResult result : getResult.getMetricDataResults()) {
+            idsToResults.put(result.getId(), result);
+          }
         }
       }
-      return idsToResults;
     }
+    return idsToResults;
+  }
 
-  private List<MetricFamilySamples> scrape2() throws CloneNotSupportedException {
+  private void scrape2(List<MetricFamilySamples> mfs) throws CloneNotSupportedException {
     ActiveConfig config = (ActiveConfig) activeConfig.clone();
-    List<MetricFamilySamples> mfs = new ArrayList<MetricFamilySamples>();
 
     long start = System.currentTimeMillis();
 
@@ -456,6 +486,12 @@ public class CloudWatchCollector extends Collector {
 
       String jobName = safeName(rule.awsNamespace.toLowerCase());
       String baseName = safeName(rule.awsNamespace.toLowerCase() + "_" + toSnakeCase(rule.awsMetricName));
+
+      if (rule.awsNamespace.equals("AWS/DynamoDB")
+              && rule.awsDimensions.contains("GlobalSecondaryIndexName")
+              && brokenDynamoMetrics.contains(rule.awsMetricName)) {
+        baseName += "_index";
+      }
 
       for (List<Dimension> dimensions : getDimensions(rule, config.client)) {
         List<String> labelNames = new ArrayList<String>();
@@ -472,18 +508,20 @@ public class CloudWatchCollector extends Collector {
 
         for (String stat : rule.allStats()) {
           MetricDataResult result = idsToResults.get(queryId(rule, dimensions, stat));
-          //ToDo handle null result
-
-          if (statsTypeToSamples.get(stat) == null) {
-            statsTypeToSamples.put(stat, new ArrayList<MetricFamilySamples.Sample>());
+          if (result == null) {
+            continue;
           }
 
           MetricFamilySamples.Sample sample = new MetricFamilySamples.Sample(
-                  baseName + "_" + stat,
+                  baseName + "_" + safeName(stat).toLowerCase(),
                   labelNames, labelValues,
                   result.getValues().get(0), result.getTimestamps().get(0).getTime()
           );
 
+
+          if (statsTypeToSamples.get(stat) == null) {
+            statsTypeToSamples.put(stat, new ArrayList<>());
+          }
           statsTypeToSamples.get(stat).add(sample);
         }
       }
@@ -494,8 +532,6 @@ public class CloudWatchCollector extends Collector {
         );
       }
     }
-
-    return mfs;
   }
 
   private void scrape(List<MetricFamilySamples> mfs) throws CloneNotSupportedException {
@@ -617,7 +653,7 @@ public class CloudWatchCollector extends Collector {
       double error = 0;
       List<MetricFamilySamples> mfs = new ArrayList<MetricFamilySamples>();
       try {
-        scrape(mfs);
+        scrape2(mfs);
       } catch (Exception e) {
         error = 1;
         LOGGER.log(Level.WARNING, "CloudWatch scrape failed", e);
