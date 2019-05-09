@@ -442,61 +442,61 @@ public class CloudWatchCollector extends Collector {
       return idsToResults;
     }
 
-    private List<MetricFamilySamples> scrape2() throws CloneNotSupportedException {
-      ActiveConfig config = (ActiveConfig) activeConfig.clone();
-      List<MetricFamilySamples> mfs = new ArrayList<MetricFamilySamples>();
+  private List<MetricFamilySamples> scrape2() throws CloneNotSupportedException {
+    ActiveConfig config = (ActiveConfig) activeConfig.clone();
+    List<MetricFamilySamples> mfs = new ArrayList<MetricFamilySamples>();
 
-      long start = System.currentTimeMillis();
+    long start = System.currentTimeMillis();
 
-      Map<String, MetricDataResult> idsToResults = fetchResults(config, start);
+    Map<String, MetricDataResult> idsToResults = fetchResults(config, start);
 
-      for (MetricRule rule : config.rules) {
-        Map<String, List<MetricFamilySamples.Sample>> statsTypeToSamples =
-                new HashMap<String, List<MetricFamilySamples.Sample>>();
+    for (MetricRule rule : config.rules) {
+      Map<String, List<MetricFamilySamples.Sample>> statsTypeToSamples =
+              new HashMap<String, List<MetricFamilySamples.Sample>>();
 
-        String jobName = safeName(rule.awsNamespace.toLowerCase());
-        String baseName = safeName(rule.awsNamespace.toLowerCase() + "_" + toSnakeCase(rule.awsMetricName));
+      String jobName = safeName(rule.awsNamespace.toLowerCase());
+      String baseName = safeName(rule.awsNamespace.toLowerCase() + "_" + toSnakeCase(rule.awsMetricName));
 
-        for (List<Dimension> dimensions : getDimensions(rule, config.client)) {
-          List<String> labelNames = new ArrayList<String>();
-          List<String> labelValues = new ArrayList<String>();
-          labelNames.add("job");
-          labelValues.add(jobName);
-          labelNames.add("instance");
-          labelValues.add("");
+      for (List<Dimension> dimensions : getDimensions(rule, config.client)) {
+        List<String> labelNames = new ArrayList<String>();
+        List<String> labelValues = new ArrayList<String>();
+        labelNames.add("job");
+        labelValues.add(jobName);
+        labelNames.add("instance");
+        labelValues.add("");
 
-          for (Dimension d: dimensions) {
-            labelNames.add(safeName(toSnakeCase(d.getName())));
-            labelValues.add(d.getValue());
-          }
-
-          for (String stat : rule.allStats()) {
-            MetricDataResult result = idsToResults.get(queryId(rule, dimensions, stat));
-            //ToDo handle null result
-
-            if (statsTypeToSamples.get(stat) == null) {
-              statsTypeToSamples.put(stat, new ArrayList<MetricFamilySamples.Sample>());
-            }
-
-            MetricFamilySamples.Sample sample = new MetricFamilySamples.Sample(
-        baseName + "_" + stat,
-                    labelNames, labelValues,
-                    result.getValues().get(0), result.getTimestamps().get(0).getTime()
-            );
-
-            statsTypeToSamples.get(stat).add(sample);
-          }
+        for (Dimension d : dimensions) {
+          labelNames.add(safeName(toSnakeCase(d.getName())));
+          labelValues.add(d.getValue());
         }
 
-        for (String statType : statsTypeToSamples.keySet()) {
-          mfs.add(new MetricFamilySamples(baseName + "_" + safeName(statType).toLowerCase(),
-            Type.GAUGE, help(rule, "UNKNOWN", "Sum"), statsTypeToSamples.get(statType))
+        for (String stat : rule.allStats()) {
+          MetricDataResult result = idsToResults.get(queryId(rule, dimensions, stat));
+          //ToDo handle null result
+
+          if (statsTypeToSamples.get(stat) == null) {
+            statsTypeToSamples.put(stat, new ArrayList<MetricFamilySamples.Sample>());
+          }
+
+          MetricFamilySamples.Sample sample = new MetricFamilySamples.Sample(
+                  baseName + "_" + stat,
+                  labelNames, labelValues,
+                  result.getValues().get(0), result.getTimestamps().get(0).getTime()
           );
+
+          statsTypeToSamples.get(stat).add(sample);
         }
       }
 
-      return mfs;
+      for (String statType : statsTypeToSamples.keySet()) {
+        mfs.add(new MetricFamilySamples(baseName + "_" + safeName(statType).toLowerCase(),
+                Type.GAUGE, help(rule, "UNKNOWN", "Sum"), statsTypeToSamples.get(statType))
+        );
+      }
     }
+
+    return mfs;
+  }
 
   private void scrape(List<MetricFamilySamples> mfs) throws CloneNotSupportedException {
       ActiveConfig config = (ActiveConfig) activeConfig.clone();
