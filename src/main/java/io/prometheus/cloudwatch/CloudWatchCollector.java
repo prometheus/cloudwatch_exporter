@@ -416,14 +416,6 @@ public class CloudWatchCollector extends Collector {
       return queries;
     }
 
-  /**
-   * Returns GetMetricData request for a rule. Returns null if there are metrics in CloudWatch matching the rule spec.
-   * Note that this will for example also be null if no dimensions for the metric are found by getDimensions.
-   * @param rule
-   * @param config
-   * @param start
-   * @return Request for a rule. null if there are metrics in CloudWatch matching the rule spec.
-   */
     private List<GetMetricDataRequest> requestForRule(MetricRule rule, ActiveConfig config, long start) {
       Date startDate = new Date(start - 1000 * (rule.delaySeconds + rule.rangeSeconds));
       Date endDate = new Date(start - 1000 * rule.delaySeconds);
@@ -435,10 +427,6 @@ public class CloudWatchCollector extends Collector {
         queries.addAll(queriesForRuleDimensions(rule, dimensions));
       }
 
-      if (queries.isEmpty()) {
-        return null;
-      }
-
       // GetMetricData will no accept more than 100 queries per request
       List<List<MetricDataQuery>> queryChunks = Lists.partition(queries, 100);
 
@@ -448,7 +436,7 @@ public class CloudWatchCollector extends Collector {
                 .withEndTime(endDate)
                 .withScanBy(ScanBy.TimestampDescending);
 
-        request.setMetricDataQueries(queries);
+        request.setMetricDataQueries(chunk);
         requests.add(request);
       }
 
@@ -458,7 +446,8 @@ public class CloudWatchCollector extends Collector {
   private Map<String, MetricDataResult> fetchResults(ActiveConfig config, long start) {
     Map<String, MetricDataResult> idsToResults = new HashMap<String, MetricDataResult>();
     for (MetricRule rule : config.rules) {
-      for (GetMetricDataRequest request : requestForRule(rule, config, start)) {
+      final List<GetMetricDataRequest> getMetricDataRequests = requestForRule(rule, config, start);
+      for (GetMetricDataRequest request : getMetricDataRequests) {
         if (request == null) {
           continue;
         } else {
@@ -508,7 +497,7 @@ public class CloudWatchCollector extends Collector {
 
         for (String stat : rule.allStats()) {
           MetricDataResult result = idsToResults.get(queryId(rule, dimensions, stat));
-          if (result == null) {
+          if (result == null|| result.getValues().isEmpty()||result.getTimestamps().isEmpty()) {
             continue;
           }
 
