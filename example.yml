@@ -162,40 +162,40 @@ metrics:
   aws_metric_name: Requests
   aws_statistics: [Sum]
   aws_dimensions: [DistributionId, Region]
-  aws_dimensions_select:
+  aws_dimension_select:
    Region: [Global]
 
 - aws_namespace: AWS/CloudFront
   aws_metric_name: BytesDownloaded
   aws_statistics: [Sum]
   aws_dimensions: [DistributionId, Region]
-  aws_dimensions_select:
+  aws_dimension_select:
    Region: [Global]
 
 - aws_namespace: AWS/CloudFront
   aws_metric_name: 4xxErrorRate
   aws_statistics: [Average]
   aws_dimensions: [DistributionId, Region]
-  aws_dimensions_select:
+  aws_dimension_select:
    Region: [Global]
 
 - aws_namespace: AWS/CloudFront
   aws_metric_name: 5xxErrorRate
   aws_statistics: [Average]
   aws_dimensions: [DistributionId, Region]
-  aws_dimensions_select:
+  aws_dimension_select:
    Region: [Global]
 
 - aws_namespace: AWS/CloudFront
   aws_metric_name: BytesUploaded
   aws_statistics: [Sum]
   aws_dimensions: [DistributionId, Region]
-  aws_dimensions_select:
+  aws_dimension_select:
    Region: [Global]
 
 - aws_namespace: AWS/CloudFront
   aws_metric_name: TotalErrorRate
   aws_statistics: [Average]
   aws_dimensions: [DistributionId, Region]
-  aws_dimensions_select:
+  aws_dimension_select:
    Region: [Global]
