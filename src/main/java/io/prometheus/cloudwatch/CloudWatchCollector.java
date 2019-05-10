@@ -427,7 +427,7 @@ public class CloudWatchCollector extends Collector {
         queries.addAll(queriesForRuleDimensions(rule, dimensions));
       }
 
-      // GetMetricData will no accept more than 100 queries per request
+      // GetMetricData will not accept more than 100 queries per request
       List<List<MetricDataQuery>> queryChunks = Lists.partition(queries, 100);
 
       for (List<MetricDataQuery> chunk : queryChunks) {
@@ -451,11 +451,16 @@ public class CloudWatchCollector extends Collector {
         if (request == null) {
           continue;
         } else {
-          cloudwatchRequests.labels("getMetricData", rule.awsNamespace).inc();
-          GetMetricDataResult getResult = config.client.getMetricData(request);
-          for (MetricDataResult result : getResult.getMetricDataResults()) {
-            idsToResults.put(result.getId(), result);
-          }
+          String nextToken = null;
+          do {
+            request.setNextToken(nextToken);
+            cloudwatchRequests.labels("getMetricData", rule.awsNamespace).inc();
+            GetMetricDataResult getResult = config.client.getMetricData(request);
+            for (MetricDataResult result : getResult.getMetricDataResults()) {
+              idsToResults.put(result.getId(), result);
+            }
+            nextToken = getResult.getNextToken();
+          } while (nextToken != null);
         }
       }
     }
