@@ -12,7 +12,7 @@ EXPOSE 9106
 
 WORKDIR /
 RUN mkdir /config
-ONBUILD ADD config.yml /config/
+ADD example.yml /config/config.yml
 COPY --from=builder /cloudwatch_exporter.jar /cloudwatch_exporter.jar
 ENTRYPOINT [ "java", "-jar", "/cloudwatch_exporter.jar", "9106"]
 CMD ["/config/config.yml"]
