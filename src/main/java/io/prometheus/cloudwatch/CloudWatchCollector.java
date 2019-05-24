@@ -467,7 +467,7 @@ public class CloudWatchCollector extends Collector {
     return idsToResults;
   }
 
-  private void scrape2(List<MetricFamilySamples> mfs) throws CloneNotSupportedException {
+  private void scrape(List<MetricFamilySamples> mfs) throws CloneNotSupportedException {
     ActiveConfig config = (ActiveConfig) activeConfig.clone();
 
     long start = System.currentTimeMillis();
@@ -527,127 +527,12 @@ public class CloudWatchCollector extends Collector {
       }
     }
   }
-
-  private void scrape(List<MetricFamilySamples> mfs) throws CloneNotSupportedException {
-      ActiveConfig config = (ActiveConfig) activeConfig.clone();
-
-      long start = System.currentTimeMillis();
-      for (MetricRule rule: config.rules) {
-        Date startDate = new Date(start - 1000 * rule.delaySeconds); //ok
-        Date endDate = new Date(start - 1000 * (rule.delaySeconds + rule.rangeSeconds)); //ok
-        GetMetricStatisticsRequest request = new GetMetricStatisticsRequest(); //ok
-        request.setNamespace(rule.awsNamespace); //ok
-        request.setMetricName(rule.awsMetricName); //ok
-        request.setStatistics(rule.awsStatistics); //ok
-        request.setExtendedStatistics(rule.awsExtendedStatistics); //ok
-        request.setEndTime(startDate); // OK
-        request.setStartTime(endDate); // OK
-        request.setPeriod(rule.periodSeconds); //ok
-
-        String baseName = safeName(rule.awsNamespace.toLowerCase() + "_" + toSnakeCase(rule.awsMetricName));
-        String jobName = safeName(rule.awsNamespace.toLowerCase());
-        List<MetricFamilySamples.Sample> sumSamples = new ArrayList<MetricFamilySamples.Sample>();
-        List<MetricFamilySamples.Sample> sampleCountSamples = new ArrayList<MetricFamilySamples.Sample>();
-        List<MetricFamilySamples.Sample> minimumSamples = new ArrayList<MetricFamilySamples.Sample>();
-        List<MetricFamilySamples.Sample> maximumSamples = new ArrayList<MetricFamilySamples.Sample>();
-        List<MetricFamilySamples.Sample> averageSamples = new ArrayList<MetricFamilySamples.Sample>();
-        HashMap<String, ArrayList<MetricFamilySamples.Sample>> extendedSamples = new HashMap<String, ArrayList<MetricFamilySamples.Sample>>();
-
-        String unit = null;
-
-        if (rule.awsNamespace.equals("AWS/DynamoDB")
-                && rule.awsDimensions.contains("GlobalSecondaryIndexName")
-                && brokenDynamoMetrics.contains(rule.awsMetricName)) {
-            baseName += "_index";
-        }
-
-        for (List<Dimension> dimensions: getDimensions(rule, config.client)) {
-          request.setDimensions(dimensions);
-
-          GetMetricStatisticsResult result = config.client.getMetricStatistics(request);
-          cloudwatchRequests.labels("getMetricStatistics", rule.awsNamespace).inc();
-          Datapoint dp = getNewestDatapoint(result.getDatapoints());
-          if (dp == null) {
-            continue;
-          }
-          unit = dp.getUnit();
-
-          List<String> labelNames = new ArrayList<String>();
-          List<String> labelValues = new ArrayList<String>();
-          labelNames.add("job");
-          labelValues.add(jobName);
-          labelNames.add("instance");
-          labelValues.add("");
-          for (Dimension d: dimensions) {
-            labelNames.add(safeName(toSnakeCase(d.getName())));
-            labelValues.add(d.getValue());
-          }
-
-          Long timestamp = null;
-          if (rule.cloudwatchTimestamp) {
-            timestamp = dp.getTimestamp().getTime();
-          }
-
-          if (dp.getSum() != null) {
-            sumSamples.add(new MetricFamilySamples.Sample(
-                baseName + "_sum", labelNames, labelValues, dp.getSum(), timestamp));
-          }
-          if (dp.getSampleCount() != null) {
-            sampleCountSamples.add(new MetricFamilySamples.Sample(
-                baseName + "_sample_count", labelNames, labelValues, dp.getSampleCount(), timestamp));
-          }
-          if (dp.getMinimum() != null) {
-            minimumSamples.add(new MetricFamilySamples.Sample(
-                baseName + "_minimum", labelNames, labelValues, dp.getMinimum(), timestamp));
-          }
-          if (dp.getMaximum() != null) {
-            maximumSamples.add(new MetricFamilySamples.Sample(
-                baseName + "_maximum",labelNames, labelValues, dp.getMaximum(), timestamp));
-          }
-          if (dp.getAverage() != null) {
-            averageSamples.add(new MetricFamilySamples.Sample(
-                baseName + "_average", labelNames, labelValues, dp.getAverage(), timestamp));
-          }
-          if (dp.getExtendedStatistics() != null) {
-            for (Map.Entry<String, Double> entry : dp.getExtendedStatistics().entrySet()) {
-              ArrayList<MetricFamilySamples.Sample> samples = extendedSamples.get(entry.getKey());
-              if (samples == null) {
-                samples = new ArrayList<MetricFamilySamples.Sample>();
-                extendedSamples.put(entry.getKey(), samples);
-              }
-              samples.add(new MetricFamilySamples.Sample(
-                  baseName + "_" + safeName(toSnakeCase(entry.getKey())), labelNames, labelValues, entry.getValue(), timestamp));
-            }
-          }
-        }
-
-        if (!sumSamples.isEmpty()) {
-          mfs.add(new MetricFamilySamples(baseName + "_sum", Type.GAUGE, help(rule, unit, "Sum"), sumSamples));
-        }
-        if (!sampleCountSamples.isEmpty()) {
-          mfs.add(new MetricFamilySamples(baseName + "_sample_count", Type.GAUGE, help(rule, unit, "SampleCount"), sampleCountSamples));
-        }
-        if (!minimumSamples.isEmpty()) {
-          mfs.add(new MetricFamilySamples(baseName + "_minimum", Type.GAUGE, help(rule, unit, "Minimum"), minimumSamples));
-        }
-        if (!maximumSamples.isEmpty()) {
-          mfs.add(new MetricFamilySamples(baseName + "_maximum", Type.GAUGE, help(rule, unit, "Maximum"), maximumSamples));
-        }
-        if (!averageSamples.isEmpty()) {
-          mfs.add(new MetricFamilySamples(baseName + "_average", Type.GAUGE, help(rule, unit, "Average"), averageSamples));
-        }
-        for (Map.Entry<String, ArrayList<MetricFamilySamples.Sample>> entry : extendedSamples.entrySet()) {
-          mfs.add(new MetricFamilySamples(baseName + "_" + safeName(toSnakeCase(entry.getKey())), Type.GAUGE, help(rule, unit, entry.getKey()), entry.getValue()));
-        }
-      }
-    }
-
     public List<MetricFamilySamples> collect() {
       long start = System.nanoTime();
       double error = 0;
       List<MetricFamilySamples> mfs = new ArrayList<MetricFamilySamples>();
       try {
-        scrape2(mfs);
+        scrape(mfs);
       } catch (Exception e) {
         error = 1;
         LOGGER.log(Level.WARNING, "CloudWatch scrape failed", e);
