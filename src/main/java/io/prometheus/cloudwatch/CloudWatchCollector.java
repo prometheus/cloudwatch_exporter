@@ -4,7 +4,18 @@ import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
-import com.amazonaws.services.cloudwatch.model.*;
+import com.amazonaws.services.cloudwatch.model.Dimension;
+import com.amazonaws.services.cloudwatch.model.DimensionFilter;
+import com.amazonaws.services.cloudwatch.model.GetMetricDataRequest;
+import com.amazonaws.services.cloudwatch.model.GetMetricDataResult;
+import com.amazonaws.services.cloudwatch.model.ListMetricsRequest;
+import com.amazonaws.services.cloudwatch.model.ListMetricsResult;
+import com.amazonaws.services.cloudwatch.model.Metric;
+import com.amazonaws.services.cloudwatch.model.MetricDataQuery;
+import com.amazonaws.services.cloudwatch.model.MetricDataResult;
+import com.amazonaws.services.cloudwatch.model.MetricStat;
+import com.amazonaws.services.cloudwatch.model.ScanBy;
+import com.google.common.collect.Lists;
 import io.prometheus.client.Collector;
 import io.prometheus.client.Counter;
 import org.yaml.snakeyaml.Yaml;
@@ -12,16 +23,17 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
-import com.google.common.collect.Lists;
-
-/**
- *
- */
 public class CloudWatchCollector extends Collector {
     private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
 
@@ -50,7 +62,7 @@ public class CloudWatchCollector extends Collector {
       boolean cloudwatchTimestamp;
 
       List<String> allStats() {
-        List<String> stats = new ArrayList<String>();
+        List<String> stats = new ArrayList<>();
         if (this.awsStatistics != null) {
           stats.addAll(this.awsStatistics);
         }
@@ -141,7 +153,7 @@ public class CloudWatchCollector extends Collector {
           throw new IllegalArgumentException("Must provide metrics");
         }
 
-        ArrayList<MetricRule> rules = new ArrayList<MetricRule>();
+        ArrayList<MetricRule> rules = new ArrayList<>();
 
         for (Object ruleObject : (List<Map<String,Object>>) config.get("metrics")) {
           Map<String, Object> yamlMetricRule = (Map<String, Object>)ruleObject;
@@ -227,19 +239,19 @@ public class CloudWatchCollector extends Collector {
     }
 
     private List<List<Dimension>> permuteDimensions(List<String> dimensions, Map<String, List<String>> dimensionValues) {
-        ArrayList<List<Dimension>> result = new ArrayList<List<Dimension>>();
+        ArrayList<List<Dimension>> result = new ArrayList<>();
 
         if (dimensions.size() == 0) {
-            result.add(new ArrayList<Dimension>());
+            result.add(new ArrayList<>());
         } else {
-            List<String> dimensionsCopy = new ArrayList<String>(dimensions);
+            List<String> dimensionsCopy = new ArrayList<>(dimensions);
             String dimensionName = dimensionsCopy.remove(dimensionsCopy.size() - 1);
             for (List<Dimension> permutation : permuteDimensions(dimensionsCopy, dimensionValues)) {
                 for (String dimensionValue : dimensionValues.get(dimensionName)) {
                     Dimension dimension = new Dimension();
                     dimension.setValue(dimensionValue);
                     dimension.setName(dimensionName);
-                    ArrayList<Dimension> permutationCopy = new ArrayList<Dimension>(permutation);
+                    ArrayList<Dimension> permutationCopy = new ArrayList<>(permutation);
                     permutationCopy.add(dimension);
                     result.add(permutationCopy);
                 }
@@ -250,16 +262,16 @@ public class CloudWatchCollector extends Collector {
     }
 
     private List<List<Dimension>> listDimensions(MetricRule rule, AmazonCloudWatchClient client) {
-      List<List<Dimension>> dimensions = new ArrayList<List<Dimension>>();
+      List<List<Dimension>> dimensions = new ArrayList<>();
       if (rule.awsDimensions == null) {
-        dimensions.add(new ArrayList<Dimension>());
+        dimensions.add(new ArrayList<>());
         return dimensions;
       }
 
       ListMetricsRequest request = new ListMetricsRequest();
       request.setNamespace(rule.awsNamespace);
       request.setMetricName(rule.awsMetricName);
-      List<DimensionFilter> dimensionFilters = new ArrayList<DimensionFilter>();
+      List<DimensionFilter> dimensionFilters = new ArrayList<>();
       for (String dimension : rule.awsDimensions) {
         dimensionFilters.add(new DimensionFilter().withName(dimension));
       }
@@ -296,10 +308,7 @@ public class CloudWatchCollector extends Collector {
       if (rule.awsDimensionSelect != null  && metricsIsInAwsDimensionSelect(rule, metric)) {
         return true;
       }
-      if (rule.awsDimensionSelectRegex != null  && metricIsInAwsDimensionSelectRegex(rule, metric)) {
-        return true;
-      }
-      return false;
+      return rule.awsDimensionSelectRegex != null && metricIsInAwsDimensionSelectRegex(rule, metric);
     }
 
     /**
@@ -350,16 +359,6 @@ public class CloudWatchCollector extends Collector {
       return false;
     }
 
-    private Datapoint getNewestDatapoint(java.util.List<Datapoint> datapoints) {
-      Datapoint newest = null;
-      for (Datapoint d: datapoints) {
-        if (newest == null || newest.getTimestamp().before(d.getTimestamp())) {
-          newest = d;
-        }
-      }
-      return newest;
-    }
-
     private String toSnakeCase(String str) {
       return str.replaceAll("([a-z0-9])([A-Z])", "$1_$2").toLowerCase();
     }
@@ -379,12 +378,10 @@ public class CloudWatchCollector extends Collector {
     }
 
     private static String queryId(MetricRule rule, List<Dimension> dimensions, String stat) {
-      String idComponents = new StringBuilder()
-              .append(rule.awsNamespace)
-              .append(rule.awsMetricName)
-              .append(dimensions.hashCode())
-              .append(stat)
-              .toString();
+      String idComponents = rule.awsNamespace +
+              rule.awsMetricName +
+              dimensions.hashCode() +
+              stat;
       // We cant't use the concatenated components as the ID directly because AWS will not accept special chars as ID
       // Also, the ID must start with a letter, not a digit
       return "q" + Integer.toUnsignedString(idComponents.hashCode());
@@ -407,7 +404,7 @@ public class CloudWatchCollector extends Collector {
     }
 
     private static List<MetricDataQuery> queriesForRuleDimensions(MetricRule rule, List<Dimension> dimensions) {
-      List<MetricDataQuery> queries = new ArrayList<MetricDataQuery>();
+      List<MetricDataQuery> queries = new ArrayList<>();
 
       for (String stat : rule.allStats()) {
         queries.add(metricDataQuery(rule, dimensions, stat));
@@ -444,12 +441,11 @@ public class CloudWatchCollector extends Collector {
     }
 
   private Map<String, MetricDataResult> fetchResults(ActiveConfig config, long start) {
-    Map<String, MetricDataResult> idsToResults = new HashMap<String, MetricDataResult>();
+    Map<String, MetricDataResult> idsToResults = new HashMap<>();
     for (MetricRule rule : config.rules) {
       final List<GetMetricDataRequest> getMetricDataRequests = requestForRule(rule, config, start);
       for (GetMetricDataRequest request : getMetricDataRequests) {
         if (request == null) {
-          continue;
         } else {
           String nextToken = null;
           do {
@@ -488,8 +484,8 @@ public class CloudWatchCollector extends Collector {
       }
 
       for (List<Dimension> dimensions : getDimensions(rule, config.client)) {
-        List<String> labelNames = new ArrayList<String>();
-        List<String> labelValues = new ArrayList<String>();
+        List<String> labelNames = new ArrayList<>();
+        List<String> labelValues = new ArrayList<>();
         labelNames.add("job");
         labelValues.add(jobName);
         labelNames.add("instance");

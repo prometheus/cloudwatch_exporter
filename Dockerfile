@@ -2,7 +2,7 @@ FROM openjdk:11 as builder
 
 WORKDIR /cloudwatch_exporter
 ADD . /cloudwatch_exporter
-RUN apt-get -qy update && apt-get -qy install maven && mvn clean package && \
+RUN apt-get -qy update && apt-get -qy install maven && mvn package && \
     mv target/cloudwatch_exporter-*-with-dependencies.jar /cloudwatch_exporter.jar && \
     rm -rf /cloudwatch_exporter && apt-get -qy remove --purge maven && apt-get -qy autoremove
 
