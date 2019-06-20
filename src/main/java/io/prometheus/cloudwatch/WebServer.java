@@ -22,7 +22,16 @@ public class WebServer {
         }
 
         configFilePath = args[1];
-        CloudWatchCollector collector = new CloudWatchCollector(new FileReader(configFilePath)).register();
+
+        CloudWatchCollector collector = null;
+        FileReader reader = null;
+
+        try {
+          reader = new FileReader(configFilePath);
+          collector = new CloudWatchCollector(new FileReader(configFilePath)).register();
+        } finally {
+          reader.close();
+        }
 
         ReloadSignalHandler.start(collector);
 

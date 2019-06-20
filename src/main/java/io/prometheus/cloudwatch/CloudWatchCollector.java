@@ -89,8 +89,13 @@ public class CloudWatchCollector extends Collector {
 
     protected void reloadConfig() throws IOException {
         LOGGER.log(Level.INFO, "Reloading configuration");
-
-        loadConfig(new FileReader(WebServer.configFilePath), activeConfig.client);
+        FileReader reader = null;
+        try {
+          reader = new FileReader(WebServer.configFilePath);
+          loadConfig(reader, activeConfig.client);
+        } finally {
+          reader.close();
+        }
     }
 
     protected void loadConfig(Reader in, AmazonCloudWatchClient client) throws IOException {
