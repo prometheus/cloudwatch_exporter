@@ -77,31 +77,31 @@ public class CloudWatchCollector extends Collector {
             "ReadThrottleEvents", "WriteThrottleEvents");
 
     public CloudWatchCollector(Reader in) throws IOException {
-        loadConfig(in, null);
+        loadConfig(in, null, null);
     }
     public CloudWatchCollector(String yamlConfig) {
-        this((Map<String, Object>)new Yaml().load(yamlConfig),null);
+        this((Map<String, Object>)new Yaml().load(yamlConfig), null, null);
     }
 
     /* For unittests. */
-    protected CloudWatchCollector(String jsonConfig, AmazonCloudWatchClient client) {
-        this((Map<String, Object>)new Yaml().load(jsonConfig), client);
+    protected CloudWatchCollector(String jsonConfig, AmazonCloudWatchClient client, AmazonElasticLoadBalancingClient elbClient) {
+        this((Map<String, Object>)new Yaml().load(jsonConfig), client, elbClient);
     }
 
-    private CloudWatchCollector(Map<String, Object> config, AmazonCloudWatchClient client) {
-        loadConfig(config, client);
+    private CloudWatchCollector(Map<String, Object> config, AmazonCloudWatchClient client, AmazonElasticLoadBalancingClient elbClient) {
+        loadConfig(config, client, elbClient);
     }
 
     protected void reloadConfig() throws IOException {
         LOGGER.log(Level.INFO, "Reloading configuration");
 
-        loadConfig(new FileReader(WebServer.configFilePath), activeConfig.client);
+        loadConfig(new FileReader(WebServer.configFilePath), activeConfig.client, activeConfig.elbClient);
     }
 
-    protected void loadConfig(Reader in, AmazonCloudWatchClient client) throws IOException {
-        loadConfig((Map<String, Object>)new Yaml().load(in), client);
+    protected void loadConfig(Reader in, AmazonCloudWatchClient client, AmazonElasticLoadBalancingClient elbClient) throws IOException {
+        loadConfig((Map<String, Object>)new Yaml().load(in), client, elbClient);
     }
-    private void loadConfig(Map<String, Object> config, AmazonCloudWatchClient client) {
+    private void loadConfig(Map<String, Object> config, AmazonCloudWatchClient client, AmazonElasticLoadBalancingClient elbClient) {
         if(config == null) {  // Yaml config empty, set config to empty map.
             config = new HashMap<String, Object>();
         }
@@ -134,13 +134,14 @@ public class CloudWatchCollector extends Collector {
               "cloudwatch_exporter"
             );
             client = new AmazonCloudWatchClient(credentialsProvider);
-            this.elbClient = new AmazonElasticLoadBalancingClient(credentialsProvider);
+            elbClient = new AmazonElasticLoadBalancingClient(credentialsProvider);
           } else {
             client = new AmazonCloudWatchClient();
-            this.elbClient = new AmazonElasticLoadBalancingClient();
+            elbClient = new AmazonElasticLoadBalancingClient();
           }
           Region region = RegionUtils.getRegion((String) config.get("region"));
           client.setEndpoint(getMonitoringEndpoint(region));
+          elbClient.setEndpoint(getMonitoringEndpoint(region));
         }
 
         if (!config.containsKey("metrics")) {
@@ -203,12 +204,13 @@ public class CloudWatchCollector extends Collector {
           }
         }
 
-        loadConfig(rules, client);
+        loadConfig(rules, client, elbClient);
     }
 
-    private void loadConfig(ArrayList<MetricRule> rules, AmazonCloudWatchClient client) {
+    private void loadConfig(ArrayList<MetricRule> rules, AmazonCloudWatchClient client, AmazonElasticLoadBalancingClient elbClient) {
         synchronized (activeConfig) {
             activeConfig.client = client;
+            activeConfig.elbClient = elbClient;
             activeConfig.rules = rules;
         }
     }
@@ -228,7 +230,7 @@ public class CloudWatchCollector extends Collector {
             // The full list of dimensions is known so no need to request it from cloudwatch.
             return permuteDimensions(rule.awsDimensions, rule.awsDimensionSelect);
         } else {
-            return listDimensions(rule, client);
+            return listDimensions(rule, aliveElbNames, client);
         }
     }
 
@@ -255,7 +257,7 @@ public class CloudWatchCollector extends Collector {
         return result;
     }
 
-    private List<List<Dimension>> listDimensions(MetricRule rule, AmazonCloudWatchClient client) {
+    private List<List<Dimension>> listDimensions(MetricRule rule, List<String> aliveElbNames, AmazonCloudWatchClient client) {
       List<List<Dimension>> dimensions = new ArrayList<List<Dimension>>();
       if (rule.awsDimensions == null) {
         dimensions.add(new ArrayList<Dimension>());
@@ -404,7 +406,7 @@ public class CloudWatchCollector extends Collector {
       ActiveConfig config = (ActiveConfig) activeConfig.clone();
 
       long start = System.currentTimeMillis();
-      List<String> aliveElbNames = getListOfAliveElbNames();
+      List<String> aliveElbNames = getListOfAliveElbNames(config.elbClient);
       for (MetricRule rule: config.rules) {
         Date startDate = new Date(start - 1000 * rule.delaySeconds);
         Date endDate = new Date(start - 1000 * (rule.delaySeconds + rule.rangeSeconds));
@@ -434,7 +436,7 @@ public class CloudWatchCollector extends Collector {
             baseName += "_index";
         }
 
-        for (List<Dimension> dimensions: getDimensions(rule,aliveElbNames, config.client)) {
+        for (List<Dimension> dimensions: getDimensions(rule, aliveElbNames, config.client)) {
           request.setDimensions(dimensions);
 
           GetMetricStatisticsResult result = config.client.getMetricStatistics(request);
@@ -515,7 +517,7 @@ public class CloudWatchCollector extends Collector {
       }
     }
 
-    private List<String> getListOfAliveElbNames() {
+    private List<String> getListOfAliveElbNames(AmazonElasticLoadBalancingClient elbClient) {
         List<String> aliveElbNames = new ArrayList<String>();
         DescribeLoadBalancersRequest request = new DescribeLoadBalancersRequest();
         DescribeLoadBalancersResult lbs = elbClient.describeLoadBalancers(request);
