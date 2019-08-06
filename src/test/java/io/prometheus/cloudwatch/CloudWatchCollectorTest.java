@@ -1,10 +1,11 @@
 package io.prometheus.cloudwatch;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.argThat;
 
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
 import com.amazonaws.services.cloudwatch.model.Datapoint;
 import com.amazonaws.services.cloudwatch.model.Dimension;
@@ -14,15 +15,24 @@ import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsResult;
 import com.amazonaws.services.cloudwatch.model.ListMetricsRequest;
 import com.amazonaws.services.cloudwatch.model.ListMetricsResult;
 import com.amazonaws.services.cloudwatch.model.Metric;
+import io.prometheus.client.Collector;
 import io.prometheus.client.CollectorRegistry;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 public class CloudWatchCollectorTest {
   AmazonCloudWatchClient client;
@@ -132,7 +142,7 @@ public class CloudWatchCollectorTest {
     Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest) anyObject()))
             .thenReturn(new GetMetricStatisticsResult());
 
-    registry.getSampleValue("aws_elb_request_count_average", new String[]{"job"}, new String[]{"aws_elb"});
+    registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance"}, new String[]{"aws_elb", ""});
 
 
     Mockito.verify(client).getMetricStatistics((GetMetricStatisticsRequest) argThat(
@@ -151,7 +161,7 @@ public class CloudWatchCollectorTest {
     Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest) anyObject()))
             .thenReturn(new GetMetricStatisticsResult());
 
-    registry.getSampleValue("aws_elb_request_count_average", new String[]{"job"}, new String[]{"aws_elb"});
+    registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance"}, new String[]{"aws_elb", ""});
 
 
     Mockito.verify(client).getMetricStatistics((GetMetricStatisticsRequest) argThat(
@@ -173,11 +183,49 @@ public class CloudWatchCollectorTest {
             new Datapoint().withTimestamp(new Date()).withAverage(1.0)
                 .withMaximum(2.0).withMinimum(3.0).withSampleCount(4.0).withSum(5.0)));
 
-    assertEquals(1.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job"}, new String[]{"aws_elb"}), .01);
-    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_maximum", new String[]{"job"}, new String[]{"aws_elb"}), .01);
-    assertEquals(3.0, registry.getSampleValue("aws_elb_request_count_minimum", new String[]{"job"}, new String[]{"aws_elb"}), .01);
-    assertEquals(4.0, registry.getSampleValue("aws_elb_request_count_sample_count", new String[]{"job"}, new String[]{"aws_elb"}), .01);
-    assertEquals(5.0, registry.getSampleValue("aws_elb_request_count_sum", new String[]{"job"}, new String[]{"aws_elb"}), .01);
+    assertEquals(1.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
+    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_maximum", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
+    assertEquals(3.0, registry.getSampleValue("aws_elb_request_count_minimum", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
+    assertEquals(4.0, registry.getSampleValue("aws_elb_request_count_sample_count", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
+    assertEquals(5.0, registry.getSampleValue("aws_elb_request_count_sum", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
+  }
+
+  @Test
+  public void testCloudwatchTimestamps() throws Exception {
+    new CloudWatchCollector(
+            "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  set_timestamp: true\n- aws_namespace: AWS/ELB\n  aws_metric_name: HTTPCode_Backend_2XX\n  set_timestamp: false"
+            , client).register(registry);
+
+    Date timestamp = new Date();
+    Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest)argThat(
+            new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount"))))
+            .thenReturn(new GetMetricStatisticsResult().withDatapoints(
+                    new Datapoint().withTimestamp(timestamp).withAverage(1.0)));
+
+    Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest)argThat(
+            new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("HTTPCode_Backend_2XX"))))
+            .thenReturn(new GetMetricStatisticsResult().withDatapoints(
+                    new Datapoint().withTimestamp(timestamp).withAverage(1.0)));
+
+    assertMetricTimestampEquals(registry, "aws_elb_request_count_average", timestamp.getTime());
+    assertMetricTimestampEquals(registry, "aws_elb_httpcode_backend_2_xx_average", null);
+
+  }
+
+  void assertMetricTimestampEquals(CollectorRegistry registry, String name, Long expectedTimestamp) {
+    Enumeration<Collector.MetricFamilySamples> metricFamilySamplesEnumeration = registry.metricFamilySamples();
+    Set<String> metricNames = new HashSet<String>();
+    while(metricFamilySamplesEnumeration.hasMoreElements()) {
+      Collector.MetricFamilySamples samples = metricFamilySamplesEnumeration.nextElement();
+      for(Collector.MetricFamilySamples.Sample s: samples.samples) {
+        metricNames.add(s.name);
+        if(s.name.equals(name)) {
+          assertEquals(expectedTimestamp, (Long)s.timestampMs);
+          return;
+        }
+      }
+    }
+    fail(String.format("Metric %s not found in registry. Metrics found: %s", name, metricNames));
   }
 
   @Test
@@ -192,7 +240,7 @@ public class CloudWatchCollectorTest {
             new Datapoint().withTimestamp(new Date(3)).withAverage(3.0),
             new Datapoint().withTimestamp(new Date(2)).withAverage(2.0)));
 
-    assertEquals(3.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job"}, new String[]{"aws_elb"}), .01);
+    assertEquals(3.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
   }
 
   @Test
@@ -216,9 +264,9 @@ public class CloudWatchCollectorTest {
         .thenReturn(new GetMetricStatisticsResult().withDatapoints(
             new Datapoint().withTimestamp(new Date()).withAverage(3.0)));
 
-    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "a", "myLB"}), .01);
-    assertEquals(3.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "b", "myOtherLB"}), .01);
-    assertNull(registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "availability_zone", "load_balancer_name", "this_extra_dimension_is_ignored"}, new String[]{"aws_elb", "a", "myLB", "dummy"}));
+    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "a", "myLB"}), .01);
+    assertEquals(3.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "b", "myOtherLB"}), .01);
+    assertNull(registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name", "this_extra_dimension_is_ignored"}, new String[]{"aws_elb", "", "a", "myLB", "dummy"}));
   }
 
   @Test
@@ -242,9 +290,28 @@ public class CloudWatchCollectorTest {
         .thenReturn(new GetMetricStatisticsResult().withDatapoints(
             new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
 
-    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "a", "myLB"}), .01);
-    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "b", "myLB"}), .01);
-    assertNull(registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "a", "myOtherLB"}));
+    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "a", "myLB"}), .01);
+    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "b", "myLB"}), .01);
+    assertNull(registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "a", "myOtherLB"}));
+  }
+
+  @Test
+  public void testAllSelectDimensionsKnown() throws Exception {
+    new CloudWatchCollector(
+            "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancerName\n  aws_dimension_select:\n    LoadBalancerName:\n    - myLB\n    AvailabilityZone:\n    - a\n    - b", client).register(registry);
+    Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest)argThat(
+            new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimension("AvailabilityZone", "a").Dimension("LoadBalancerName", "myLB"))))
+            .thenReturn(new GetMetricStatisticsResult().withDatapoints(
+                    new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
+
+    Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest)argThat(
+            new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimension("AvailabilityZone", "b").Dimension("LoadBalancerName", "myLB"))))
+            .thenReturn(new GetMetricStatisticsResult().withDatapoints(
+                    new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
+
+    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "a", "myLB"}), .01);
+    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "b", "myLB"}), .01);
+    assertNull(registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "a", "myOtherLB"}));
   }
 
   @Test
@@ -269,9 +336,9 @@ public class CloudWatchCollectorTest {
         .thenReturn(new GetMetricStatisticsResult().withDatapoints(
             new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
 
-    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "a", "myLB1"}), .01);
-    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "b", "myLB2"}), .01);
-    assertNull(registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "a", "myOtherLB"}));
+    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "a", "myLB1"}), .01);
+    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "b", "myLB2"}), .01);
+    assertNull(registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "a", "myOtherLB"}));
   }
 
   @Test
@@ -292,15 +359,70 @@ public class CloudWatchCollectorTest {
         .thenReturn(new GetMetricStatisticsResult().withDatapoints(
             new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
 
-    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "a", "myLB"}), .01);
+    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "a", "myLB"}), .01);
   }
 
   @Test
   public void testGetMonitoringEndpoint() throws Exception {
+    Region usEast = RegionUtils.getRegion("us-east-1");
     CloudWatchCollector us_collector = new CloudWatchCollector("---\nregion: us-east-1\nmetrics: []\n");
-    assertEquals("https://monitoring.us-east-1.amazonaws.com", us_collector.getMonitoringEndpoint());
+    assertEquals("https://monitoring.us-east-1.amazonaws.com", us_collector.getMonitoringEndpoint(usEast));
 
+    Region cnNorth = RegionUtils.getRegion("cn-north-1");
     CloudWatchCollector cn_collector = new CloudWatchCollector("---\nregion: cn-north-1\nmetrics: []\n");
-    assertEquals("https://monitoring.cn-north-1.amazonaws.com.cn", cn_collector.getMonitoringEndpoint());
+    assertEquals("https://monitoring.cn-north-1.amazonaws.com.cn", cn_collector.getMonitoringEndpoint(cnNorth));
+  }
+
+  @Test
+  public void testExtendedStatistics() throws Exception {
+    new CloudWatchCollector(
+        "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: Latency\n  aws_extended_statistics:\n  - p95\n  - p99.99", client).register(registry);
+
+    HashMap<String, Double> extendedStatistics = new HashMap<String, Double>();
+    extendedStatistics.put("p95", 1.0);
+    extendedStatistics.put("p99.99", 2.0);
+
+    Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest)argThat(
+        new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("Latency"))))
+        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
+            new Datapoint().withTimestamp(new Date()).withExtendedStatistics(extendedStatistics)));
+
+    assertEquals(1.0, registry.getSampleValue("aws_elb_latency_p95", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
+    assertEquals(2.0, registry.getSampleValue("aws_elb_latency_p99_99", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
+  }
+
+  @Test
+  public void testDynamoIndexDimensions() throws Exception {
+    new CloudWatchCollector(
+        "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/DynamoDB\n  aws_metric_name: ConsumedReadCapacityUnits\n  aws_dimensions:\n  - TableName\n  - GlobalSecondaryIndexName\n- aws_namespace: AWS/DynamoDB\n  aws_metric_name: OnlineIndexConsumedWriteCapacity\n  aws_dimensions:\n  - TableName\n  - GlobalSecondaryIndexName\n- aws_namespace: AWS/DynamoDB\n  aws_metric_name: ConsumedReadCapacityUnits\n  aws_dimensions:\n  - TableName", client).register(registry);
+    Mockito.when(client.listMetrics((ListMetricsRequest)argThat(
+        new ListMetricsRequestMatcher().Namespace("AWS/DynamoDB").MetricName("ConsumedReadCapacityUnits").Dimensions("TableName", "GlobalSecondaryIndexName"))))
+        .thenReturn(new ListMetricsResult().withMetrics(
+          new Metric().withDimensions(new Dimension().withName("TableName").withValue("myTable"), new Dimension().withName("GlobalSecondaryIndexName").withValue("myIndex"))));
+    Mockito.when(client.listMetrics((ListMetricsRequest)argThat(
+        new ListMetricsRequestMatcher().Namespace("AWS/DynamoDB").MetricName("OnlineIndexConsumedWriteCapacity").Dimensions("TableName", "GlobalSecondaryIndexName"))))
+        .thenReturn(new ListMetricsResult().withMetrics(
+          new Metric().withDimensions(new Dimension().withName("TableName").withValue("myTable"), new Dimension().withName("GlobalSecondaryIndexName").withValue("myIndex"))));
+    Mockito.when(client.listMetrics((ListMetricsRequest)argThat(
+        new ListMetricsRequestMatcher().Namespace("AWS/DynamoDB").MetricName("ConsumedReadCapacityUnits").Dimensions("TableName"))))
+        .thenReturn(new ListMetricsResult().withMetrics(
+          new Metric().withDimensions(new Dimension().withName("TableName").withValue("myTable"))));
+
+    Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest)argThat(
+        new GetMetricStatisticsRequestMatcher().Namespace("AWS/DynamoDB").MetricName("ConsumedReadCapacityUnits").Dimension("TableName", "myTable").Dimension("GlobalSecondaryIndexName", "myIndex"))))
+        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
+            new Datapoint().withTimestamp(new Date()).withSum(1.0)));
+    Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest)argThat(
+        new GetMetricStatisticsRequestMatcher().Namespace("AWS/DynamoDB").MetricName("OnlineIndexConsumedWriteCapacity").Dimension("TableName", "myTable").Dimension("GlobalSecondaryIndexName", "myIndex"))))
+        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
+            new Datapoint().withTimestamp(new Date()).withSum(2.0)));
+    Mockito.when(client.getMetricStatistics((GetMetricStatisticsRequest)argThat(
+        new GetMetricStatisticsRequestMatcher().Namespace("AWS/DynamoDB").MetricName("ConsumedReadCapacityUnits").Dimension("TableName", "myTable"))))
+        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
+            new Datapoint().withTimestamp(new Date()).withSum(3.0)));
+
+    assertEquals(1.0, registry.getSampleValue("aws_dynamodb_consumed_read_capacity_units_index_sum", new String[]{"job", "instance", "table_name", "global_secondary_index_name"}, new String[]{"aws_dynamodb", "", "myTable", "myIndex"}), .01);
+    assertEquals(2.0, registry.getSampleValue("aws_dynamodb_online_index_consumed_write_capacity_sum", new String[]{"job", "instance", "table_name", "global_secondary_index_name"}, new String[]{"aws_dynamodb", "", "myTable", "myIndex"}), .01);
+    assertEquals(3.0, registry.getSampleValue("aws_dynamodb_consumed_read_capacity_units_sum", new String[]{"job", "instance", "table_name"}, new String[]{"aws_dynamodb", "", "myTable"}), .01);
   }
 }
