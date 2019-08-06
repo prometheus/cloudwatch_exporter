@@ -141,7 +141,7 @@ public class CloudWatchCollector extends Collector {
           }
           Region region = RegionUtils.getRegion((String) config.get("region"));
           client.setEndpoint(getMonitoringEndpoint(region));
-          elbClient.setEndpoint(getMonitoringEndpoint(region));
+          elbClient.setEndpoint(getLoadBalancingEndpoint(region));
         }
 
         if (!config.containsKey("metrics")) {
@@ -217,6 +217,10 @@ public class CloudWatchCollector extends Collector {
 
     public String getMonitoringEndpoint(Region region) {
       return "https://" + region.getServiceEndpoint("monitoring");
+    }
+
+    public String getLoadBalancingEndpoint(Region region) {
+      return "https://" + region.getServiceEndpoint("elasticloadbalancing");
     }
 
     private List<List<Dimension>> getDimensions(MetricRule rule, List<String> aliveElbNames, AmazonCloudWatchClient client) {
