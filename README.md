@@ -151,9 +151,34 @@ Specify the config as the CMD:
 $ docker run -p 9106 -v /path/on/host/us-west-1.yml:/config/us-west-1.yml prom/cloudwatch-exporter /config/us-west-1.yml
 ```
 
-Or create a config file named /config/config.yml along with following
-Dockerfile in the same directory and build it with `docker build`:
+If you need to create your own version of the container, with perhaps a custom config or environment variables backed in, you will
+need to create your own local Dockerfile.
+
+Your Dockerfile will need to look something like the following :
 
 ```
 FROM prom/cloudwatch-exporter
+
+ENV AWS_ACCESS_KEY_ID=super
+ENV AWS_SECRET_ACCESS_KEY=secret
+ENV AWS_DEFAULT_REGION="eu-west-1"
+```
+
+If additionally you would like to bake your own config.yml into the container rather than exporting it as a volume above, simply
+create your config.yml in the same directory as your new Dockerfile and run :
+
+```
+docker build . -t my_image:my_version
+```
+
+Then to run your custom container, run :
+
+```
+docker run -d -p 9106:9106 my_image:my_version
+```
+
+If your container doesn't look quite right, you can inspect it by running :
+
+```
+docker run -it my_image:my_version /bin/bash
 ```
