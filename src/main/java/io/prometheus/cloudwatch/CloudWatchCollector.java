@@ -259,8 +259,16 @@ public class CloudWatchCollector extends Collector {
       request.setNamespace(rule.awsNamespace);
       request.setMetricName(rule.awsMetricName);
       List<DimensionFilter> dimensionFilters = new ArrayList<DimensionFilter>();
-      for (String dimension: rule.awsDimensions) {
-        dimensionFilters.add(new DimensionFilter().withName(dimension));
+      if ("AWS/ES".equals(rule.awsNamespace)) {
+        for (Map.Entry<String, List<String>> dimension : rule.awsDimensionSelect.entrySet()) {
+          dimensionFilters.add(new DimensionFilter()
+            .withName(dimension.getKey())
+            .withValue(dimension.getValue().get(0)));
+          }
+        } else {
+          for (String dimension : rule.awsDimensions) {
+            dimensionFilters.add(new DimensionFilter().withName(dimension));
+          }
       }
       request.setDimensions(dimensionFilters);
 
