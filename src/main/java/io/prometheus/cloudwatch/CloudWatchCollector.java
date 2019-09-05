@@ -2,6 +2,7 @@ package io.prometheus.cloudwatch;
 
 import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
 import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
 import com.amazonaws.services.cloudwatch.model.Datapoint;
@@ -100,9 +101,6 @@ public class CloudWatchCollector extends Collector {
         if(config == null) {  // Yaml config empty, set config to empty map.
             config = new HashMap<String, Object>();
         }
-        if (!config.containsKey("region")) {
-          throw new IllegalArgumentException("Must provide region");
-        }
 
         int defaultPeriod = 60;
         if (config.containsKey("period_seconds")) {
@@ -133,6 +131,7 @@ public class CloudWatchCollector extends Collector {
             client = new AmazonCloudWatchClient();
           }
           Region region = RegionUtils.getRegion((String) config.get("region"));
+          if (region == null) region = Regions.getCurrentRegion();
           client.setEndpoint(getMonitoringEndpoint(region));
         }
 
