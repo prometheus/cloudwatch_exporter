@@ -44,6 +44,46 @@ metrics:
   aws_dimension_select_regex:
     LoadBalancerName: ["${LOADBALANCERNAME_REGEX}"]
 
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: UnHealthyHostCount
+  aws_dimensions: [LoadBalancer, TargetGroup]
+  aws_statistics: [Average]
+  aws_dimension_select_regex:
+    LoadBalancer: ["${APP_LOADBALANCERNAME_REGEX}"]
+    TargetGroup: ["${APP_LOADBALANCERTG_REGEX}"]
+
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: HTTPCode_Target_4XX_Count
+  aws_dimensions: [LoadBalancer, TargetGroup]
+  aws_statistics: [Average]
+  aws_dimension_select_regex:
+    LoadBalancer: ["${APP_LOADBALANCERNAME_REGEX}"]
+    TargetGroup: ["${APP_LOADBALANCERTG_REGEX}"]
+
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: HTTPCode_Target_5XX_Count
+  aws_dimensions: [LoadBalancer, TargetGroup]
+  aws_statistics: [Average]
+  aws_dimension_select_regex:
+    LoadBalancer: ["${APP_LOADBALANCERNAME_REGEX}"]
+    TargetGroup: ["${APP_LOADBALANCERTG_REGEX}"]
+
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: TargetResponseTime
+  aws_dimensions: [LoadBalancer, TargetGroup]
+  aws_statistics: [Average]
+  aws_dimension_select_regex:
+    LoadBalancer: ["${APP_LOADBALANCERNAME_REGEX}"]
+    TargetGroup: ["${APP_LOADBALANCERTG_REGEX}"]
+
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: RequestCount
+  aws_dimensions: [LoadBalancer, TargetGroup]
+  aws_statistics: [Average]
+  aws_dimension_select_regex:
+    LoadBalancer: ["${APP_LOADBALANCERNAME_REGEX}"]
+    TargetGroup: ["${APP_LOADBALANCERTG_REGEX}"]
+
 - aws_namespace: AWS/ES
   aws_metric_name: FreeStorageSpace
   aws_dimensions: [DomainName, ClientId]
@@ -119,3 +159,31 @@ metrics:
 - aws_namespace: AWS/Lambda
   aws_metric_name: ConcurrentExecutions
   aws_dimensions: [FunctionName]
+
+- aws_namespace: AWS/RDS
+  aws_metric_name: FreeStorageSpace
+  aws_dimensions: [DBInstanceIdentifier]
+  aws_statistics: [Average]
+  aws_dimension_select_regex:
+    DBInstanceIdentifier: ["${RDS_DB_INSTANCES_REGEX}"]
+
+- aws_namespace: AWS/RDS
+  aws_metric_name: CPUUtilization
+  aws_dimensions: [DBInstanceIdentifier]
+  aws_statistics: [Average]
+  aws_dimension_select_regex:
+    DBInstanceIdentifier: ["${RDS_DB_INSTANCES_REGEX}"]
+
+- aws_namespace: AWS/RDS
+  aws_metric_name: DatabaseConnections
+  aws_dimensions: [DBInstanceIdentifier]
+  aws_statistics: [Average]
+  aws_dimension_select_regex:
+    DBInstanceIdentifier: ["${RDS_DB_INSTANCES_REGEX}"]
+
+- aws_namespace: AWS/RDS
+  aws_metric_name: BurstBalance
+  aws_dimensions: [DBInstanceIdentifier]
+  aws_statistics: [Average]
+  aws_dimension_select_regex:
+    DBInstanceIdentifier: ["${RDS_DB_INSTANCES_REGEX}"]
