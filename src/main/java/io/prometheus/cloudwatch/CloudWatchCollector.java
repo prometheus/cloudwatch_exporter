@@ -131,7 +131,12 @@ public class CloudWatchCollector extends Collector {
             client = new AmazonCloudWatchClient();
           }
           Region region = RegionUtils.getRegion((String) config.get("region"));
-          if (region == null) region = Regions.getCurrentRegion();
+          if (region == null) {
+            region = Regions.getCurrentRegion();
+            if (region == null) {
+              throw new IllegalArgumentException("No region provided and EC2 metadata failed");
+            }
+          }
           client.setEndpoint(getMonitoringEndpoint(region));
         }
 
