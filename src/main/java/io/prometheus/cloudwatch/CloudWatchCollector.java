@@ -1,10 +1,12 @@
 package io.prometheus.cloudwatch;
 
 import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
+import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.regions.RegionUtils;
-import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
+import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
+import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder;
 import com.amazonaws.services.cloudwatch.model.Datapoint;
 import com.amazonaws.services.cloudwatch.model.Dimension;
 import com.amazonaws.services.cloudwatch.model.DimensionFilter;
@@ -37,7 +39,7 @@ public class CloudWatchCollector extends Collector {
 
     static class ActiveConfig implements Cloneable {
         ArrayList<MetricRule> rules;
-        AmazonCloudWatchClient client;
+        AmazonCloudWatch client;
 
         @Override
         public Object clone() throws CloneNotSupportedException {
@@ -79,11 +81,11 @@ public class CloudWatchCollector extends Collector {
     }
 
     /* For unittests. */
-    protected CloudWatchCollector(String jsonConfig, AmazonCloudWatchClient client) {
+    protected CloudWatchCollector(String jsonConfig, AmazonCloudWatch client) {
         this((Map<String, Object>)new Yaml().load(jsonConfig), client);
     }
 
-    private CloudWatchCollector(Map<String, Object> config, AmazonCloudWatchClient client) {
+    private CloudWatchCollector(Map<String, Object> config, AmazonCloudWatch client) {
         loadConfig(config, client);
     }
 
@@ -93,10 +95,11 @@ public class CloudWatchCollector extends Collector {
         loadConfig(new FileReader(WebServer.configFilePath), activeConfig.client);
     }
 
-    protected void loadConfig(Reader in, AmazonCloudWatchClient client) throws IOException {
+    protected void loadConfig(Reader in, AmazonCloudWatch client) throws IOException {
         loadConfig((Map<String, Object>)new Yaml().load(in), client);
     }
-    private void loadConfig(Map<String, Object> config, AmazonCloudWatchClient client) {
+
+    private void loadConfig(Map<String, Object> config, AmazonCloudWatch client) {
         if(config == null) {  // Yaml config empty, set config to empty map.
             config = new HashMap<String, Object>();
         }
@@ -120,15 +123,17 @@ public class CloudWatchCollector extends Collector {
         }
 
         if (client == null) {
+          AmazonCloudWatchClientBuilder clientBuilder = AmazonCloudWatchClientBuilder.standard();
+
           if (config.containsKey("role_arn")) {
-            STSAssumeRoleSessionCredentialsProvider credentialsProvider = new STSAssumeRoleSessionCredentialsProvider(
+            STSAssumeRoleSessionCredentialsProvider credentialsProvider = new STSAssumeRoleSessionCredentialsProvider.Builder(
               (String) config.get("role_arn"),
               "cloudwatch_exporter"
-            );
-            client = new AmazonCloudWatchClient(credentialsProvider);
-          } else {
-            client = new AmazonCloudWatchClient();
+            ).build();
+
+            clientBuilder.setCredentials(credentialsProvider);
           }
+
           Region region = RegionUtils.getRegion((String) config.get("region"));
           if (region == null) {
             region = Regions.getCurrentRegion();
@@ -136,7 +141,9 @@ public class CloudWatchCollector extends Collector {
               throw new IllegalArgumentException("No region provided and EC2 metadata failed");
             }
           }
-          client.setEndpoint(getMonitoringEndpoint(region));
+          clientBuilder.setEndpointConfiguration(new EndpointConfiguration(getMonitoringEndpoint(region), region.getName()));
+
+          client = clientBuilder.build();
         }
 
         if (!config.containsKey("metrics")) {
@@ -202,7 +209,7 @@ public class CloudWatchCollector extends Collector {
         loadConfig(rules, client);
     }
 
-    private void loadConfig(ArrayList<MetricRule> rules, AmazonCloudWatchClient client) {
+    private void loadConfig(ArrayList<MetricRule> rules, AmazonCloudWatch client) {
         synchronized (activeConfig) {
             activeConfig.client = client;
             activeConfig.rules = rules;
@@ -213,7 +220,7 @@ public class CloudWatchCollector extends Collector {
       return "https://" + region.getServiceEndpoint("monitoring");
     }
 
-    private List<List<Dimension>> getDimensions(MetricRule rule, AmazonCloudWatchClient client) {
+    private List<List<Dimension>> getDimensions(MetricRule rule, AmazonCloudWatch client) {
         if (
                 rule.awsDimensions != null &&
                 rule.awsDimensionSelect != null &&
@@ -251,7 +258,7 @@ public class CloudWatchCollector extends Collector {
         return result;
     }
 
-    private List<List<Dimension>> listDimensions(MetricRule rule, AmazonCloudWatchClient client) {
+    private List<List<Dimension>> listDimensions(MetricRule rule, AmazonCloudWatch client) {
       List<List<Dimension>> dimensions = new ArrayList<List<Dimension>>();
       if (rule.awsDimensions == null) {
         dimensions.add(new ArrayList<Dimension>());

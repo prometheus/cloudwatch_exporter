@@ -6,7 +6,7 @@ import static org.mockito.Matchers.argThat;
 
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.RegionUtils;
-import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
+import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
 import com.amazonaws.services.cloudwatch.model.Datapoint;
 import com.amazonaws.services.cloudwatch.model.Dimension;
 import com.amazonaws.services.cloudwatch.model.DimensionFilter;
@@ -35,12 +35,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class CloudWatchCollectorTest {
-  AmazonCloudWatchClient client;
+  AmazonCloudWatch client;
   CollectorRegistry registry;
 
   @Before
   public void setUp() {
-    client = Mockito.mock(AmazonCloudWatchClient.class);
+    client = Mockito.mock(AmazonCloudWatch.class);
     registry = new CollectorRegistry();
   }
   
