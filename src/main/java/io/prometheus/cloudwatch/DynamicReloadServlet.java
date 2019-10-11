@@ -5,11 +5,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class DynamicReloadServlet extends HttpServlet {
-    private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
     private static CloudWatchCollector collector;
 
     public DynamicReloadServlet(CloudWatchCollector collector) {
