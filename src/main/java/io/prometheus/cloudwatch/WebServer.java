@@ -1,10 +1,12 @@
 package io.prometheus.cloudwatch;
 
-import io.prometheus.client.exporter.MetricsServlet;
 import java.io.FileReader;
+
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+
+import io.prometheus.client.exporter.MetricsServlet;
 
 public class WebServer {
 
@@ -17,7 +19,15 @@ public class WebServer {
         }
 
         configFilePath = args[1];
-        CloudWatchCollector collector = new CloudWatchCollector(new FileReader(configFilePath)).register();
+        CloudWatchCollector collector = null;
+        FileReader reader = null;
+
+        try {
+          reader = new FileReader(configFilePath);
+          collector = new CloudWatchCollector(new FileReader(configFilePath)).register();
+        } finally {
+          reader.close();
+        }
 
         ReloadSignalHandler.start(collector);
 
