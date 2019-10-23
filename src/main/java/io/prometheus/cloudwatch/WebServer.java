@@ -1,6 +1,11 @@
 package io.prometheus.cloudwatch;
 
 import java.io.FileReader;
+import java.util.Arrays;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -9,16 +14,47 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import io.prometheus.client.exporter.MetricsServlet;
 
 public class WebServer {
+    private static final Logger LOGGER = Logger.getLogger(WebServer.class.getPackage().getName());
 
     public static String configFilePath;
+    public static int port;
+
+    private static void enableDebugLogs() {
+      LOGGER.setLevel(Level.FINEST);
+      ConsoleHandler handler = new ConsoleHandler();
+      LOGGER.addHandler(handler);
+      for (Handler h: LOGGER.getHandlers()) {
+        h.setLevel(Level.FINEST);
+      }
+      LOGGER.log(Level.FINEST, "debug logging is on");
+    }
+
+    private static void printUsage() {
+        System.out.println("cloudwatch_exporter [-d] <port> <yml configuration file>");
+        System.out.println("-d,--debug     enable debug logs");
+    }
+
+    private static void parseOptions(String[] args) {
+        // usage can be either:
+        // -d <port> <yml configuration file>
+        // OR
+        // <port> <yml configuration file>
+        int argsOffset = 0;
+        if (args[0].equals("-d")) {
+          enableDebugLogs();
+          argsOffset++;
+        }
+        if ((args.length - argsOffset) < 2) {
+          printUsage();
+          System.exit(0);
+        }
+        port = Integer.parseInt(args[argsOffset + 0]);
+        configFilePath = args[argsOffset + 1];
+    }
 
     public static void main(String[] args) throws Exception {
-        if (args.length < 2) {
-            System.err.println("Usage: WebServer <port> <yml configuration file>");
-            System.exit(1);
-        }
+        parseOptions(args);
 
-        configFilePath = args[1];
         CloudWatchCollector collector = null;
         FileReader reader = null;
 
@@ -31,7 +67,6 @@ public class WebServer {
 
         ReloadSignalHandler.start(collector);
 
-        int port = Integer.parseInt(args[0]);
         Server server = new Server(port);
         ServletContextHandler context = new ServletContextHandler();
         context.setContextPath("/");
