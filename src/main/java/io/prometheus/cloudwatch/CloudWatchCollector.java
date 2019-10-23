@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
 import org.yaml.snakeyaml.Yaml;
 
 public class CloudWatchCollector extends Collector {
-    private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getPackage().getName());
 
     static class ActiveConfig implements Cloneable {
         ArrayList<MetricRule> rules;
@@ -283,6 +283,9 @@ public class CloudWatchCollector extends Collector {
       do {
         request.setNextToken(nextToken);
         ListMetricsResult result = client.listMetrics(request);
+        LOGGER.log(Level.FINEST, String.format("ListMetricsResult[%s]: %s",
+            rule.awsMetricName,
+            result));
         cloudwatchRequests.labels("listMetrics", rule.awsNamespace).inc();
         for (Metric metric: result.getMetrics()) {
           if (metric.getDimensions().size() != dimensionFilters.size()) {
@@ -429,6 +432,9 @@ public class CloudWatchCollector extends Collector {
           request.setDimensions(dimensions);
 
           GetMetricStatisticsResult result = config.client.getMetricStatistics(request);
+          LOGGER.log(Level.FINEST, String.format("GetMetricStatisticsResult[%s]: %s",
+            rule.awsMetricName,
+            result));
           cloudwatchRequests.labels("getMetricStatistics", rule.awsNamespace).inc();
           Datapoint dp = getNewestDatapoint(result.getDatapoints());
           if (dp == null) {
