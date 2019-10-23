@@ -119,6 +119,7 @@
           <archive>
             <manifest>
               <mainClass>io.prometheus.cloudwatch.WebServer</mainClass>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries> 
             </manifest>
           </archive>
           <descriptorRefs>

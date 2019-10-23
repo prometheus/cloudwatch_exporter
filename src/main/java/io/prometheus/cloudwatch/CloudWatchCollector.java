@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
 import org.yaml.snakeyaml.Yaml;
 
 public class CloudWatchCollector extends Collector {
-    private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getPackage().getName());
 
     static class ActiveConfig implements Cloneable {
         ArrayList<MetricRule> rules;
@@ -60,6 +60,10 @@ public class CloudWatchCollector extends Collector {
       Map<String,List<String>> awsDimensionSelectRegex;
       String help;
       boolean cloudwatchTimestamp;
+
+      public String toString() {
+        return String.format("MetricRule<namespace=%s, metricName=%s, periodSeconds=%d, rangeSeconds=%d, delaySeconds=%d, statistics=%s, extendedStatistics=%s, dimensions=%s, cloudwatchTimestamp=%b", this.awsNamespace, this.awsMetricName, this.periodSeconds, this.rangeSeconds, this.delaySeconds, this.awsStatistics, this.awsExtendedStatistics, this.awsDimensions, this.cloudwatchTimestamp);
+      }
     }
 
     ActiveConfig activeConfig = new ActiveConfig();
@@ -209,8 +213,8 @@ public class CloudWatchCollector extends Collector {
           } else {
               rule.cloudwatchTimestamp = defaultCloudwatchTimestamp;
           }
+          LOGGER.log(Level.FINEST, String.format("Parsed rule: %s", rule));
         }
-
         loadConfig(rules, client);
     }
 
@@ -266,6 +270,7 @@ public class CloudWatchCollector extends Collector {
     private List<List<Dimension>> listDimensions(MetricRule rule, AmazonCloudWatch client) {
       List<List<Dimension>> dimensions = new ArrayList<List<Dimension>>();
       if (rule.awsDimensions == null) {
+        LOGGER.log(Level.FINEST, String.format("No dimensions specified for %s, will skip ListMetrics call for this rule", rule.awsMetricName));
         dimensions.add(new ArrayList<Dimension>());
         return dimensions;
       }
@@ -282,7 +287,12 @@ public class CloudWatchCollector extends Collector {
       String nextToken = null;
       do {
         request.setNextToken(nextToken);
+        LOGGER.log(Level.FINEST, String.format("ListMetricsRequest: %s", request));
         ListMetricsResult result = client.listMetrics(request);
+        LOGGER.log(Level.FINEST, String.format("ListMetricsResult[%s/%s]: %s",
+            rule.awsNamespace,
+            rule.awsMetricName,
+            result));
         cloudwatchRequests.labels("listMetrics", rule.awsNamespace).inc();
         for (Metric metric: result.getMetrics()) {
           if (metric.getDimensions().size() != dimensionFilters.size()) {
@@ -427,8 +437,13 @@ public class CloudWatchCollector extends Collector {
 
         for (List<Dimension> dimensions: getDimensions(rule, config.client)) {
           request.setDimensions(dimensions);
+          LOGGER.log(Level.FINEST, String.format("GetMetricStatisticsRequest: %s", request));
 
           GetMetricStatisticsResult result = config.client.getMetricStatistics(request);
+          LOGGER.log(Level.FINEST, String.format("GetMetricStatisticsResult[%s/%s]: %s",
+            rule.awsNamespace,
+            rule.awsMetricName,
+            result));
           cloudwatchRequests.labels("getMetricStatistics", rule.awsNamespace).inc();
           Datapoint dp = getNewestDatapoint(result.getDatapoints());
           if (dp == null) {
