@@ -57,27 +57,37 @@ public class WebServer {
 
         CloudWatchCollector collector = null;
         FileReader reader = null;
-
         try {
           reader = new FileReader(configFilePath);
           collector = new CloudWatchCollector(new FileReader(configFilePath)).register();
-        } finally {
           reader.close();
+          ReloadSignalHandler.start(collector);
+        } catch (Exception e) {
+          LOGGER.log(Level.SEVERE, "failed to start collector");
+          LOGGER.log(Level.SEVERE, e.toString());
+          System.exit(1);
         }
 
-        ReloadSignalHandler.start(collector);
+        Server server = null;
+        try {
+          server = new Server(port);
+          ServletContextHandler context = new ServletContextHandler();
+          context.setContextPath("/");
+          server.setHandler(context);
+          context.addServlet(new ServletHolder(new MetricsServlet()), "/metrics");
+          context.addServlet(new ServletHolder(new DynamicReloadServlet(collector)), "/-/reload");
+          context.addServlet(new ServletHolder(new HealthServlet()), "/-/healthy");
+          context.addServlet(new ServletHolder(new HealthServlet()), "/-/ready");
+          context.addServlet(new ServletHolder(new HomePageServlet()), "/");
+          server.start();
+        } catch (Exception e) {
+          LOGGER.log(Level.SEVERE, String.format("failed to start sever on port %d", port));
+          LOGGER.log(Level.SEVERE, e.toString());
+          System.exit(1);
+        } finally {
+          server.join();
+        }
 
-        Server server = new Server(port);
-        ServletContextHandler context = new ServletContextHandler();
-        context.setContextPath("/");
-        server.setHandler(context);
-        context.addServlet(new ServletHolder(new MetricsServlet()), "/metrics");
-        context.addServlet(new ServletHolder(new DynamicReloadServlet(collector)), "/-/reload");
-        context.addServlet(new ServletHolder(new HealthServlet()), "/-/healthy");
-        context.addServlet(new ServletHolder(new HealthServlet()), "/-/ready");
-        context.addServlet(new ServletHolder(new HomePageServlet()), "/");
-        server.start();
-        server.join();
     }
 }
 
