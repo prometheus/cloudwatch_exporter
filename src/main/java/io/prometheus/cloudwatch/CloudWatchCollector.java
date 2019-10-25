@@ -96,7 +96,10 @@ public class CloudWatchCollector extends Collector {
           reader = new FileReader(WebServer.configFilePath);
           loadConfig(reader, activeConfig.client);
         } finally {
-          reader.close();
+          if (reader != null) {
+            reader.close();
+          }
+          
         }
     }
 
