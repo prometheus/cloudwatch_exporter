@@ -53,6 +53,11 @@
       <artifactId>aws-java-sdk-sts</artifactId>
       <version>1.11.658</version>
     </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-resourcegroupstaggingapi</artifactId>
+      <version>1.11.658</version>
+    </dependency>
     <!--
       Older versions of jackson-databind have remote code execution vulnerabilities
       CVEs - 2018-5968, 2017-17485, 2017-7525, 2017-15095, 2018-7489, 2018-19360,
