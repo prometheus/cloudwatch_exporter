@@ -395,9 +395,6 @@ public class CloudWatchCollector extends Collector {
      * Check if a metric should be used according to `aws_dimension_select`, `aws_dimension_select_regex` and dynamic `aws_tag_select`
      */
     private boolean useMetric(MetricRule rule, List<String> tagBasedResourceIds, Metric metric) {
-      if (rule.awsDimensionSelect == null && rule.awsDimensionSelectRegex == null && rule.awsTagSelect == null) {
-        return true;
-      } 
       if (rule.awsDimensionSelect != null && !metricsIsInAwsDimensionSelect(rule, metric)) {
         return false;
       }
