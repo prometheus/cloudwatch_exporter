@@ -22,7 +22,7 @@ This includes the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment
 variables.
 
 The `cloudwatch:ListMetrics` and `cloudwatch:GetMetricStatistics` IAM permissions are required.
-The `tag:GetResources` IAM permission is also required to use the `aws_tag_select` configuration.
+The `tag:GetResources` IAM permission is also required to use the `aws_tag_select` feature.
 
 ## Configuration
 The configuration is in YAML.
