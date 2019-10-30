@@ -397,18 +397,17 @@ public class CloudWatchCollector extends Collector {
     private boolean useMetric(MetricRule rule, List<String> tagBasedResourceIds, Metric metric) {
       if (rule.awsDimensionSelect == null && rule.awsDimensionSelectRegex == null && rule.awsTagSelect == null) {
         return true;
-      } else {
-        if (rule.awsDimensionSelect != null && !metricsIsInAwsDimensionSelect(rule, metric)) {
-          return false;
-        }
-        if (rule.awsDimensionSelectRegex != null && !metricIsInAwsDimensionSelectRegex(rule, metric)) {
-          return false;
-        }
-        if (rule.awsTagSelect != null && !metricIsInAwsTagSelect(rule, tagBasedResourceIds, metric)) {
-          return false;
-        }
-        return true;
+      } 
+      if (rule.awsDimensionSelect != null && !metricsIsInAwsDimensionSelect(rule, metric)) {
+        return false;
       }
+      if (rule.awsDimensionSelectRegex != null && !metricIsInAwsDimensionSelectRegex(rule, metric)) {
+        return false;
+      }
+      if (rule.awsTagSelect != null && !metricIsInAwsTagSelect(rule, tagBasedResourceIds, metric)) {
+        return false;
+      }
+      return true;
     }
 
     /**
