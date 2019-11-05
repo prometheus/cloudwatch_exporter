@@ -621,27 +621,25 @@ public class CloudWatchCollector extends Collector {
           mfs.add(new MetricFamilySamples(baseName + "_" + safeName(toSnakeCase(entry.getKey())), Type.GAUGE, help(rule, unit, entry.getKey()), entry.getValue()));
         }
         
-        // Add the "aws_resource_info" metric if tag configuration was used
-        if (rule.awsTagSelect != null) {
-          for (ResourceTagMapping resourceTagMapping : resourceTagMappings) {
-            if (!publishedResourceInfo.contains(resourceTagMapping.getResourceARN())) {
-              List<String> labelNames = new ArrayList<String>();
-              List<String> labelValues = new ArrayList<String>();
-              labelNames.add("job");
-              labelValues.add(jobName);
-              labelNames.add(safeName(toSnakeCase(rule.awsTagSelect.resourceIdDimension)));
-              labelValues.add(extractResourceIdFromArn(resourceTagMapping.getResourceARN()));
-              for (Tag tag: resourceTagMapping.getTags()) {
-        	// Avoid potential collision between resource tags and other metric labels by adding the "tag_" prefix
-                labelNames.add("tag_" + safeName(toSnakeCase(tag.getKey())));
-                labelValues.add(tag.getValue());
-              }
-              List<MetricFamilySamples.Sample> samples = new ArrayList<MetricFamilySamples.Sample>();
-              samples.add(new MetricFamilySamples.Sample("aws_resource_info", labelNames, labelValues, 1));
-              mfs.add(new MetricFamilySamples("aws_resource_info", Type.GAUGE, "AWS information available for resource", samples));
-              
-              publishedResourceInfo.add(resourceTagMapping.getResourceARN());
+        // Add the "aws_resource_info" metric if tag mappings are available
+        for (ResourceTagMapping resourceTagMapping : resourceTagMappings) {
+          if (!publishedResourceInfo.contains(resourceTagMapping.getResourceARN())) {
+            List<String> labelNames = new ArrayList<String>();
+            List<String> labelValues = new ArrayList<String>();
+            labelNames.add("job");
+            labelValues.add(jobName);
+            labelNames.add(safeName(toSnakeCase(rule.awsTagSelect.resourceIdDimension)));
+            labelValues.add(extractResourceIdFromArn(resourceTagMapping.getResourceARN()));
+            for (Tag tag: resourceTagMapping.getTags()) {
+              // Avoid potential collision between resource tags and other metric labels by adding the "tag_" prefix
+              labelNames.add("tag_" + safeName(toSnakeCase(tag.getKey())));
+              labelValues.add(tag.getValue());
             }
+            List<MetricFamilySamples.Sample> samples = new ArrayList<MetricFamilySamples.Sample>();
+            samples.add(new MetricFamilySamples.Sample("aws_resource_info", labelNames, labelValues, 1));
+            mfs.add(new MetricFamilySamples("aws_resource_info", Type.GAUGE, "AWS information available for resource", samples));
+            
+            publishedResourceInfo.add(resourceTagMapping.getResourceARN());
           }
         }
       }
