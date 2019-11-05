@@ -82,8 +82,15 @@ The above config will export time series such as
 ```
 # HELP aws_elb_request_count_sum CloudWatch metric AWS/ELB RequestCount Dimensions: ["AvailabilityZone","LoadBalancerName"] Statistic: Sum Unit: Count
 # TYPE aws_elb_request_count_sum gauge
-aws_elb_request_count_sum{job="aws_elb",load_balancer_name="mylb",availability_zone="eu-west-1c",} 42.0
-aws_elb_request_count_sum{job="aws_elb",load_balancer_name="myotherlb",availability_zone="eu-west-1c",} 7.0
+aws_elb_request_count_sum{job="aws_elb",instance="",load_balancer_name="mylb",availability_zone="eu-west-1c",} 42.0
+aws_elb_request_count_sum{job="aws_elb",instance="",load_balancer_name="myotherlb",availability_zone="eu-west-1c",} 7.0
+```
+
+If the `aws_tag_select` feature was used, an additional information metric will be exported for each AWS resource matched by the tag selection, such as
+```
+# HELP aws_resource_info AWS information available for resource
+# TYPE aws_resource_info gauge
+aws_resource_info{job="aws_elb",instance="",load_balancer_name="mylb",tag_Monitoring="enabled",tag_MyOtherKey="MyOtherValue",} 1.0
 ```
 
 All metrics are exported as gauges.
