@@ -628,11 +628,14 @@ public class CloudWatchCollector extends Collector {
             List<String> labelValues = new ArrayList<String>();
             labelNames.add("job");
             labelValues.add(jobName);
+            labelNames.add("instance");
+            labelValues.add("");
             labelNames.add(safeName(toSnakeCase(rule.awsTagSelect.resourceIdDimension)));
             labelValues.add(extractResourceIdFromArn(resourceTagMapping.getResourceARN()));
             for (Tag tag: resourceTagMapping.getTags()) {
               // Avoid potential collision between resource tags and other metric labels by adding the "tag_" prefix
-              labelNames.add("tag_" + safeName(toSnakeCase(tag.getKey())));
+              // The AWS tags are case sensitive, so to avoid loosing information and label collisions, tag keys are not snaked cased
+              labelNames.add("tag_" + safeName(tag.getKey()));
               labelValues.add(tag.getValue());
             }
             List<MetricFamilySamples.Sample> samples = new ArrayList<MetricFamilySamples.Sample>();
