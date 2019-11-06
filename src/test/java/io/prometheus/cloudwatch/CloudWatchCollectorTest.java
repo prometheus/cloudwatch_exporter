@@ -503,9 +503,7 @@ public class CloudWatchCollectorTest {
 
     assertEquals(2.0, registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id"}, new String[]{"aws_ec2", "", "i-1"}), .01);
     assertNull(registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id"}, new String[]{"aws_ec2", "", "i-2"}));
-    
-    assertEquals(1.0, registry.getSampleValue("aws_resource_info", new String[]{"job", "instance", "instance_id", "tag_Monitoring"}, new String[]{"aws_ec2", "", "i-1", "enabled"}), .01);
-    assertNull(registry.getSampleValue("aws_resource_info", new String[]{"job", "instance", "instance_id", "tag_Monitoring"}, new String[]{"aws_ec2", "", "i-2", "enabled"}));
+    assertEquals(1.0, registry.getSampleValue("aws_resource_info", new String[]{"job", "instance", "arn", "instance_id", "tag_Monitoring"}, new String[]{"aws_ec2", "", "arn:aws:ec2:us-east-1:121212121212:instance/i-1", "i-1", "enabled"}), .01);
   }
   
   @Test
@@ -545,9 +543,7 @@ public class CloudWatchCollectorTest {
     assertEquals(2.0, registry.getSampleValue("aws_applicationelb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer"}, new String[]{"aws_applicationelb", "", "a", "app/myLB/123"}), .01);
     assertEquals(3.0, registry.getSampleValue("aws_applicationelb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer"}, new String[]{"aws_applicationelb", "", "b", "app/myLB/123"}), .01);
     assertNull(registry.getSampleValue("aws_applicationelb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer"}, new String[]{"aws_applicationelb", "", "a", "app/myOtherLB/456"}));
-
-    assertEquals(1.0, registry.getSampleValue("aws_resource_info", new String[]{"job", "instance", "load_balancer", "tag_Monitoring"}, new String[]{"aws_applicationelb", "", "app/myLB/123", "enabled"}), .01);
-    assertNull(registry.getSampleValue("aws_resource_info", new String[]{"job", "instance", "load_balancer", "tag_Monitoring"}, new String[]{"aws_applicationelb", "", "app/myOtherLB/456", "enabled"}));
+    assertEquals(1.0, registry.getSampleValue("aws_resource_info", new String[]{"job", "instance", "arn", "load_balancer", "tag_Monitoring"}, new String[]{"aws_applicationelb", "", "arn:aws:elasticloadbalancing:us-east-1:121212121212:loadbalancer/app/myLB/123", "app/myLB/123", "enabled"}), .01);
   }
   
   @Test
@@ -585,9 +581,8 @@ public class CloudWatchCollectorTest {
 
     assertEquals(2.0, registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id"}, new String[]{"aws_ec2", "", "i-1"}), .01);
     assertEquals(3.0, registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id"}, new String[]{"aws_ec2", "", "i-2"}), .01);
-    
-    assertEquals(1.0, registry.getSampleValue("aws_resource_info", new String[]{"job", "instance", "instance_id", "tag_Monitoring"}, new String[]{"aws_ec2", "", "i-1", "enabled"}), .01);
-    assertEquals(1.0, registry.getSampleValue("aws_resource_info", new String[]{"job", "instance", "instance_id", "tag_Monitoring"}, new String[]{"aws_ec2", "", "i-2", "enabled"}), .01);
+    assertEquals(1.0, registry.getSampleValue("aws_resource_info", new String[]{"job", "instance", "arn", "instance_id", "tag_Monitoring"}, new String[]{"aws_ec2", "", "arn:aws:ec2:us-east-1:121212121212:instance/i-1", "i-1", "enabled"}), .01);
+    assertEquals(1.0, registry.getSampleValue("aws_resource_info", new String[]{"job", "instance", "arn", "instance_id", "tag_Monitoring"}, new String[]{"aws_ec2", "", "arn:aws:ec2:us-east-1:121212121212:instance/i-2", "i-2", "enabled"}), .01);
   }
   
   @Test

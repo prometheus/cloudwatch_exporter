@@ -630,6 +630,8 @@ public class CloudWatchCollector extends Collector {
             labelValues.add(jobName);
             labelNames.add("instance");
             labelValues.add("");
+            labelNames.add("arn");
+            labelValues.add(resourceTagMapping.getResourceARN());
             labelNames.add(safeName(toSnakeCase(rule.awsTagSelect.resourceIdDimension)));
             labelValues.add(extractResourceIdFromArn(resourceTagMapping.getResourceARN()));
             for (Tag tag: resourceTagMapping.getTags()) {

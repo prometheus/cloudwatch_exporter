@@ -90,7 +90,7 @@ If the `aws_tag_select` feature was used, an additional information metric will 
 ```
 # HELP aws_resource_info AWS information available for resource
 # TYPE aws_resource_info gauge
-aws_resource_info{job="aws_elb",instance="",load_balancer_name="mylb",tag_Monitoring="enabled",tag_MyOtherKey="MyOtherValue",} 1.0
+aws_resource_info{job="aws_elb",instance="",arn="arn:aws:elasticloadbalancing:eu-west-1:121212121212:loadbalancer/mylb",load_balancer_name="mylb",tag_Monitoring="enabled",tag_MyOtherKey="MyOtherValue",} 1.0
 ```
 
 All metrics are exported as gauges.
