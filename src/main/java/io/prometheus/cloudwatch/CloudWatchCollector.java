@@ -621,7 +621,7 @@ public class CloudWatchCollector extends Collector {
           mfs.add(new MetricFamilySamples(baseName + "_" + safeName(toSnakeCase(entry.getKey())), Type.GAUGE, help(rule, unit, entry.getKey()), entry.getValue()));
         }
         
-        // Add the "aws_resource_info" metric if tag mappings are available
+        // Add the "aws_resource_info" metric for existing tag mappings
         for (ResourceTagMapping resourceTagMapping : resourceTagMappings) {
           if (!publishedResourceInfo.contains(resourceTagMapping.getResourceARN())) {
             List<String> labelNames = new ArrayList<String>();
