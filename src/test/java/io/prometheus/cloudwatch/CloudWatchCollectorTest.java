@@ -475,9 +475,9 @@ public class CloudWatchCollectorTest {
   
   @Test
   public void testTagSelectEC2() throws Exception {
-    // Testing "aws_tag_select" with an EC2
+    // Testing "aws_tag_select" with an EC2, with global "enable_aws_resource_info"
     new CloudWatchCollector(
-        "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/EC2\n  aws_metric_name: CPUUtilization\n  aws_dimensions:\n  - InstanceId\n  aws_tag_select:\n    resource_type_selection: \"ec2:instance\"\n    resource_id_dimension: InstanceId\n    tag_selections:\n      Monitoring: [enabled]\n", 
+        "---\nregion: reg\nenable_aws_resource_info : true\nmetrics:\n- aws_namespace: AWS/EC2\n  aws_metric_name: CPUUtilization\n  aws_dimensions:\n  - InstanceId\n  aws_tag_select:\n    resource_type_selection: \"ec2:instance\"\n    resource_id_dimension: InstanceId\n    tag_selections:\n      Monitoring: [enabled]\n", 
         cloudWatchClient, taggingClient).register(registry);
     
     Mockito.when(taggingClient.getResources((GetResourcesRequest)argThat(
@@ -508,9 +508,9 @@ public class CloudWatchCollectorTest {
   
   @Test
   public void testTagSelectALB() throws Exception {
-    // Testing "aws_tag_select" with an ALB, which have a fairly complex ARN 
+    // Testing "aws_tag_select" with an ALB (which have a fairly complex ARN), with a per tag select "enable_aws_resource_info"
     new CloudWatchCollector(
-        "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ApplicationELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancer\n  aws_tag_select:\n    resource_type_selection: \"elasticloadbalancing:loadbalancer/app\"\n    resource_id_dimension: LoadBalancer\n    tag_selections:\n      Monitoring: [enabled]\n", 
+        "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ApplicationELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancer\n  aws_tag_select:\n    enable_aws_resource_info: true\n    resource_type_selection: \"elasticloadbalancing:loadbalancer/app\"\n    resource_id_dimension: LoadBalancer\n    tag_selections:\n      Monitoring: [enabled]\n", 
         cloudWatchClient, taggingClient).register(registry);
     
     Mockito.when(taggingClient.getResources((GetResourcesRequest)argThat(
@@ -548,9 +548,9 @@ public class CloudWatchCollectorTest {
   
   @Test
   public void testTagSelectUsesPaginationToken() throws Exception {
-    // Testing "aws_tag_select" with an EC2
+    // Testing "aws_tag_select" with an EC2, with global "enable_aws_resource_info"
     new CloudWatchCollector(
-        "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/EC2\n  aws_metric_name: CPUUtilization\n  aws_dimensions:\n  - InstanceId\n  aws_tag_select:\n    resource_type_selection: \"ec2:instance\"\n    resource_id_dimension: InstanceId\n    tag_selections:\n      Monitoring: [enabled]\n", 
+        "---\nregion: reg\nenable_aws_resource_info : true\nmetrics:\n- aws_namespace: AWS/EC2\n  aws_metric_name: CPUUtilization\n  aws_dimensions:\n  - InstanceId\n  aws_tag_select:\n    resource_type_selection: \"ec2:instance\"\n    resource_id_dimension: InstanceId\n    tag_selections:\n      Monitoring: [enabled]\n", 
         cloudWatchClient, taggingClient).register(registry);
 
     Mockito.when(taggingClient.getResources((GetResourcesRequest)argThat(
@@ -615,6 +615,7 @@ public class CloudWatchCollectorTest {
   @Test
   public void testMultipleSelection() throws Exception {
     // When multiple selections are made, "and" logic should be applied on metrics
+    // Having no "enable_aws_resource_info" should default to false
     new CloudWatchCollector(
         "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/EC2\n  aws_metric_name: CPUUtilization\n  aws_dimensions:\n  - InstanceId\n  aws_tag_select:\n    resource_type_selection: \"ec2:instance\"\n    resource_id_dimension: InstanceId\n    tag_selections:\n      Monitoring: [enabled]\n  aws_dimension_select:\n    InstanceId: [\"i-1\"]", 
         cloudWatchClient, taggingClient).register(registry);
@@ -643,6 +644,8 @@ public class CloudWatchCollectorTest {
 
     assertEquals(2.0, registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id"}, new String[]{"aws_ec2", "", "i-1"}), .01);
     assertNull(registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id"}, new String[]{"aws_ec2", "", "i-2"}));
+    assertNull(registry.getSampleValue("aws_resource_info", new String[]{"job", "instance", "arn", "instance_id", "tag_Monitoring"}, new String[]{"aws_ec2", "", "arn:aws:ec2:us-east-1:121212121212:instance/i-1", "i-1", "enabled"}));
+    assertNull(registry.getSampleValue("aws_resource_info", new String[]{"job", "instance", "arn", "instance_id", "tag_Monitoring"}, new String[]{"aws_ec2", "", "arn:aws:ec2:us-east-1:121212121212:instance/i-2", "i-2", "enabled"}));
   }
   
 }
