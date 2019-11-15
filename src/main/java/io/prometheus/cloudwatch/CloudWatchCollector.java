@@ -79,7 +79,6 @@ public class CloudWatchCollector extends Collector {
       String resourceTypeSelection;
       String resourceIdDimension;
       Map<String,List<String>> tagSelections;
-      boolean enableAwsResourceInfo;
     }
     
     ActiveConfig activeConfig = new ActiveConfig();
@@ -148,11 +147,6 @@ public class CloudWatchCollector extends Collector {
         boolean defaultCloudwatchTimestamp = true;
         if (config.containsKey("set_timestamp")) {
             defaultCloudwatchTimestamp = (Boolean)config.get("set_timestamp");
-        }
-
-        boolean defaultEnableAwsResourceInfo = false;
-        if (config.containsKey("enable_aws_resource_info")) {
-          defaultEnableAwsResourceInfo = (Boolean)config.get("enable_aws_resource_info");
         }
         
         if (cloudWatchClient == null) {
@@ -248,12 +242,6 @@ public class CloudWatchCollector extends Collector {
             awsTagSelect.resourceTypeSelection = (String)yamlAwsTagSelect.get("resource_type_selection");
             awsTagSelect.resourceIdDimension = (String)yamlAwsTagSelect.get("resource_id_dimension");
             awsTagSelect.tagSelections = (Map<String, List<String>>)yamlAwsTagSelect.get("tag_selections");
-            
-            if (yamlAwsTagSelect.containsKey("enable_aws_resource_info")) {
-              awsTagSelect.enableAwsResourceInfo = (Boolean)yamlAwsTagSelect.get("enable_aws_resource_info");
-            } else {
-              awsTagSelect.enableAwsResourceInfo = defaultEnableAwsResourceInfo;
-            }
           }
         }
 
@@ -633,32 +621,30 @@ public class CloudWatchCollector extends Collector {
           mfs.add(new MetricFamilySamples(baseName + "_" + safeName(toSnakeCase(entry.getKey())), Type.GAUGE, help(rule, unit, entry.getKey()), entry.getValue()));
         }
         
-        if (rule.awsTagSelect != null && rule.awsTagSelect.enableAwsResourceInfo) {
-          // Add the "aws_resource_info" metric for existing tag mappings
-          for (ResourceTagMapping resourceTagMapping : resourceTagMappings) {
-            if (!publishedResourceInfo.contains(resourceTagMapping.getResourceARN())) {
-              List<String> labelNames = new ArrayList<String>();
-              List<String> labelValues = new ArrayList<String>();
-              labelNames.add("job");
-              labelValues.add(jobName);
-              labelNames.add("instance");
-              labelValues.add("");
-              labelNames.add("arn");
-              labelValues.add(resourceTagMapping.getResourceARN());
-              labelNames.add(safeName(toSnakeCase(rule.awsTagSelect.resourceIdDimension)));
-              labelValues.add(extractResourceIdFromArn(resourceTagMapping.getResourceARN()));
-              for (Tag tag: resourceTagMapping.getTags()) {
-                // Avoid potential collision between resource tags and other metric labels by adding the "tag_" prefix
-                // The AWS tags are case sensitive, so to avoid loosing information and label collisions, tag keys are not snaked cased
-                labelNames.add("tag_" + safeName(tag.getKey()));
-                labelValues.add(tag.getValue());
-              }
-              List<MetricFamilySamples.Sample> samples = new ArrayList<MetricFamilySamples.Sample>();
-              samples.add(new MetricFamilySamples.Sample("aws_resource_info", labelNames, labelValues, 1));
-              mfs.add(new MetricFamilySamples("aws_resource_info", Type.GAUGE, "AWS information available for resource", samples));
-              
-              publishedResourceInfo.add(resourceTagMapping.getResourceARN());
+        // Add the "aws_resource_info" metric for existing tag mappings
+        for (ResourceTagMapping resourceTagMapping : resourceTagMappings) {
+          if (!publishedResourceInfo.contains(resourceTagMapping.getResourceARN())) {
+            List<String> labelNames = new ArrayList<String>();
+            List<String> labelValues = new ArrayList<String>();
+            labelNames.add("job");
+            labelValues.add(jobName);
+            labelNames.add("instance");
+            labelValues.add("");
+            labelNames.add("arn");
+            labelValues.add(resourceTagMapping.getResourceARN());
+            labelNames.add(safeName(toSnakeCase(rule.awsTagSelect.resourceIdDimension)));
+            labelValues.add(extractResourceIdFromArn(resourceTagMapping.getResourceARN()));
+            for (Tag tag: resourceTagMapping.getTags()) {
+              // Avoid potential collision between resource tags and other metric labels by adding the "tag_" prefix
+              // The AWS tags are case sensitive, so to avoid loosing information and label collisions, tag keys are not snaked cased
+              labelNames.add("tag_" + safeName(tag.getKey()));
+              labelValues.add(tag.getValue());
             }
+            List<MetricFamilySamples.Sample> samples = new ArrayList<MetricFamilySamples.Sample>();
+            samples.add(new MetricFamilySamples.Sample("aws_resource_info", labelNames, labelValues, 1));
+            mfs.add(new MetricFamilySamples("aws_resource_info", Type.GAUGE, "AWS information available for resource", samples));
+            
+            publishedResourceInfo.add(resourceTagMapping.getResourceARN());
           }
         }
       }
