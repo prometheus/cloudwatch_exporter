@@ -87,6 +87,10 @@ public class CloudWatchCollector extends Collector {
             .labelNames("action", "namespace")
             .name("cloudwatch_requests_total").help("API requests made to CloudWatch").register();
 
+    private static final Counter taggingApiRequests = Counter.build()
+        .labelNames("action", "resource_type")
+        .name("tagging_api_requests_total").help("API requests made to the Resource Groups Tagging API").register();
+    
     private static final List<String> brokenDynamoMetrics = Arrays.asList(
             "ConsumedReadCapacityUnits", "ConsumedWriteCapacityUnits",
             "ProvisionedReadCapacityUnits", "ProvisionedWriteCapacityUnits",
@@ -298,6 +302,8 @@ public class CloudWatchCollector extends Collector {
         request.setPaginationToken(paginationToken);
 
         GetResourcesResult result = taggingClient.getResources(request);
+        taggingApiRequests.labels("getResources", rule.awsTagSelect.resourceTypeSelection).inc();
+        
         resourceTagMappings.addAll(result.getResourceTagMappingList());
 
         paginationToken = result.getPaginationToken();

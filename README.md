@@ -152,7 +152,7 @@ If an error occurs during the reload, check the exporter's log output.
 
 ### Cost
 
-Amazon charges for every API request, see the [current charges](http://aws.amazon.com/cloudwatch/pricing/).
+Amazon charges for every CloudWatch API request, see the [current charges](http://aws.amazon.com/cloudwatch/pricing/).
 
 Every metric retrieved requires one API request, which can include multiple
 statistics. In addition, when `aws_dimensions` is provided, the exporter needs
@@ -166,6 +166,9 @@ This will reduce cost as the values for the dimensions do not need to be queried
 If you have 100 API requests every minute, with the price of USD$10 per million
 requests (as of Aug 2018), that is around $45 per month. The
 `cloudwatch_requests_total` counter tracks how many requests are being made.
+
+When using the `aws_tag_select` feature, additional requests are made to the Resource Groups Tagging API, but these are [free](https://aws.amazon.com/blogs/aws/new-aws-resource-tagging-api/).
+The `tagging_api_requests_total` counter tracks how many requests are being made for these.
 
 ## Docker Image
 
