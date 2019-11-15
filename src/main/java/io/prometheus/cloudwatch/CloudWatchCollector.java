@@ -232,16 +232,18 @@ public class CloudWatchCollector extends Collector {
 
           if (yamlMetricRule.containsKey("aws_tag_select")) {
             Map<String, Object> yamlAwsTagSelect = (Map<String, Object>) yamlMetricRule.get("aws_tag_select");
-            if (!yamlAwsTagSelect.containsKey("resource_type_selection") || !yamlAwsTagSelect.containsKey("resource_id_dimension") ||
-              !yamlAwsTagSelect.containsKey("tag_selections")) {
-              throw new IllegalArgumentException("Must provide resource_type_selection, resource_id_dimension and tag_selections");
+            if (!yamlAwsTagSelect.containsKey("resource_type_selection") || !yamlAwsTagSelect.containsKey("resource_id_dimension")) {
+              throw new IllegalArgumentException("Must provide resource_type_selection and resource_id_dimension");
             }
             AWSTagSelect awsTagSelect = new AWSTagSelect();
             rule.awsTagSelect = awsTagSelect;
 
             awsTagSelect.resourceTypeSelection = (String)yamlAwsTagSelect.get("resource_type_selection");
             awsTagSelect.resourceIdDimension = (String)yamlAwsTagSelect.get("resource_id_dimension");
-            awsTagSelect.tagSelections = (Map<String, List<String>>)yamlAwsTagSelect.get("tag_selections");
+            
+            if (yamlAwsTagSelect.containsKey("tag_selections")) {
+              awsTagSelect.tagSelections = (Map<String, List<String>>)yamlAwsTagSelect.get("tag_selections");
+            }
           }
         }
 
@@ -283,8 +285,10 @@ public class CloudWatchCollector extends Collector {
       }
 
       List<TagFilter> tagFilters = new ArrayList<TagFilter>();
-      for (Map.Entry<String, List<String>> entry : rule.awsTagSelect.tagSelections.entrySet()) {
-        tagFilters.add(new TagFilter().withKey(entry.getKey()).withValues(entry.getValue()));
+      if (rule.awsTagSelect.tagSelections != null) {
+        for (Map.Entry<String, List<String>> entry : rule.awsTagSelect.tagSelections.entrySet()) {
+          tagFilters.add(new TagFilter().withKey(entry.getKey()).withValues(entry.getValue()));
+        }
       }
 
       List<ResourceTagMapping> resourceTagMappings = new ArrayList<ResourceTagMapping>();

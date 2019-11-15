@@ -68,7 +68,7 @@ aws_dimensions | Optional. Which dimension to fan out over.
 aws_dimension_select | Optional. Which dimension values to filter. Specify a map from the dimension name to a list of values to select from that dimension.
 aws_dimension_select_regex | Optional. Which dimension values to filter on with a regular expression. Specify a map from the dimension name to a list of regexes that will be applied to select from that dimension.
 aws_tag_select | Optional. A tag configuration to filter on, based on mapping from the tagged resource ID to a CloudWatch dimension.  
-tag_selections | Required, under `aws_tag_select`. Specify a map from a tag key to a list of tag values to apply [tag filtering](https://docs.aws.amazon.com/resourcegroupstagging/latest/APIReference/API_GetResources.html#resourcegrouptagging-GetResources-request-TagFilters) on resources from which metrics will be gathered.
+tag_selections | Optional, under `aws_tag_select`. Specify a map from a tag key to a list of tag values to apply [tag filtering](https://docs.aws.amazon.com/resourcegroupstagging/latest/APIReference/API_GetResources.html#resourcegrouptagging-GetResources-request-TagFilters) on resources from which metrics will be gathered.
 resource_type_selection | Required, under `aws_tag_select`. Specify the [resource type](https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html#genref-aws-service-namesspaces) to filter on.
 resource_id_dimension | Required, under `aws_tag_select`. For the current metric, specify which CloudWatch dimension maps to the ARN [resource ID](https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html#arns-syntax).
 aws_statistics | Optional. A list of statistics to retrieve, values can include Sum, SampleCount, Minimum, Maximum, Average. Defaults to all statistics unless extended statistics are requested.
@@ -86,7 +86,7 @@ aws_elb_request_count_sum{job="aws_elb",instance="",load_balancer_name="mylb",av
 aws_elb_request_count_sum{job="aws_elb",instance="",load_balancer_name="myotherlb",availability_zone="eu-west-1c",} 7.0
 ```
 
-If the `aws_tag_select` feature was used, an additional information metric will be exported for each AWS resource matched by the tag selection, such as
+If the `aws_tag_select` feature was used, an additional information metric will be exported for each AWS tagged resource matched by the resource type selection and tag selection (if specified), such as
 ```
 # HELP aws_resource_info AWS information available for resource
 # TYPE aws_resource_info gauge
