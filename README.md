@@ -68,9 +68,9 @@ aws_dimensions | Optional. Which dimension to fan out over.
 aws_dimension_select | Optional. Which dimension values to filter. Specify a map from the dimension name to a list of values to select from that dimension.
 aws_dimension_select_regex | Optional. Which dimension values to filter on with a regular expression. Specify a map from the dimension name to a list of regexes that will be applied to select from that dimension.
 aws_tag_select | Optional. A tag configuration to filter on, based on mapping from the tagged resource ID to a CloudWatch dimension.  
-tag_selections | Required under `aws_tag_select`. Specify a map from a tag key to a list of tag values to apply [tag filtering](https://docs.aws.amazon.com/resourcegroupstagging/latest/APIReference/API_GetResources.html#resourcegrouptagging-GetResources-request-TagFilters) on resources from which metrics will be gathered.
-resource_type_selection | Required under `aws_tag_select`. Specify the [resource type](https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html#genref-aws-service-namesspaces) to filter on.
-resource_id_dimension | Required under `aws_tag_select`. For the current metric, specify which CloudWatch dimension maps to the ARN [resource ID](https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html#arns-syntax).
+tag_selections | Optional, under `aws_tag_select`. Specify a map from a tag key to a list of tag values to apply [tag filtering](https://docs.aws.amazon.com/resourcegroupstagging/latest/APIReference/API_GetResources.html#resourcegrouptagging-GetResources-request-TagFilters) on resources from which metrics will be gathered.
+resource_type_selection | Required, under `aws_tag_select`. Specify the [resource type](https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html#genref-aws-service-namesspaces) to filter on.
+resource_id_dimension | Required, under `aws_tag_select`. For the current metric, specify which CloudWatch dimension maps to the ARN [resource ID](https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html#arns-syntax).
 aws_statistics | Optional. A list of statistics to retrieve, values can include Sum, SampleCount, Minimum, Maximum, Average. Defaults to all statistics unless extended statistics are requested.
 aws_extended_statistics | Optional. A list of extended statistics to retrieve. Extended statistics currently include percentiles in the form `pN` or `pN.N`.
 delay_seconds | Optional. The newest data to request. Used to avoid collecting data that has not fully converged. Defaults to 600s. Can be set globally and per metric.
@@ -82,8 +82,15 @@ The above config will export time series such as
 ```
 # HELP aws_elb_request_count_sum CloudWatch metric AWS/ELB RequestCount Dimensions: ["AvailabilityZone","LoadBalancerName"] Statistic: Sum Unit: Count
 # TYPE aws_elb_request_count_sum gauge
-aws_elb_request_count_sum{job="aws_elb",load_balancer_name="mylb",availability_zone="eu-west-1c",} 42.0
-aws_elb_request_count_sum{job="aws_elb",load_balancer_name="myotherlb",availability_zone="eu-west-1c",} 7.0
+aws_elb_request_count_sum{job="aws_elb",instance="",load_balancer_name="mylb",availability_zone="eu-west-1c",} 42.0
+aws_elb_request_count_sum{job="aws_elb",instance="",load_balancer_name="myotherlb",availability_zone="eu-west-1c",} 7.0
+```
+
+If the `aws_tag_select` feature was used, an additional information metric will be exported for each AWS tagged resource matched by the resource type selection and tag selection (if specified), such as
+```
+# HELP aws_resource_info AWS information available for resource
+# TYPE aws_resource_info gauge
+aws_resource_info{job="aws_elb",instance="",arn="arn:aws:elasticloadbalancing:eu-west-1:121212121212:loadbalancer/mylb",load_balancer_name="mylb",tag_Monitoring="enabled",tag_MyOtherKey="MyOtherValue",} 1.0
 ```
 
 All metrics are exported as gauges.
@@ -145,7 +152,7 @@ If an error occurs during the reload, check the exporter's log output.
 
 ### Cost
 
-Amazon charges for every API request, see the [current charges](http://aws.amazon.com/cloudwatch/pricing/).
+Amazon charges for every CloudWatch API request, see the [current charges](http://aws.amazon.com/cloudwatch/pricing/).
 
 Every metric retrieved requires one API request, which can include multiple
 statistics. In addition, when `aws_dimensions` is provided, the exporter needs
@@ -159,6 +166,9 @@ This will reduce cost as the values for the dimensions do not need to be queried
 If you have 100 API requests every minute, with the price of USD$10 per million
 requests (as of Aug 2018), that is around $45 per month. The
 `cloudwatch_requests_total` counter tracks how many requests are being made.
+
+When using the `aws_tag_select` feature, additional requests are made to the Resource Groups Tagging API, but these are [free](https://aws.amazon.com/blogs/aws/new-aws-resource-tagging-api/).
+The `tagging_api_requests_total` counter tracks how many requests are being made for these.
 
 ## Docker Image
 

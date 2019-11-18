@@ -21,6 +21,7 @@ import com.amazonaws.services.resourcegroupstaggingapi.AWSResourceGroupsTaggingA
 import com.amazonaws.services.resourcegroupstaggingapi.model.GetResourcesRequest;
 import com.amazonaws.services.resourcegroupstaggingapi.model.GetResourcesResult;
 import com.amazonaws.services.resourcegroupstaggingapi.model.ResourceTagMapping;
+import com.amazonaws.services.resourcegroupstaggingapi.model.Tag;
 import com.amazonaws.services.resourcegroupstaggingapi.model.TagFilter;
 
 import io.prometheus.client.Collector;
@@ -37,6 +38,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -85,6 +87,10 @@ public class CloudWatchCollector extends Collector {
             .labelNames("action", "namespace")
             .name("cloudwatch_requests_total").help("API requests made to CloudWatch").register();
 
+    private static final Counter taggingApiRequests = Counter.build()
+        .labelNames("action", "resource_type")
+        .name("tagging_api_requests_total").help("API requests made to the Resource Groups Tagging API").register();
+    
     private static final List<String> brokenDynamoMetrics = Arrays.asList(
             "ConsumedReadCapacityUnits", "ConsumedWriteCapacityUnits",
             "ProvisionedReadCapacityUnits", "ProvisionedWriteCapacityUnits",
@@ -146,7 +152,7 @@ public class CloudWatchCollector extends Collector {
         if (config.containsKey("set_timestamp")) {
             defaultCloudwatchTimestamp = (Boolean)config.get("set_timestamp");
         }
-
+        
         if (cloudWatchClient == null) {
           AmazonCloudWatchClientBuilder clientBuilder = AmazonCloudWatchClientBuilder.standard();
 
@@ -230,16 +236,18 @@ public class CloudWatchCollector extends Collector {
 
           if (yamlMetricRule.containsKey("aws_tag_select")) {
             Map<String, Object> yamlAwsTagSelect = (Map<String, Object>) yamlMetricRule.get("aws_tag_select");
-            if (!yamlAwsTagSelect.containsKey("resource_type_selection") || !yamlAwsTagSelect.containsKey("resource_id_dimension") ||
-              !yamlAwsTagSelect.containsKey("tag_selections")) {
-              throw new IllegalArgumentException("Must provide resource_type_selection, resource_id_dimension and tag_selections");
+            if (!yamlAwsTagSelect.containsKey("resource_type_selection") || !yamlAwsTagSelect.containsKey("resource_id_dimension")) {
+              throw new IllegalArgumentException("Must provide resource_type_selection and resource_id_dimension");
             }
             AWSTagSelect awsTagSelect = new AWSTagSelect();
             rule.awsTagSelect = awsTagSelect;
 
             awsTagSelect.resourceTypeSelection = (String)yamlAwsTagSelect.get("resource_type_selection");
             awsTagSelect.resourceIdDimension = (String)yamlAwsTagSelect.get("resource_id_dimension");
-            awsTagSelect.tagSelections = (Map<String, List<String>>)yamlAwsTagSelect.get("tag_selections");
+            
+            if (yamlAwsTagSelect.containsKey("tag_selections")) {
+              awsTagSelect.tagSelections = (Map<String, List<String>>)yamlAwsTagSelect.get("tag_selections");
+            }
           }
         }
 
@@ -281,8 +289,10 @@ public class CloudWatchCollector extends Collector {
       }
 
       List<TagFilter> tagFilters = new ArrayList<TagFilter>();
-      for (Map.Entry<String, List<String>> entry : rule.awsTagSelect.tagSelections.entrySet()) {
-        tagFilters.add(new TagFilter().withKey(entry.getKey()).withValues(entry.getValue()));
+      if (rule.awsTagSelect.tagSelections != null) {
+        for (Map.Entry<String, List<String>> entry : rule.awsTagSelect.tagSelections.entrySet()) {
+          tagFilters.add(new TagFilter().withKey(entry.getKey()).withValues(entry.getValue()));
+        }
       }
 
       List<ResourceTagMapping> resourceTagMappings = new ArrayList<ResourceTagMapping>();
@@ -292,6 +302,8 @@ public class CloudWatchCollector extends Collector {
         request.setPaginationToken(paginationToken);
 
         GetResourcesResult result = taggingClient.getResources(request);
+        taggingApiRequests.labels("getResources", rule.awsTagSelect.resourceTypeSelection).inc();
+        
         resourceTagMappings.addAll(result.getResourceTagMappingList());
 
         paginationToken = result.getPaginationToken();
@@ -303,16 +315,20 @@ public class CloudWatchCollector extends Collector {
     private List<String> extractResourceIds(List<ResourceTagMapping> resourceTagMappings) {
       List<String> resourceIds = new ArrayList<String>();
       for (ResourceTagMapping resourceTagMapping : resourceTagMappings) {
-        // ARN parsing is based on https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html
-        String[] arnArray = resourceTagMapping.getResourceARN().split(":");
-        String resourceId = arnArray[arnArray.length - 1];
-        if (resourceId.contains("/")) {
-          String[] resourceArray = resourceId.split("/", 2);
-          resourceId = resourceArray[resourceArray.length - 1];
-        }
-        resourceIds.add(resourceId);
+        resourceIds.add(extractResourceIdFromArn(resourceTagMapping.getResourceARN()));
       }
       return resourceIds;
+    }
+    
+    private String extractResourceIdFromArn(String arn) {
+      // ARN parsing is based on https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html
+      String[] arnArray = arn.split(":");
+      String resourceId = arnArray[arnArray.length - 1];
+      if (resourceId.contains("/")) {
+        String[] resourceArray = resourceId.split("/", 2);
+        resourceId = resourceArray[resourceArray.length - 1];
+      }
+      return resourceId;
     }
     
     private List<List<Dimension>> getDimensions(MetricRule rule, List<String> tagBasedResourceIds, AmazonCloudWatch cloudWatchClient) {
@@ -501,6 +517,7 @@ public class CloudWatchCollector extends Collector {
 
     private void scrape(List<MetricFamilySamples> mfs) throws CloneNotSupportedException {
       ActiveConfig config = (ActiveConfig) activeConfig.clone();
+      Set<String> publishedResourceInfo = new HashSet<String>();
 
       long start = System.currentTimeMillis();
       for (MetricRule rule: config.rules) {
@@ -612,6 +629,33 @@ public class CloudWatchCollector extends Collector {
         }
         for (Map.Entry<String, ArrayList<MetricFamilySamples.Sample>> entry : extendedSamples.entrySet()) {
           mfs.add(new MetricFamilySamples(baseName + "_" + safeName(toSnakeCase(entry.getKey())), Type.GAUGE, help(rule, unit, entry.getKey()), entry.getValue()));
+        }
+        
+        // Add the "aws_resource_info" metric for existing tag mappings
+        for (ResourceTagMapping resourceTagMapping : resourceTagMappings) {
+          if (!publishedResourceInfo.contains(resourceTagMapping.getResourceARN())) {
+            List<String> labelNames = new ArrayList<String>();
+            List<String> labelValues = new ArrayList<String>();
+            labelNames.add("job");
+            labelValues.add(jobName);
+            labelNames.add("instance");
+            labelValues.add("");
+            labelNames.add("arn");
+            labelValues.add(resourceTagMapping.getResourceARN());
+            labelNames.add(safeName(toSnakeCase(rule.awsTagSelect.resourceIdDimension)));
+            labelValues.add(extractResourceIdFromArn(resourceTagMapping.getResourceARN()));
+            for (Tag tag: resourceTagMapping.getTags()) {
+              // Avoid potential collision between resource tags and other metric labels by adding the "tag_" prefix
+              // The AWS tags are case sensitive, so to avoid loosing information and label collisions, tag keys are not snaked cased
+              labelNames.add("tag_" + safeName(tag.getKey()));
+              labelValues.add(tag.getValue());
+            }
+            List<MetricFamilySamples.Sample> samples = new ArrayList<MetricFamilySamples.Sample>();
+            samples.add(new MetricFamilySamples.Sample("aws_resource_info", labelNames, labelValues, 1));
+            mfs.add(new MetricFamilySamples("aws_resource_info", Type.GAUGE, "AWS information available for resource", samples));
+            
+            publishedResourceInfo.add(resourceTagMapping.getResourceARN());
+          }
         }
       }
     }
