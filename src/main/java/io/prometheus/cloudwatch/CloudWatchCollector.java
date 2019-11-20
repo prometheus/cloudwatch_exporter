@@ -475,6 +475,9 @@ public class CloudWatchCollector extends Collector {
      * Check if a metric is matched in `aws_tag_select`
      */
     private boolean metricIsInAwsTagSelect(MetricRule rule, List<String> tagBasedResourceIds, Metric metric) {
+      if (rule.awsTagSelect.tagSelections == null) {
+        return true;
+      }
       for (Dimension dimension : metric.getDimensions()) {
         String dimensionName = dimension.getName();
         String dimensionValue = dimension.getValue();
