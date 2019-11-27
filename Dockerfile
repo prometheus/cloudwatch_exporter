@@ -1,7 +1,6 @@
 FROM wehkamp/jre:8.121.13-r0_02
-MAINTAINER Prometheus Team <prometheus-developers@googlegroups.com>
-LABEL container.name=wehkamp/prometheus-cloudwatch-exporter:1.4
 
+ENTRYPOINT [ "java", "-jar", "/cloudwatch_exporter.jar", "9106", "/config.yml" ]
 EXPOSE 9106
 
 WORKDIR /cloudwatch_exporter
@@ -15,4 +14,4 @@ RUN apk update \
 
 WORKDIR /
 COPY config.yml /
-ENTRYPOINT [ "java", "-jar", "/cloudwatch_exporter.jar", "9106", "/config.yml" ]
+LABEL container.name=wehkamp/prometheus-cloudwatch-exporter:1.4.1

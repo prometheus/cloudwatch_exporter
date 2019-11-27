@@ -9,6 +9,93 @@ delay_seconds: 120
 period_seconds: 120
 
 metrics:
+- aws_namespace: AWS/Kinesis
+  aws_metric_name: GetRecords.Bytes
+  aws_dimensions: [StreamName]
+  aws_statistics: [Average]
+- aws_namespace: AWS/Kinesis
+  aws_metric_name: GetRecords.IteratorAgeMilliseconds
+  aws_dimensions: [StreamName]
+  aws_statistics: [Minimum, Maximum, Average]
+- aws_namespace: AWS/Kinesis
+  aws_metric_name: GetRecords.Latency
+  aws_dimensions: [StreamName]
+  aws_statistics: [Average]
+- aws_namespace: AWS/Kinesis
+  aws_metric_name: GetRecords.Records
+  aws_dimensions: [StreamName]
+  aws_statistics: [Average]
+- aws_namespace: AWS/Kinesis
+  aws_metric_name: GetRecords.Success
+  aws_dimensions: [StreamName]
+  aws_statistics: [Average]
+- aws_namespace: AWS/Kinesis
+  aws_metric_name: IncomingBytes
+  aws_dimensions: [StreamName, ShardId]
+  aws_statistics: [Average]
+- aws_namespace: AWS/Kinesis
+  aws_metric_name: IncomingRecords
+  aws_dimensions: [StreamName, ShardId]
+  aws_statistics: [Average]
+- aws_namespace: AWS/Kinesis
+  aws_metric_name: PutRecord.Bytes
+  aws_dimensions: [StreamName]
+  aws_statistics: [Average]
+- aws_namespace: AWS/Kinesis
+  aws_metric_name: PutRecord.Latency
+  aws_dimensions: [StreamName]
+  aws_statistics: [Average]
+- aws_namespace: AWS/Kinesis
+  aws_metric_name: PutRecord.Success
+  aws_dimensions: [StreamName]
+  aws_statistics: [Average]
+- aws_namespace: AWS/Kinesis
+  aws_metric_name: PutRecords.Bytes
+  aws_dimensions: [StreamName]
+  aws_statistics: [Average]
+- aws_namespace: AWS/Kinesis
+  aws_metric_name: PutRecords.Latency
+  aws_dimensions: [StreamName]
+  aws_statistics: [Average]
+- aws_namespace: AWS/Kinesis
+  aws_metric_name: PutRecords.Records
+  aws_dimensions: [StreamName]
+  aws_statistics: [Average]
+- aws_namespace: AWS/Kinesis
+  aws_metric_name: PutRecords.Success
+  aws_dimensions: [StreamName]
+  aws_statistics: [Average]
+- aws_namespace: AWS/Kinesis
+  aws_metric_name: ReadProvisionedThroughputExceeded
+  aws_dimensions: [StreamName, ShardId]
+  aws_statistics: [Minimum, Maximum]
+- aws_namespace: AWS/Kinesis
+  aws_metric_name: SubscribeToShard.RateExceeded
+  aws_dimensions: [StreamName, ConsumerName]
+- aws_namespace: AWS/Kinesis
+  aws_metric_name: SubscribeToShard.Success
+  aws_dimensions: [StreamName, ConsumerName]
+- aws_namespace: AWS/Kinesis
+  aws_metric_name: SubscribeToShardEvent.Bytes
+  aws_dimensions: [StreamName, ConsumerName]
+  aws_statistics: [Average]
+- aws_namespace: AWS/Kinesis
+  aws_metric_name: SubscribeToShardEvent.MillisBehindLatest
+  aws_dimensions: [StreamName, ConsumerName]
+  aws_statistics: [Average]
+- aws_namespace: AWS/Kinesis
+  aws_metric_name: SubscribeToShardEvent.Records
+  aws_dimensions: [StreamName, ConsumerName]
+  aws_statistics: [Average]
+- aws_namespace: AWS/Kinesis
+  aws_metric_name: SubscribeToShardEvent.Success
+  aws_dimensions: [StreamName, ConsumerName]
+  aws_statistics: [Average]
+- aws_namespace: AWS/Kinesis
+  aws_metric_name: WriteProvisionedThroughputExceeded
+  aws_dimensions: [StreamName, ShardId]
+  aws_statistics: [Minimum, Maximum]
+
 - aws_namespace: AWS/ELB
   aws_metric_name: HealthyHostCount
   aws_dimensions: [AvailabilityZone, LoadBalancerName]
