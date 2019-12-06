@@ -575,6 +575,16 @@ public class CloudWatchCollector extends Collector {
           for (Dimension d: dimensions) {
             labelNames.add(safeName(toSnakeCase(d.getName())));
             labelValues.add(d.getValue());
+            if (rule.awsTagSelect != null && rule.awsTagSelect.resourceIdDimension.equals(d.getName())) {
+              for (ResourceTagMapping resourceTagMapping: resourceTagMappings) {
+                if (extractResourceIdFromArn(resourceTagMapping.getResourceARN()).equals(d.getValue())) {
+                  for (Tag tag: resourceTagMapping.getTags()) {
+                    labelNames.add("tag_" + safeName(tag.getKey()));
+                    labelValues.add(tag.getValue());
+                  }
+                }
+              }
+            }
           }
 
           Long timestamp = null;

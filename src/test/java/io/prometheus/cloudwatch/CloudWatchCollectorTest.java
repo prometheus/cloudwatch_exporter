@@ -501,7 +501,7 @@ public class CloudWatchCollectorTest {
         .thenReturn(new GetMetricStatisticsResult().withDatapoints(
             new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
 
-    assertEquals(2.0, registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id"}, new String[]{"aws_ec2", "", "i-1"}), .01);
+    assertEquals(2.0, registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id", "tag_Monitoring"}, new String[]{"aws_ec2", "", "i-1", "enabled"}), .01);
     assertNull(registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id"}, new String[]{"aws_ec2", "", "i-2"}));
     assertEquals(1.0, registry.getSampleValue("aws_resource_info", new String[]{"job", "instance", "arn", "instance_id", "tag_Monitoring"}, new String[]{"aws_ec2", "", "arn:aws:ec2:us-east-1:121212121212:instance/i-1", "i-1", "enabled"}), .01);
   }
@@ -540,8 +540,8 @@ public class CloudWatchCollectorTest {
         .thenReturn(new GetMetricStatisticsResult().withDatapoints(
             new Datapoint().withTimestamp(new Date()).withAverage(4.0)));
     
-    assertEquals(2.0, registry.getSampleValue("aws_applicationelb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer"}, new String[]{"aws_applicationelb", "", "a", "app/myLB/123"}), .01);
-    assertEquals(3.0, registry.getSampleValue("aws_applicationelb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer"}, new String[]{"aws_applicationelb", "", "b", "app/myLB/123"}), .01);
+    assertEquals(2.0, registry.getSampleValue("aws_applicationelb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer", "tag_Monitoring"}, new String[]{"aws_applicationelb", "", "a", "app/myLB/123", "enabled"}), .01);
+    assertEquals(3.0, registry.getSampleValue("aws_applicationelb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer", "tag_Monitoring"}, new String[]{"aws_applicationelb", "", "b", "app/myLB/123", "enabled"}), .01);
     assertNull(registry.getSampleValue("aws_applicationelb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer"}, new String[]{"aws_applicationelb", "", "a", "app/myOtherLB/456"}));
     assertEquals(1.0, registry.getSampleValue("aws_resource_info", new String[]{"job", "instance", "arn", "load_balancer", "tag_Monitoring"}, new String[]{"aws_applicationelb", "", "arn:aws:elasticloadbalancing:us-east-1:121212121212:loadbalancer/app/myLB/123", "app/myLB/123", "enabled"}), .01);
   }
@@ -579,8 +579,8 @@ public class CloudWatchCollectorTest {
         .thenReturn(new GetMetricStatisticsResult().withDatapoints(
             new Datapoint().withTimestamp(new Date()).withAverage(3.0)));
 
-    assertEquals(2.0, registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id"}, new String[]{"aws_ec2", "", "i-1"}), .01);
-    assertEquals(3.0, registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id"}, new String[]{"aws_ec2", "", "i-2"}), .01);
+    assertEquals(2.0, registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id", "tag_Monitoring"}, new String[]{"aws_ec2", "", "i-1", "enabled"}), .01);
+    assertEquals(3.0, registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id", "tag_Monitoring"}, new String[]{"aws_ec2", "", "i-2", "enabled"}), .01);
     assertEquals(1.0, registry.getSampleValue("aws_resource_info", new String[]{"job", "instance", "arn", "instance_id", "tag_Monitoring"}, new String[]{"aws_ec2", "", "arn:aws:ec2:us-east-1:121212121212:instance/i-1", "i-1", "enabled"}), .01);
     assertEquals(1.0, registry.getSampleValue("aws_resource_info", new String[]{"job", "instance", "arn", "instance_id", "tag_Monitoring"}, new String[]{"aws_ec2", "", "arn:aws:ec2:us-east-1:121212121212:instance/i-2", "i-2", "enabled"}), .01);
   }
@@ -641,8 +641,8 @@ public class CloudWatchCollectorTest {
         .thenReturn(new GetMetricStatisticsResult().withDatapoints(
             new Datapoint().withTimestamp(new Date()).withAverage(3.0)));
 
-    assertEquals(2.0, registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id"}, new String[]{"aws_ec2", "", "i-1"}), .01);
-    assertNull(registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id"}, new String[]{"aws_ec2", "", "i-2"}));
+    assertEquals(2.0, registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id", "tag_Monitoring"}, new String[]{"aws_ec2", "", "i-1", "enabled"}), .01);
+    assertNull(registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id", "tag_Monitoring"}, new String[]{"aws_ec2", "", "i-2", "enabled"}));
     assertEquals(1.0, registry.getSampleValue("aws_resource_info", new String[]{"job", "instance", "arn", "instance_id", "tag_Monitoring"}, new String[]{"aws_ec2", "", "arn:aws:ec2:us-east-1:121212121212:instance/i-1", "i-1", "enabled"}), .01);
     assertEquals(1.0, registry.getSampleValue("aws_resource_info", new String[]{"job", "instance", "arn", "instance_id", "tag_Monitoring"}, new String[]{"aws_ec2", "", "arn:aws:ec2:us-east-1:121212121212:instance/i-2", "i-2", "enabled"}), .01);
   }
@@ -682,11 +682,54 @@ public class CloudWatchCollectorTest {
         .thenReturn(new GetMetricStatisticsResult().withDatapoints(
             new Datapoint().withTimestamp(new Date()).withAverage(4.0)));
 
-    assertEquals(2.0, registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id"}, new String[]{"aws_ec2", "", "i-1"}), .01);
-    assertNull(registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id"}, new String[]{"aws_ec2", "", "i-2"}));
+    assertEquals(2.0, registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id", "tag_Monitoring"}, new String[]{"aws_ec2", "", "i-1", "enabled"}), .01);
+    assertNull(registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id", "tag_Monitoring"}, new String[]{"aws_ec2", "", "i-2", "enabled"}));
     assertEquals(4.0, registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id"}, new String[]{"aws_ec2", "", "i-no-tag"}), .01);
     assertEquals(1.0, registry.getSampleValue("aws_resource_info", new String[]{"job", "instance", "arn", "instance_id", "tag_Monitoring"}, new String[]{"aws_ec2", "", "arn:aws:ec2:us-east-1:121212121212:instance/i-1", "i-1", "enabled"}), .01);
     assertEquals(1.0, registry.getSampleValue("aws_resource_info", new String[]{"job", "instance", "arn", "instance_id", "tag_Monitoring"}, new String[]{"aws_ec2", "", "arn:aws:ec2:us-east-1:121212121212:instance/i-2", "i-2", "enabled"}), .01);
     assertNull(registry.getSampleValue("aws_resource_info", new String[]{"job", "instance", "arn", "instance_id", "tag_Monitoring"}, new String[]{"aws_ec2", "", "arn:aws:ec2:us-east-1:121212121212:instance/i-no-tag", "i-no-tag", "enabled"}));
+  }
+
+  @Test
+  public void testMetricTagLabelling() throws Exception {
+    new CloudWatchCollector(
+      "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/RDS\n  aws_metric_name: VolumeWriteIOPs\n  aws_dimensions:\n  - DbClusterIdentifier\n  - EngineName\n  aws_tag_select:\n    resource_type_selection: \"rds:cluster\"\n    resource_id_dimension: DbClusterIdentifier\n    tag_selections:\n      Replica: [\"false\"]\n",
+      cloudWatchClient, taggingClient).register(registry);
+
+    Mockito.when(taggingClient.getResources((GetResourcesRequest)argThat(
+      new GetResourcesRequestMatcher().ResourceTypeFilter("rds:cluster").TagFilter("Replica", Arrays.asList("false")))))
+      .thenReturn(new GetResourcesResult().withResourceTagMappingList(
+        new ResourceTagMapping().withTags(
+          new Tag().withKey("Replica").withValue("false"),
+          new Tag().withKey("Stage").withValue("prod")).
+          withResourceARN("arn:aws:rds:us-east-1-1:121212121212:cluster:cluster-abc"),
+        new ResourceTagMapping().withTags(
+          new Tag().withKey("Replica").withValue("false"),
+          new Tag().withKey("Stage").withValue("dev"),
+          new Tag().withKey("Owner").withValue("admin")).
+          withResourceARN("arn:aws:rds:us-east-1-1:121212121212:cluster:cluster-def")));
+
+    Mockito.when(cloudWatchClient.listMetrics((ListMetricsRequest)argThat(
+      new ListMetricsRequestMatcher().Namespace("AWS/RDS").MetricName("VolumeWriteIOPs").Dimensions("DbClusterIdentifier", "EngineName"))))
+      .thenReturn(new ListMetricsResult().withMetrics(
+        new Metric().withDimensions(
+          new Dimension().withName("DbClusterIdentifier").withValue("cluster-abc"),
+          new Dimension().withName("EngineName").withValue("aurora")),
+        new Metric().withDimensions(
+          new Dimension().withName("DbClusterIdentifier").withValue("cluster-def"),
+          new Dimension().withName("EngineName").withValue("aurora"))));
+
+    Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
+      new GetMetricStatisticsRequestMatcher().Namespace("AWS/RDS").MetricName("VolumeWriteIOPs").Dimension("DbClusterIdentifier", "cluster-abc").Dimension("EngineName", "aurora"))))
+      .thenReturn(new GetMetricStatisticsResult().withDatapoints(
+        new Datapoint().withTimestamp(new Date()).withAverage(1000.0)));
+
+    Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
+      new GetMetricStatisticsRequestMatcher().Namespace("AWS/RDS").MetricName("VolumeWriteIOPs").Dimension("DbClusterIdentifier", "cluster-def").Dimension("EngineName", "aurora"))))
+      .thenReturn(new GetMetricStatisticsResult().withDatapoints(
+        new Datapoint().withTimestamp(new Date()).withAverage(2000.0)));
+
+    assertEquals(1000.0, registry.getSampleValue("aws_rds_volume_write_iops_average", new String[]{"job", "instance", "db_cluster_identifier", "tag_Replica", "tag_Stage", "engine_name"}, new String[]{"aws_rds", "", "cluster-abc", "false", "prod", "aurora"}), .01);
+    assertEquals(2000.0, registry.getSampleValue("aws_rds_volume_write_iops_average", new String[]{"job", "instance", "db_cluster_identifier", "tag_Replica", "tag_Stage", "tag_Owner", "engine_name"}, new String[]{"aws_rds", "", "cluster-def", "false", "dev", "admin", "aurora"}), 0.01);
   }
 }
