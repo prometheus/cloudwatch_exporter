@@ -2,10 +2,6 @@ package io.prometheus.cloudwatch;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
-import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder;
 import com.amazonaws.services.cloudwatch.model.Datapoint;
@@ -153,25 +149,32 @@ public class CloudWatchCollector extends Collector {
             defaultCloudwatchTimestamp = (Boolean)config.get("set_timestamp");
         }
         
+
+        String region = (String) config.get("region");
+
         if (cloudWatchClient == null) {
           AmazonCloudWatchClientBuilder clientBuilder = AmazonCloudWatchClientBuilder.standard();
 
           if (config.containsKey("role_arn")) {
             clientBuilder.setCredentials(getRoleCredentialProvider(config));
           }
-          Region region = getRegion(config);
-          clientBuilder.setEndpointConfiguration(new EndpointConfiguration(getMonitoringEndpoint(region), region.getName()));
+
+          if (region != null) {
+            clientBuilder.setRegion(region);
+          }
 
           cloudWatchClient = clientBuilder.build();
         }
-        
+
         if (taggingClient == null) {
           AWSResourceGroupsTaggingAPIClientBuilder clientBuilder = AWSResourceGroupsTaggingAPIClientBuilder.standard();
 
           if (config.containsKey("role_arn")) {
             clientBuilder.setCredentials(getRoleCredentialProvider(config));
           }
-          clientBuilder.setRegion(getRegion(config).getName());
+          if (region != null) {
+            clientBuilder.setRegion(region);
+          }
           taggingClient = clientBuilder.build();
         }
 
@@ -266,21 +269,6 @@ public class CloudWatchCollector extends Collector {
       STSAssumeRoleSessionCredentialsProvider credentialsProvider = new STSAssumeRoleSessionCredentialsProvider.Builder(
 	  (String) config.get("role_arn"), "cloudwatch_exporter").build();
       return credentialsProvider;
-    }
-    
-    private Region getRegion(Map<String, Object> config) {
-      Region region = RegionUtils.getRegion((String) config.get("region"));
-      if (region == null) {
-        region = Regions.getCurrentRegion();
-        if (region == null) {
-          throw new IllegalArgumentException("No region provided and EC2 metadata failed");
-        }
-      }
-      return region;
-    }
-    
-    public String getMonitoringEndpoint(Region region) {
-      return "https://" + region.getServiceEndpoint("monitoring");
     }
 
     private List<ResourceTagMapping> getResourceTagMappings(MetricRule rule, AWSResourceGroupsTaggingAPI taggingClient) {

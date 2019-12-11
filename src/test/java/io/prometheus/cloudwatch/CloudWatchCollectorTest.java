@@ -4,8 +4,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.argThat;
 
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
 import com.amazonaws.services.cloudwatch.model.Datapoint;
 import com.amazonaws.services.cloudwatch.model.Dimension;
@@ -407,17 +405,6 @@ public class CloudWatchCollectorTest {
             new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
 
     assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "a", "myLB"}), .01);
-  }
-
-  @Test
-  public void testGetMonitoringEndpoint() throws Exception {
-    Region usEast = RegionUtils.getRegion("us-east-1");
-    CloudWatchCollector us_collector = new CloudWatchCollector("---\nregion: us-east-1\nmetrics: []\n");
-    assertEquals("https://monitoring.us-east-1.amazonaws.com", us_collector.getMonitoringEndpoint(usEast));
-
-    Region cnNorth = RegionUtils.getRegion("cn-north-1");
-    CloudWatchCollector cn_collector = new CloudWatchCollector("---\nregion: cn-north-1\nmetrics: []\n");
-    assertEquals("https://monitoring.cn-north-1.amazonaws.com.cn", cn_collector.getMonitoringEndpoint(cnNorth));
   }
 
   @Test
