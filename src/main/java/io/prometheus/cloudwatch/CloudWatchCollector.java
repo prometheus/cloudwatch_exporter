@@ -494,7 +494,7 @@ public class CloudWatchCollector extends Collector {
 
     private String safeName(String s) {
       // Change invalid chars to underscore, and merge underscores.
-      return s.replaceAll("[^a-zA-Z0-9:_]", "_").replaceAll("__+", "_");
+      return s.replaceAll("[^a-zA-Z0-9_]", "_").replaceAll("__+", "_");
     }
 
     private String help(MetricRule rule, String unit, String statistic) {
