@@ -497,6 +497,11 @@ public class CloudWatchCollector extends Collector {
       return s.replaceAll("[^a-zA-Z0-9:_]", "_").replaceAll("__+", "_");
     }
 
+    private String safeLabelName(String s) {
+      // Change invalid chars to underscore, and merge underscores.
+      return s.replaceAll("[^a-zA-Z0-9_]", "_").replaceAll("__+", "_");
+    }
+
     private String help(MetricRule rule, String unit, String statistic) {
       if (rule.help != null) {
           return rule.help;
@@ -561,7 +566,7 @@ public class CloudWatchCollector extends Collector {
           labelNames.add("instance");
           labelValues.add("");
           for (Dimension d: dimensions) {
-            labelNames.add(safeName(toSnakeCase(d.getName())));
+            labelNames.add(safeLabelName(toSnakeCase(d.getName())));
             labelValues.add(d.getValue());
           }
 
@@ -633,12 +638,12 @@ public class CloudWatchCollector extends Collector {
             labelValues.add("");
             labelNames.add("arn");
             labelValues.add(resourceTagMapping.getResourceARN());
-            labelNames.add(safeName(toSnakeCase(rule.awsTagSelect.resourceIdDimension)));
+            labelNames.add(safeLabelName(toSnakeCase(rule.awsTagSelect.resourceIdDimension)));
             labelValues.add(extractResourceIdFromArn(resourceTagMapping.getResourceARN()));
             for (Tag tag: resourceTagMapping.getTags()) {
               // Avoid potential collision between resource tags and other metric labels by adding the "tag_" prefix
               // The AWS tags are case sensitive, so to avoid loosing information and label collisions, tag keys are not snaked cased
-              labelNames.add("tag_" + safeName(tag.getKey()));
+              labelNames.add("tag_" + safeLabelName(tag.getKey()));
               labelValues.add(tag.getValue());
             }
             List<MetricFamilySamples.Sample> samples = new ArrayList<MetricFamilySamples.Sample>();
