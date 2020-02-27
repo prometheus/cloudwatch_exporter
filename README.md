@@ -191,4 +191,5 @@ Dockerfile in the same directory and build it with `docker build`:
 
 ```
 FROM prom/cloudwatch-exporter
+ADD config.yml /config/
 ```
