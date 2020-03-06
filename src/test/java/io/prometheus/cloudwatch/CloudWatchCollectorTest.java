@@ -461,6 +461,18 @@ public class CloudWatchCollectorTest {
   }
   
   @Test
+  public void testDynamoNoDimensions() throws Exception {
+    new CloudWatchCollector(
+        "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/DynamoDB\n  aws_metric_name: AccountProvisionedReadCapacityUtilization\n", cloudWatchClient, taggingClient).register(registry);
+
+    Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
+        new GetMetricStatisticsRequestMatcher().Namespace("AWS/DynamoDB").MetricName("AccountProvisionedReadCapacityUtilization"))))
+        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
+            new Datapoint().withTimestamp(new Date()).withSum(1.0)));
+
+    assertEquals(1.0, registry.getSampleValue("aws_dynamodb_account_provisioned_read_capacity_utilization_sum", new String[]{"job", "instance"}, new String[]{"aws_dynamodb", ""}), .01);
+  }
+  @Test
   public void testTagSelectEC2() throws Exception {
     // Testing "aws_tag_select" with an EC2
     new CloudWatchCollector(
