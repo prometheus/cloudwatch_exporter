@@ -540,6 +540,7 @@ public class CloudWatchCollector extends Collector {
         String unit = null;
 
         if (rule.awsNamespace.equals("AWS/DynamoDB")
+                && rule.awsDimensions != null
                 && rule.awsDimensions.contains("GlobalSecondaryIndexName")
                 && brokenDynamoMetrics.contains(rule.awsMetricName)) {
             baseName += "_index";
