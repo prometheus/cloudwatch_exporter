@@ -21,6 +21,7 @@ import com.amazonaws.services.resourcegroupstaggingapi.model.Tag;
 import com.amazonaws.services.resourcegroupstaggingapi.model.TagFilter;
 
 import io.prometheus.client.Collector;
+import io.prometheus.client.Collector.Describable;
 import io.prometheus.client.Counter;
 
 import java.io.FileReader;
@@ -41,7 +42,7 @@ import java.util.regex.Pattern;
 
 import org.yaml.snakeyaml.Yaml;
 
-public class CloudWatchCollector extends Collector {
+public class CloudWatchCollector extends Collector implements Describable {
     private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
 
     static class ActiveConfig implements Cloneable {
@@ -106,6 +107,11 @@ public class CloudWatchCollector extends Collector {
 
     private CloudWatchCollector(Map<String, Object> config, AmazonCloudWatch cloudWatchClient, AWSResourceGroupsTaggingAPI taggingClient) {
         loadConfig(config, cloudWatchClient, taggingClient);
+    }
+
+    @Override
+    public List<MetricFamilySamples> describe() {
+      return Collections.emptyList();
     }
 
     protected void reloadConfig() throws IOException {
