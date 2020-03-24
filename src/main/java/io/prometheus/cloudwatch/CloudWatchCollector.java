@@ -2,6 +2,7 @@ package io.prometheus.cloudwatch;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
+import com.amazonaws.auth.WebIdentityTokenCredentialsProvider;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder;
 import com.amazonaws.services.cloudwatch.model.Datapoint;
@@ -159,7 +160,8 @@ public class CloudWatchCollector extends Collector implements Describable {
         String region = (String) config.get("region");
 
         if (cloudWatchClient == null) {
-          AmazonCloudWatchClientBuilder clientBuilder = AmazonCloudWatchClientBuilder.standard();
+          AmazonCloudWatchClientBuilder clientBuilder = AmazonCloudWatchClientBuilder.standard()
+            .withCredentials(WebIdentityTokenCredentialsProvider.create());
 
           if (config.containsKey("role_arn")) {
             clientBuilder.setCredentials(getRoleCredentialProvider(config));
@@ -173,7 +175,8 @@ public class CloudWatchCollector extends Collector implements Describable {
         }
 
         if (taggingClient == null) {
-          AWSResourceGroupsTaggingAPIClientBuilder clientBuilder = AWSResourceGroupsTaggingAPIClientBuilder.standard();
+          AWSResourceGroupsTaggingAPIClientBuilder clientBuilder = AWSResourceGroupsTaggingAPIClientBuilder.standard()
+            .withCredentials(WebIdentityTokenCredentialsProvider.create());
 
           if (config.containsKey("role_arn")) {
             clientBuilder.setCredentials(getRoleCredentialProvider(config));
