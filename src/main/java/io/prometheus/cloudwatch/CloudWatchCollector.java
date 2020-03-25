@@ -160,11 +160,13 @@ public class CloudWatchCollector extends Collector implements Describable {
         String region = (String) config.get("region");
 
         if (cloudWatchClient == null) {
-          AmazonCloudWatchClientBuilder clientBuilder = AmazonCloudWatchClientBuilder.standard()
-            .withCredentials(WebIdentityTokenCredentialsProvider.create());
+          AmazonCloudWatchClientBuilder clientBuilder = AmazonCloudWatchClientBuilder.standard();
 
           if (config.containsKey("role_arn")) {
             clientBuilder.setCredentials(getRoleCredentialProvider(config));
+          }
+          else if (config.containsKey("aws_use_irsa")) {
+            clientBuilder.setCredentials(WebIdentityTokenCredentialsProvider.create());
           }
 
           if (region != null) {
@@ -175,11 +177,13 @@ public class CloudWatchCollector extends Collector implements Describable {
         }
 
         if (taggingClient == null) {
-          AWSResourceGroupsTaggingAPIClientBuilder clientBuilder = AWSResourceGroupsTaggingAPIClientBuilder.standard()
-            .withCredentials(WebIdentityTokenCredentialsProvider.create());
+          AWSResourceGroupsTaggingAPIClientBuilder clientBuilder = AWSResourceGroupsTaggingAPIClientBuilder.standard();
 
           if (config.containsKey("role_arn")) {
             clientBuilder.setCredentials(getRoleCredentialProvider(config));
+          }
+          else if (config.containsKey("aws_use_irsa")) {
+            clientBuilder.setCredentials(WebIdentityTokenCredentialsProvider.create());
           }
           if (region != null) {
             clientBuilder.setRegion(region);
