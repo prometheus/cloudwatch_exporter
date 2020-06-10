@@ -86,14 +86,22 @@ aws_elb_request_count_sum{job="aws_elb",instance="",load_balancer_name="mylb",av
 aws_elb_request_count_sum{job="aws_elb",instance="",load_balancer_name="myotherlb",availability_zone="eu-west-1c",} 7.0
 ```
 
+### Tags
 If the `aws_tag_select` feature was used, an additional information metric will be exported for each AWS tagged resource matched by the resource type selection and tag selection (if specified), such as
 ```
 # HELP aws_resource_info AWS information available for resource
 # TYPE aws_resource_info gauge
 aws_resource_info{job="aws_elb",instance="",arn="arn:aws:elasticloadbalancing:eu-west-1:121212121212:loadbalancer/mylb",load_balancer_name="mylb",tag_Monitoring="enabled",tag_MyOtherKey="MyOtherValue",} 1.0
 ```
-
 All metrics are exported as gauges.
+
+The `aws_resource_info` can be used in conjunction with other metrics to expose tags using PromQL syntax like:
+```
+aws_elb_request_count_sum * on(load_balancer_name) aws_resource_info{tag_Env="prod", tag_Team="team-1", tag_MyOtherKey!="MyOtherValue"}
+
+# The query will match the resources which have the tags [Env: prod, Team: team-1] but does not have the tag [MyOtherKey: MyOtherValue]
+{load_balancer_name="myotherlb} 7.0
+```
 
 In addition `cloudwatch_exporter_scrape_error` will be non-zero if an error
 occurred during the scrape, and `cloudwatch_exporter_scrape_duration_seconds`
