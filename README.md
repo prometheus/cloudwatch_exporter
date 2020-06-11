@@ -78,7 +78,7 @@ range_seconds | Optional. How far back to request data for. Useful for cases suc
 period_seconds | Optional. [Period](http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/cloudwatch_concepts.html#CloudWatchPeriods) to request the metric for. Only the most recent data point is used. Defaults to 60s. Can be set globally and per metric.
 set_timestamp | Optional. Boolean for whether to set the Prometheus metric timestamp as the original Cloudwatch timestamp. For some metrics which are updated very infrequently (such as S3/BucketSize), Prometheus may refuse to scrape them if this is set to true (see #100). Defaults to true. Can be set globally and per metric.
 
-The above config will export time series such as 
+The above config will export time series such as
 ```
 # HELP aws_elb_request_count_sum CloudWatch metric AWS/ELB RequestCount Dimensions: ["AvailabilityZone","LoadBalancerName"] Statistic: Sum Unit: Count
 # TYPE aws_elb_request_count_sum gauge
@@ -92,7 +92,12 @@ If the `aws_tag_select` feature was used, an additional information metric will 
 # TYPE aws_resource_info gauge
 aws_resource_info{job="aws_elb",instance="",arn="arn:aws:elasticloadbalancing:eu-west-1:121212121212:loadbalancer/mylb",load_balancer_name="mylb",tag_Monitoring="enabled",tag_MyOtherKey="MyOtherValue",} 1.0
 ```
-
+aws_recource_info can be joined with other metrics using group_left in PromQL such as the following:
+```
+  aws_elb_request_count_sum
+* on(load_balancer_name) group_left(tag_MyOtherKey)
+  aws_resource_info
+```
 All metrics are exported as gauges.
 
 In addition `cloudwatch_exporter_scrape_error` will be non-zero if an error
