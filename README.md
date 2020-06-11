@@ -92,11 +92,11 @@ If the `aws_tag_select` feature was used, an additional information metric will 
 # TYPE aws_resource_info gauge
 aws_resource_info{job="aws_elb",instance="",arn="arn:aws:elasticloadbalancing:eu-west-1:121212121212:loadbalancer/mylb",load_balancer_name="mylb",tag_Monitoring="enabled",tag_MyOtherKey="MyOtherValue",} 1.0
 ```
-aws_recource_info can be joined with other metrics using group_left in PromQL such as following:
+aws_recource_info can be joined with other metrics using group_left in PromQL such as the following:
 ```
   aws_elb_request_count_sum
-*
-  on(load_balancer_name) group_left(tag_MyOtherKey) aws_resource_info
+* on(load_balancer_name) group_left(tag_MyOtherKey)
+  aws_resource_info
 ```
 All metrics are exported as gauges.
 
