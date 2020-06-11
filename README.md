@@ -94,12 +94,11 @@ aws_resource_info{job="aws_elb",instance="",arn="arn:aws:elasticloadbalancing:eu
 ```
 All metrics are exported as gauges.
 
-The `aws_resource_info` can be used in conjunction with other metrics to expose tags using PromQL syntax like:
+aws_recource_info can be joined with other metrics using group_left in PromQL such as following:
 ```
   aws_elb_request_count_sum
 *
   on(load_balancer_name) aws_resource_info
-{load_balancer_name="myotherlb"} 7.0
 ```
 
 In addition `cloudwatch_exporter_scrape_error` will be non-zero if an error
