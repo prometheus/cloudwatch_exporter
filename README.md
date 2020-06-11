@@ -96,7 +96,7 @@ aws_recource_info can be joined with other metrics using group_left in PromQL su
 ```
   aws_elb_request_count_sum
 *
-  on(load_balancer_name) aws_resource_info
+  on(load_balancer_name) group_left(tag_MyOtherKey) aws_resource_info
 ```
 All metrics are exported as gauges.
 
