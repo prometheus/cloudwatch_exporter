@@ -56,6 +56,7 @@ public class CloudWatchCollectorTest {
     String namespace;
     String metricName;
     String nextToken;
+    String recentlyActive;
     List<DimensionFilter> dimensions = new ArrayList<DimensionFilter>();
 
     public ListMetricsRequestMatcher Namespace(String namespace) {
@@ -77,6 +78,10 @@ public class CloudWatchCollectorTest {
       }
       return this;
     }
+    public ListMetricsRequestMatcher RecentlyActive(String recentlyActive) {
+      this.recentlyActive = recentlyActive;
+      return this;
+    }
     
     public boolean matches(Object o) {
      ListMetricsRequest request = (ListMetricsRequest) o;
@@ -94,6 +99,9 @@ public class CloudWatchCollectorTest {
        return false;
      }
      if (!dimensions.equals(request.getDimensions())) {
+       return false;
+     }
+     if (recentlyActive != null && !recentlyActive.equals(request.getRecentlyActive())) {
        return false;
      }
      return true;
@@ -687,5 +695,38 @@ public class CloudWatchCollectorTest {
     assertEquals(1.0, registry.getSampleValue("aws_resource_info", new String[]{"job", "instance", "arn", "instance_id", "tag_Monitoring"}, new String[]{"aws_ec2", "", "arn:aws:ec2:us-east-1:121212121212:instance/i-1", "i-1", "enabled"}), .01);
     assertEquals(1.0, registry.getSampleValue("aws_resource_info", new String[]{"job", "instance", "arn", "instance_id", "tag_Monitoring"}, new String[]{"aws_ec2", "", "arn:aws:ec2:us-east-1:121212121212:instance/i-2", "i-2", "enabled"}), .01);
     assertNull(registry.getSampleValue("aws_resource_info", new String[]{"job", "instance", "arn", "instance_id", "tag_Monitoring"}, new String[]{"aws_ec2", "", "arn:aws:ec2:us-east-1:121212121212:instance/i-no-tag", "i-no-tag", "enabled"}));
+  }
+
+  @Test
+  public void testRecentlyActiveOnly() throws Exception {
+    new CloudWatchCollector(
+            "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancerName\n  recently_active_only: true", cloudWatchClient, taggingClient).register(registry);
+
+    Mockito.when(cloudWatchClient.listMetrics((ListMetricsRequest)argThat(
+            new ListMetricsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimensions("AvailabilityZone", "LoadBalancerName").RecentlyActive("PT3H"))))
+            .thenReturn(new ListMetricsResult().withMetrics(
+                    new Metric().withDimensions(new Dimension().withName("AvailabilityZone").withValue("a"), new Dimension().withName("LoadBalancerName").withValue("myLB")),
+                    new Metric().withDimensions(new Dimension().withName("AvailabilityZone").withValue("a"), new Dimension().withName("LoadBalancerName").withValue("myLB"), new Dimension().withName("ThisExtraDimensionIsIgnored").withValue("dummy")),
+                    new Metric().withDimensions(new Dimension().withName("AvailabilityZone").withValue("b"), new Dimension().withName("LoadBalancerName").withValue("myOtherLB"))));
+
+    Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
+            new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimension("AvailabilityZone", "a").Dimension("LoadBalancerName", "myLB"))))
+            .thenReturn(new GetMetricStatisticsResult().withDatapoints(
+                    new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
+    Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
+            new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimension("AvailabilityZone", "b").Dimension("LoadBalancerName", "myOtherLB"))))
+            .thenReturn(new GetMetricStatisticsResult().withDatapoints(
+                    new Datapoint().withTimestamp(new Date()).withAverage(3.0)));
+
+    registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance"}, new String[]{"aws_elb", ""});
+
+
+    Mockito.verify(cloudWatchClient).listMetrics((ListMetricsRequest) argThat(
+            new ListMetricsRequestMatcher()
+                    .RecentlyActive("PT3H").
+                    Namespace("AWS/ELB").
+                    MetricName("RequestCount").
+                    Dimensions("AvailabilityZone", "LoadBalancerName")
+    ));
   }
 }
