@@ -70,6 +70,7 @@ public class CloudWatchCollector extends Collector implements Describable {
       AWSTagSelect awsTagSelect;
       String help;
       boolean cloudwatchTimestamp;
+      boolean recentlyActiveOnly;
     }
 
     static class AWSTagSelect {
@@ -153,6 +154,11 @@ public class CloudWatchCollector extends Collector implements Describable {
         boolean defaultCloudwatchTimestamp = true;
         if (config.containsKey("set_timestamp")) {
             defaultCloudwatchTimestamp = (Boolean)config.get("set_timestamp");
+        }
+
+        boolean defaultRecentlyActiveOnly = false;
+        if (config.containsKey("recently_active_only")) {
+            defaultRecentlyActiveOnly = (Boolean)config.get("recently_active_only");
         }
         
 
@@ -241,6 +247,11 @@ public class CloudWatchCollector extends Collector implements Describable {
               rule.cloudwatchTimestamp = (Boolean)yamlMetricRule.get("set_timestamp");
           } else {
               rule.cloudwatchTimestamp = defaultCloudwatchTimestamp;
+          }
+          if (yamlMetricRule.containsKey("recently_active_only")) {
+              rule.recentlyActiveOnly = (Boolean)yamlMetricRule.get("recently_active_only");
+          } else {
+              rule.recentlyActiveOnly = defaultRecentlyActiveOnly;
           }
 
           if (yamlMetricRule.containsKey("aws_tag_select")) {
@@ -374,6 +385,11 @@ public class CloudWatchCollector extends Collector implements Describable {
       ListMetricsRequest request = new ListMetricsRequest();
       request.setNamespace(rule.awsNamespace);
       request.setMetricName(rule.awsMetricName);
+
+      if (rule.recentlyActiveOnly) {
+        request.setRecentlyActive("PT3H");
+      }
+
       List<DimensionFilter> dimensionFilters = new ArrayList<DimensionFilter>();
       for (String dimension: rule.awsDimensions) {
         dimensionFilters.add(new DimensionFilter().withName(dimension));
