@@ -698,12 +698,12 @@ public class CloudWatchCollectorTest {
   }
 
   @Test
-  public void testRecentlyActiveOnly() throws Exception {
+  public void testNotRecentlyActive() throws Exception {
     new CloudWatchCollector(
-            "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancerName\n  recently_active_only: true", cloudWatchClient, taggingClient).register(registry);
+            "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancerName\n  range_seconds: 12000", cloudWatchClient, taggingClient).register(registry);
 
     Mockito.when(cloudWatchClient.listMetrics((ListMetricsRequest)argThat(
-            new ListMetricsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimensions("AvailabilityZone", "LoadBalancerName").RecentlyActive("PT3H"))))
+            new ListMetricsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimensions("AvailabilityZone", "LoadBalancerName").RecentlyActive(null))))
             .thenReturn(new ListMetricsResult().withMetrics(
                     new Metric().withDimensions(new Dimension().withName("AvailabilityZone").withValue("a"), new Dimension().withName("LoadBalancerName").withValue("myLB")),
                     new Metric().withDimensions(new Dimension().withName("AvailabilityZone").withValue("a"), new Dimension().withName("LoadBalancerName").withValue("myLB"), new Dimension().withName("ThisExtraDimensionIsIgnored").withValue("dummy")),
@@ -723,7 +723,7 @@ public class CloudWatchCollectorTest {
 
     Mockito.verify(cloudWatchClient).listMetrics((ListMetricsRequest) argThat(
             new ListMetricsRequestMatcher()
-                    .RecentlyActive("PT3H").
+                    .RecentlyActive(null).
                     Namespace("AWS/ELB").
                     MetricName("RequestCount").
                     Dimensions("AvailabilityZone", "LoadBalancerName")

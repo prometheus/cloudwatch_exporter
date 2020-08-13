@@ -70,7 +70,6 @@ public class CloudWatchCollector extends Collector implements Describable {
       AWSTagSelect awsTagSelect;
       String help;
       boolean cloudwatchTimestamp;
-      boolean recentlyActiveOnly;
     }
 
     static class AWSTagSelect {
@@ -155,12 +154,6 @@ public class CloudWatchCollector extends Collector implements Describable {
         if (config.containsKey("set_timestamp")) {
             defaultCloudwatchTimestamp = (Boolean)config.get("set_timestamp");
         }
-
-        boolean defaultRecentlyActiveOnly = false;
-        if (config.containsKey("recently_active_only")) {
-            defaultRecentlyActiveOnly = (Boolean)config.get("recently_active_only");
-        }
-        
 
         String region = (String) config.get("region");
 
@@ -247,11 +240,6 @@ public class CloudWatchCollector extends Collector implements Describable {
               rule.cloudwatchTimestamp = (Boolean)yamlMetricRule.get("set_timestamp");
           } else {
               rule.cloudwatchTimestamp = defaultCloudwatchTimestamp;
-          }
-          if (yamlMetricRule.containsKey("recently_active_only")) {
-              rule.recentlyActiveOnly = (Boolean)yamlMetricRule.get("recently_active_only");
-          } else {
-              rule.recentlyActiveOnly = defaultRecentlyActiveOnly;
           }
 
           if (yamlMetricRule.containsKey("aws_tag_select")) {
@@ -386,7 +374,8 @@ public class CloudWatchCollector extends Collector implements Describable {
       request.setNamespace(rule.awsNamespace);
       request.setMetricName(rule.awsMetricName);
 
-      if (rule.recentlyActiveOnly) {
+      // 10800 seconds is 3 hours, this setting causes metrics older than 3 hours to not be listed
+      if (rule.rangeSeconds < 10800) {
         request.setRecentlyActive("PT3H");
       }
 
