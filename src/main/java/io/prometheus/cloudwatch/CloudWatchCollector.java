@@ -154,7 +154,6 @@ public class CloudWatchCollector extends Collector implements Describable {
         if (config.containsKey("set_timestamp")) {
             defaultCloudwatchTimestamp = (Boolean)config.get("set_timestamp");
         }
-        
 
         String region = (String) config.get("region");
 
@@ -374,6 +373,12 @@ public class CloudWatchCollector extends Collector implements Describable {
       ListMetricsRequest request = new ListMetricsRequest();
       request.setNamespace(rule.awsNamespace);
       request.setMetricName(rule.awsMetricName);
+
+      // 10800 seconds is 3 hours, this setting causes metrics older than 3 hours to not be listed
+      if (rule.rangeSeconds < 10800) {
+        request.setRecentlyActive("PT3H");
+      }
+
       List<DimensionFilter> dimensionFilters = new ArrayList<DimensionFilter>();
       for (String dimension: rule.awsDimensions) {
         dimensionFilters.add(new DimensionFilter().withName(dimension));
