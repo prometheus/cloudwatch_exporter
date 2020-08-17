@@ -640,6 +640,7 @@ public class CloudWatchCollector extends Collector implements Describable {
         }
         
         // Add the "aws_resource_info" metric for existing tag mappings
+        List<MetricFamilySamples.Sample> samples = new ArrayList<MetricFamilySamples.Sample>();
         for (ResourceTagMapping resourceTagMapping : resourceTagMappings) {
           if (!publishedResourceInfo.contains(resourceTagMapping.getResourceARN())) {
             List<String> labelNames = new ArrayList<String>();
@@ -658,13 +659,13 @@ public class CloudWatchCollector extends Collector implements Describable {
               labelNames.add("tag_" + safeLabelName(tag.getKey()));
               labelValues.add(tag.getValue());
             }
-            List<MetricFamilySamples.Sample> samples = new ArrayList<MetricFamilySamples.Sample>();
+
             samples.add(new MetricFamilySamples.Sample("aws_resource_info", labelNames, labelValues, 1));
-            mfs.add(new MetricFamilySamples("aws_resource_info", Type.GAUGE, "AWS information available for resource", samples));
-            
+
             publishedResourceInfo.add(resourceTagMapping.getResourceARN());
           }
         }
+        mfs.add(new MetricFamilySamples("aws_resource_info", Type.GAUGE, "AWS information available for resource", samples));
       }
     }
 
