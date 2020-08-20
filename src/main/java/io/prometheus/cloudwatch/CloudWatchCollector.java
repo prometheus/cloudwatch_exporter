@@ -527,6 +527,7 @@ public class CloudWatchCollector extends Collector implements Describable {
       Set<String> publishedResourceInfo = new HashSet<String>();
 
       long start = System.currentTimeMillis();
+      List<MetricFamilySamples.Sample> infoSamples = new ArrayList<MetricFamilySamples.Sample>();
       for (MetricRule rule: config.rules) {
         Date startDate = new Date(start - 1000 * rule.delaySeconds);
         Date endDate = new Date(start - 1000 * (rule.delaySeconds + rule.rangeSeconds));
@@ -658,14 +659,14 @@ public class CloudWatchCollector extends Collector implements Describable {
               labelNames.add("tag_" + safeLabelName(tag.getKey()));
               labelValues.add(tag.getValue());
             }
-            List<MetricFamilySamples.Sample> samples = new ArrayList<MetricFamilySamples.Sample>();
-            samples.add(new MetricFamilySamples.Sample("aws_resource_info", labelNames, labelValues, 1));
-            mfs.add(new MetricFamilySamples("aws_resource_info", Type.GAUGE, "AWS information available for resource", samples));
-            
+
+            infoSamples.add(new MetricFamilySamples.Sample("aws_resource_info", labelNames, labelValues, 1));
+
             publishedResourceInfo.add(resourceTagMapping.getResourceARN());
           }
         }
       }
+      mfs.add(new MetricFamilySamples("aws_resource_info", Type.GAUGE, "AWS information available for resource", infoSamples));
     }
 
     public List<MetricFamilySamples> collect() {
