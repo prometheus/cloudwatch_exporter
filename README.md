@@ -135,6 +135,9 @@ If you have 100 API requests every minute, with the price of USD$10 per million
 requests (as of Aug 2018), that is around $45 per month. The
 `cloudwatch_requests_total` counter tracks how many requests are being made.
 
+We are using AWS Cloudwatch SDK's GetMetricDataRequest class to collect the statistics. It has been tested that cost remains same
+even if request stats in multiple calls.
+
 ## Docker Image
 
 To run the CloudWatch exporter on Docker, you can use the [prom/cloudwatch-exporter](https://hub.docker.com/r/prom/cloudwatch-exporter/)

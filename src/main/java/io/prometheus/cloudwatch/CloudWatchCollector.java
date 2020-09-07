@@ -15,7 +15,6 @@ import com.amazonaws.services.cloudwatch.model.MetricDataQuery;
 import com.amazonaws.services.cloudwatch.model.MetricDataResult;
 import com.amazonaws.services.cloudwatch.model.MetricStat;
 import com.amazonaws.services.cloudwatch.model.ScanBy;
-import com.google.common.collect.Lists;
 import io.prometheus.client.Collector;
 import io.prometheus.client.Counter;
 import org.yaml.snakeyaml.Yaml;
@@ -406,6 +405,7 @@ public class CloudWatchCollector extends Collector {
     private static List<MetricDataQuery> queriesForRuleDimensions(MetricRule rule, List<Dimension> dimensions) {
       List<MetricDataQuery> queries = new ArrayList<>();
 
+      // Cost of fetching data from AWS stays the same
       for (String stat : rule.allStats()) {
         queries.add(metricDataQuery(rule, dimensions, stat));
       }
@@ -425,7 +425,11 @@ public class CloudWatchCollector extends Collector {
       }
 
       // GetMetricData will not accept more than 100 queries per request
-      List<List<MetricDataQuery>> queryChunks = Lists.partition(queries, 100);
+      int numQueriesPerRequest = 100;
+      List<List<MetricDataQuery>> queryChunks = new ArrayList<>();
+      for (int i=0; i < queries.size(); i += numQueriesPerRequest) {
+          queryChunks.add(queries.subList(i, Math.min(i + numQueriesPerRequest, queries.size())));
+      }
 
       for (List<MetricDataQuery> chunk : queryChunks) {
         GetMetricDataRequest request = new GetMetricDataRequest()
