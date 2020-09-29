@@ -1,4 +1,4 @@
-FROM wehkamp/jre:8.121.13-r0_02
+FROM 234348545939.dkr.ecr.eu-west-1.amazonaws.com/wehkamp/jre:8.121.13-r0_02
 
 ENTRYPOINT [ "java", "-jar", "/cloudwatch_exporter.jar", "9106", "/config.yml" ]
 EXPOSE 9106
