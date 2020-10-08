@@ -14,4 +14,4 @@ RUN apk update \
 
 WORKDIR /
 COPY config.yml /
-LABEL container.name=wehkamp/prometheus-cloudwatch-exporter:1.4.2
+LABEL container.name=wehkamp/prometheus-cloudwatch-exporter:1.4.3
