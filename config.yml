@@ -249,35 +249,35 @@ metrics:
 
 - aws_namespace: AWS/RDS
   aws_metric_name: FreeStorageSpace
-  aws_dimensions: [DBInstanceIdentifier, DatabaseClass]
+  aws_dimensions: [DBInstanceIdentifier]
   aws_statistics: [Average]
   aws_dimension_select_regex:
     DBInstanceIdentifier: ["${RDS_DB_INSTANCES_REGEX}"]
  
 - aws_namespace: AWS/RDS
   aws_metric_name: FreeableMemory
-  aws_dimensions: [DBInstanceIdentifier, DatabaseClass]
+  aws_dimensions: [DBInstanceIdentifier]
   aws_statistics: [Average]
   aws_dimension_select_regex:
     DBInstanceIdentifier: ["${RDS_DB_INSTANCES_REGEX}"]
 
 - aws_namespace: AWS/RDS
   aws_metric_name: CPUUtilization
-  aws_dimensions: [DBInstanceIdentifier, DatabaseClass]
+  aws_dimensions: [DBInstanceIdentifier]
   aws_statistics: [Average]
   aws_dimension_select_regex:
     DBInstanceIdentifier: ["${RDS_DB_INSTANCES_REGEX}"]
 
 - aws_namespace: AWS/RDS
   aws_metric_name: DatabaseConnections
-  aws_dimensions: [DBInstanceIdentifier, DatabaseClass]
+  aws_dimensions: [DBInstanceIdentifier]
   aws_statistics: [Average]
   aws_dimension_select_regex:
     DBInstanceIdentifier: ["${RDS_DB_INSTANCES_REGEX}"]
 
 - aws_namespace: AWS/RDS
   aws_metric_name: BurstBalance
-  aws_dimensions: [DBInstanceIdentifier, DatabaseClass]
+  aws_dimensions: [DBInstanceIdentifier]
   aws_statistics: [Average]
   aws_dimension_select_regex:
     DBInstanceIdentifier: ["${RDS_DB_INSTANCES_REGEX}"]
