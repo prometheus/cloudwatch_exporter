@@ -1,0 +1,8 @@
+.project
+.classpath
+target/test-classes/io/prometheus/cloudwatch/CloudWatchCollectorTest$ListMetricsRequestMatcher.class
+target/test-classes/io/prometheus/cloudwatch/CloudWatchCollectorTest$GetMetricStatisticsRequestMatcher.class
+target/test-classes/io/prometheus/cloudwatch/CloudWatchCollectorTest.class
+target/classes/io/prometheus/cloudwatch/WebServer.class
+target/classes/io/prometheus/cloudwatch/CloudWatchCollector$MetricRule.class
+target/classes/io/prometheus/cloudwatch/CloudWatchCollector.class
