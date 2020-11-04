@@ -7,15 +7,7 @@ import io.prometheus.client.Counter;
 import java.io.FileReader;
 import java.io.Reader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -58,7 +50,7 @@ public class CloudWatchCollector extends Collector implements Describable {
       int periodSeconds;
       int rangeSeconds;
       int delaySeconds;
-      List<String> awsStatistics;
+      List<Statistic> awsStatistics;
       List<String> awsExtendedStatistics;
       List<String> awsDimensions;
       Map<String,List<String>> awsDimensionSelect;
@@ -210,9 +202,11 @@ public class CloudWatchCollector extends Collector implements Describable {
             rule.awsDimensionSelectRegex = (Map<String,List<String>>)yamlMetricRule.get("aws_dimension_select_regex");
           }
           if (yamlMetricRule.containsKey("aws_statistics")) {
-            rule.awsStatistics = (List<String>)yamlMetricRule.get("aws_statistics");
+            rule.awsStatistics = ((List<String>)yamlMetricRule.get("aws_statistics"))
+                    .stream().map(e -> Statistic.fromValue(e)).collect(Collectors.toList());
           } else if (!yamlMetricRule.containsKey("aws_extended_statistics")) {
-            rule.awsStatistics = new ArrayList(Arrays.asList("Sum", "SampleCount", "Minimum", "Maximum", "Average"));
+            rule.awsStatistics = Arrays.asList("Sum", "SampleCount", "Minimum", "Maximum", "Average")
+                    .stream().map(e -> Statistic.fromValue(e)).collect(Collectors.toList());
           }
           if (yamlMetricRule.containsKey("aws_extended_statistics")) {
             rule.awsExtendedStatistics = (List<String>)yamlMetricRule.get("aws_extended_statistics");
@@ -533,7 +527,7 @@ public class CloudWatchCollector extends Collector implements Describable {
         GetMetricStatisticsRequest.Builder requestBuilder = GetMetricStatisticsRequest.builder();
         requestBuilder.namespace(rule.awsNamespace);
         requestBuilder.metricName(rule.awsMetricName);
-        requestBuilder.statistics(rule.awsStatistics.stream().map(Statistic::valueOf).collect(Collectors.toList()));
+        requestBuilder.statistics(rule.awsStatistics);
         requestBuilder.extendedStatistics(rule.awsExtendedStatistics);
         requestBuilder.endTime(startDate.toInstant());
         requestBuilder.startTime(endDate.toInstant());
