@@ -563,7 +563,7 @@ public class CloudWatchCollector extends Collector implements Describable {
           if (dp == null) {
             continue;
           }
-          unit = dp.unit().toString();
+          unit = dp.unitAsString();
 
           List<String> labelNames = new ArrayList<String>();
           List<String> labelValues = new ArrayList<String>();
