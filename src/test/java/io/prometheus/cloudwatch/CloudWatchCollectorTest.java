@@ -4,22 +4,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.argThat;
 
-import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
-import com.amazonaws.services.cloudwatch.model.Datapoint;
-import com.amazonaws.services.cloudwatch.model.Dimension;
-import com.amazonaws.services.cloudwatch.model.DimensionFilter;
-import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsRequest;
-import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsResult;
-import com.amazonaws.services.cloudwatch.model.ListMetricsRequest;
-import com.amazonaws.services.cloudwatch.model.ListMetricsResult;
-import com.amazonaws.services.cloudwatch.model.Metric;
-import com.amazonaws.services.resourcegroupstaggingapi.AWSResourceGroupsTaggingAPI;
-import com.amazonaws.services.resourcegroupstaggingapi.model.GetResourcesRequest;
-import com.amazonaws.services.resourcegroupstaggingapi.model.GetResourcesResult;
-import com.amazonaws.services.resourcegroupstaggingapi.model.ResourceTagMapping;
-import com.amazonaws.services.resourcegroupstaggingapi.model.Tag;
-import com.amazonaws.services.resourcegroupstaggingapi.model.TagFilter;
-
 import io.prometheus.client.Collector;
 import io.prometheus.client.CollectorRegistry;
 
@@ -40,15 +24,24 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
+import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
+import software.amazon.awssdk.services.cloudwatch.model.*;
+import software.amazon.awssdk.services.resourcegroupstaggingapi.ResourceGroupsTaggingApiClient;
+import software.amazon.awssdk.services.resourcegroupstaggingapi.model.GetResourcesRequest;
+import software.amazon.awssdk.services.resourcegroupstaggingapi.model.GetResourcesResponse;
+import software.amazon.awssdk.services.resourcegroupstaggingapi.model.ResourceTagMapping;
+import software.amazon.awssdk.services.resourcegroupstaggingapi.model.TagFilter;
+import software.amazon.awssdk.services.resourcegroupstaggingapi.model.Tag;
+
 public class CloudWatchCollectorTest {
-  AmazonCloudWatch cloudWatchClient;
-  AWSResourceGroupsTaggingAPI taggingClient;
+  CloudWatchClient cloudWatchClient;
+  ResourceGroupsTaggingApiClient taggingClient;
   CollectorRegistry registry;
 
   @Before
   public void setUp() {
-    cloudWatchClient = Mockito.mock(AmazonCloudWatch.class);
-    taggingClient = Mockito.mock(AWSResourceGroupsTaggingAPI.class);
+    cloudWatchClient = Mockito.mock(CloudWatchClient.class);
+    taggingClient = Mockito.mock(ResourceGroupsTaggingApiClient.class);
     registry = new CollectorRegistry();
   }
   
@@ -74,7 +67,7 @@ public class CloudWatchCollectorTest {
     public ListMetricsRequestMatcher Dimensions(String... dimensions) {
       this.dimensions = new ArrayList<DimensionFilter>();
       for (int i = 0; i < dimensions.length; i++) {
-        this.dimensions.add(new DimensionFilter().withName(dimensions[i]));
+        this.dimensions.add(DimensionFilter.builder().name(dimensions[i]).build());
       }
       return this;
     }
@@ -86,22 +79,22 @@ public class CloudWatchCollectorTest {
     public boolean matches(Object o) {
      ListMetricsRequest request = (ListMetricsRequest) o;
      if (request == null) return false;
-     if (namespace != null && !namespace.equals(request.getNamespace())){
+     if (namespace != null && !namespace.equals(request.namespace())){
        return false;
      }
-     if (metricName != null && !metricName.equals(request.getMetricName())){
+     if (metricName != null && !metricName.equals(request.metricName())){
        return false;
      }
-     if (nextToken == null ^ request.getNextToken() == null) {
+     if (nextToken == null ^ request.nextToken() == null) {
        return false;
      }
-     if (nextToken != null && !nextToken.equals(request.getNextToken())) {
+     if (nextToken != null && !nextToken.equals(request.nextToken())) {
        return false;
      }
-     if (!dimensions.equals(request.getDimensions())) {
+     if (!dimensions.equals(request.dimensions())) {
        return false;
      }
-     if (recentlyActive != null && !recentlyActive.equals(request.getRecentlyActive())) {
+     if (recentlyActive != null && !recentlyActive.equals(request.recentlyActive())) {
        return false;
      }
      return true;
@@ -123,7 +116,7 @@ public class CloudWatchCollectorTest {
       return this;
     }
     public GetMetricStatisticsRequestMatcher Dimension(String name, String value) {
-      dimensions.add(new Dimension().withName(name).withValue(value));
+      dimensions.add(Dimension.builder().name(name).value(value).build());
       return this;
     }
     public GetMetricStatisticsRequestMatcher Period(int period) {
@@ -134,16 +127,16 @@ public class CloudWatchCollectorTest {
     public boolean matches(Object o) {
      GetMetricStatisticsRequest request = (GetMetricStatisticsRequest) o;
      if (request == null) return false;
-     if (namespace != null && !namespace.equals(request.getNamespace())){
+     if (namespace != null && !namespace.equals(request.namespace())){
        return false;
      }
-     if (metricName != null && !metricName.equals(request.getMetricName())){
+     if (metricName != null && !metricName.equals(request.metricName())){
        return false;
      }
-     if (!dimensions.equals(request.getDimensions())) {
+     if (!dimensions.equals(request.dimensions())) {
        return false;
      }
-     if (period != null && !period.equals(request.getPeriod())) {
+     if (period != null && !period.equals(request.period())) {
          return false;
      }
      return true;
@@ -164,23 +157,23 @@ public class CloudWatchCollectorTest {
       return this;
     }
     public GetResourcesRequestMatcher TagFilter(String key, List<String> values ) {
-      tagFilters.add(new TagFilter().withKey(key).withValues(values));
+      tagFilters.add(TagFilter.builder().key(key).values(values).build());
       return this;
     }
     
     public boolean matches(Object o) {
      GetResourcesRequest request = (GetResourcesRequest) o;
      if (request == null) return false;
-     if (paginationToken == "" ^ request.getPaginationToken() == "") {
+     if (paginationToken == "" ^ request.paginationToken() == "") {
        return false;
      }
-     if (paginationToken != "" && !paginationToken.equals(request.getPaginationToken())) {
+     if (paginationToken != "" && !paginationToken.equals(request.paginationToken())) {
        return false;
      }
-     if (!resourceTypeFilters.equals(request.getResourceTypeFilters())) {
+     if (!resourceTypeFilters.equals(request.resourceTypeFilters())) {
        return false;
      }
-     if (!tagFilters.equals(request.getTagFilters())) {
+     if (!tagFilters.equals(request.tagFilters())) {
        return false;
      }
      return true;
@@ -193,7 +186,7 @@ public class CloudWatchCollectorTest {
             "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  period_seconds: 100\n  range_seconds: 200\n  delay_seconds: 300", cloudWatchClient, taggingClient).register(registry);
 
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest) anyObject()))
-            .thenReturn(new GetMetricStatisticsResult());
+            .thenReturn(GetMetricStatisticsResponse.builder().build());
 
     registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance"}, new String[]{"aws_elb", ""});
 
@@ -212,7 +205,7 @@ public class CloudWatchCollectorTest {
                     "---\nregion: reg\nperiod_seconds: 100\nrange_seconds: 200\ndelay_seconds: 300\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount", cloudWatchClient, taggingClient).register(registry);
 
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest) anyObject()))
-            .thenReturn(new GetMetricStatisticsResult());
+            .thenReturn(GetMetricStatisticsResponse.builder().build());
 
     registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance"}, new String[]{"aws_elb", ""});
 
@@ -232,9 +225,9 @@ public class CloudWatchCollectorTest {
 
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount"))))
-        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-            new Datapoint().withTimestamp(new Date()).withAverage(1.0)
-                .withMaximum(2.0).withMinimum(3.0).withSampleCount(4.0).withSum(5.0)));
+        .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+            Datapoint.builder().timestamp(new Date().toInstant()).average(1.0)
+                .maximum(2.0).minimum(3.0).sampleCount(4.0).sum(5.0).build()).build());
 
     assertEquals(1.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
     assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_maximum", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
@@ -252,13 +245,13 @@ public class CloudWatchCollectorTest {
     Date timestamp = new Date();
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
             new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount"))))
-            .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-                    new Datapoint().withTimestamp(timestamp).withAverage(1.0)));
+            .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+                    Datapoint.builder().timestamp(timestamp.toInstant()).average(1.0).build()).build());
 
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
             new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("HTTPCode_Backend_2XX"))))
-            .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-                    new Datapoint().withTimestamp(timestamp).withAverage(1.0)));
+            .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+                    Datapoint.builder().timestamp(timestamp.toInstant()).average(1.0).build()).build());
 
     assertMetricTimestampEquals(registry, "aws_elb_request_count_average", timestamp.getTime());
     assertMetricTimestampEquals(registry, "aws_elb_httpcode_backend_2_xx_average", null);
@@ -288,10 +281,10 @@ public class CloudWatchCollectorTest {
 
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount"))))
-        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-            new Datapoint().withTimestamp(new Date(1)).withAverage(1.0),
-            new Datapoint().withTimestamp(new Date(3)).withAverage(3.0),
-            new Datapoint().withTimestamp(new Date(2)).withAverage(2.0)));
+        .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+            Datapoint.builder().timestamp(new Date(1).toInstant()).average(1.0).build(),
+                Datapoint.builder().timestamp(new Date(3).toInstant()).average(3.0).build(),
+                Datapoint.builder().timestamp(new Date(2).toInstant()).average(2.0).build()).build());
 
     assertEquals(3.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
   }
@@ -303,19 +296,20 @@ public class CloudWatchCollectorTest {
     
     Mockito.when(cloudWatchClient.listMetrics((ListMetricsRequest)argThat(
         new ListMetricsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimensions("AvailabilityZone", "LoadBalancerName"))))
-        .thenReturn(new ListMetricsResult().withMetrics(
-          new Metric().withDimensions(new Dimension().withName("AvailabilityZone").withValue("a"), new Dimension().withName("LoadBalancerName").withValue("myLB")),
-          new Metric().withDimensions(new Dimension().withName("AvailabilityZone").withValue("a"), new Dimension().withName("LoadBalancerName").withValue("myLB"), new Dimension().withName("ThisExtraDimensionIsIgnored").withValue("dummy")),
-          new Metric().withDimensions(new Dimension().withName("AvailabilityZone").withValue("b"), new Dimension().withName("LoadBalancerName").withValue("myOtherLB"))));
+        .thenReturn(ListMetricsResponse.builder().metrics(
+                Metric.builder().dimensions(Dimension.builder().name("AvailabilityZone").value("a").build(), Dimension.builder().name("LoadBalancerName").value("myLB").build()).build(),
+                Metric.builder().dimensions(Dimension.builder().name("AvailabilityZone").value("a").build(), Dimension.builder().name("LoadBalancerName").value("myLB").build(), Dimension.builder().name("ThisExtraDimensionIsIgnored").value("dummy").build()).build(),
+                Metric.builder().dimensions(Dimension.builder().name("AvailabilityZone").value("b").build(), Dimension.builder().name("LoadBalancerName").value("myOtherLB").build()).build()
+                ).build());
 
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimension("AvailabilityZone", "a").Dimension("LoadBalancerName", "myLB"))))
-        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-            new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
+        .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+            Datapoint.builder().timestamp(new Date().toInstant()).average(2.0).build()).build());
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimension("AvailabilityZone", "b").Dimension("LoadBalancerName", "myOtherLB"))))
-        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-            new Datapoint().withTimestamp(new Date()).withAverage(3.0)));
+        .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+            Datapoint.builder().timestamp(new Date().toInstant()).average(3.0).build()).build());
 
     assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "a", "myLB"}), .01);
     assertEquals(3.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "b", "myOtherLB"}), .01);
@@ -328,20 +322,21 @@ public class CloudWatchCollectorTest {
         "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancerName\n  aws_dimension_select:\n    LoadBalancerName:\n    - myLB", cloudWatchClient, taggingClient).register(registry);
     Mockito.when(cloudWatchClient.listMetrics((ListMetricsRequest)argThat(
         new ListMetricsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimensions("AvailabilityZone", "LoadBalancerName"))))
-        .thenReturn(new ListMetricsResult().withMetrics(
-            new Metric().withDimensions(new Dimension().withName("AvailabilityZone").withValue("a"), new Dimension().withName("LoadBalancerName").withValue("myLB")),
-            new Metric().withDimensions(new Dimension().withName("AvailabilityZone").withValue("b"), new Dimension().withName("LoadBalancerName").withValue("myLB")),
-            new Metric().withDimensions(new Dimension().withName("AvailabilityZone").withValue("a"), new Dimension().withName("LoadBalancerName").withValue("myOtherLB"))));
+        .thenReturn(ListMetricsResponse.builder().metrics(
+            Metric.builder().dimensions(Dimension.builder().name("AvailabilityZone").value("a").build(), Dimension.builder().name("LoadBalancerName").value("myLB").build()).build(),
+            Metric.builder().dimensions(Dimension.builder().name("AvailabilityZone").value("b").build(), Dimension.builder().name("LoadBalancerName").value("myLB").build()).build(),
+            Metric.builder().dimensions(Dimension.builder().name("AvailabilityZone").value("a").build(), Dimension.builder().name("LoadBalancerName").value("myOtherLB").build()).build()
+            ).build());
 
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimension("AvailabilityZone", "a").Dimension("LoadBalancerName", "myLB"))))
-        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-            new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
+        .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+            Datapoint.builder().timestamp(new Date().toInstant()).average(2.0).build()).build());
 
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimension("AvailabilityZone", "b").Dimension("LoadBalancerName", "myLB"))))
-        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-            new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
+        .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+            Datapoint.builder().timestamp(new Date().toInstant()).average(2.0).build()).build());
 
     assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "a", "myLB"}), .01);
     assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "b", "myLB"}), .01);
@@ -354,13 +349,13 @@ public class CloudWatchCollectorTest {
             "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancerName\n  aws_dimension_select:\n    LoadBalancerName:\n    - myLB\n    AvailabilityZone:\n    - a\n    - b", cloudWatchClient, taggingClient).register(registry);
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
             new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimension("AvailabilityZone", "a").Dimension("LoadBalancerName", "myLB"))))
-            .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-                    new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
+            .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+                    Datapoint.builder().timestamp(new Date().toInstant()).average(2.0).build()).build());
 
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
             new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimension("AvailabilityZone", "b").Dimension("LoadBalancerName", "myLB"))))
-            .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-                    new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
+            .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+                    Datapoint.builder().timestamp(new Date().toInstant()).average(2.0).build()).build());
 
     assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "a", "myLB"}), .01);
     assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "b", "myLB"}), .01);
@@ -374,20 +369,21 @@ public class CloudWatchCollectorTest {
 
     Mockito.when(cloudWatchClient.listMetrics((ListMetricsRequest) argThat(
         new ListMetricsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimensions("AvailabilityZone", "LoadBalancerName"))))
-        .thenReturn(new ListMetricsResult().withMetrics(
-            new Metric().withDimensions(new Dimension().withName("AvailabilityZone").withValue("a"), new Dimension().withName("LoadBalancerName").withValue("myLB1")),
-            new Metric().withDimensions(new Dimension().withName("AvailabilityZone").withValue("b"), new Dimension().withName("LoadBalancerName").withValue("myLB2")),
-            new Metric().withDimensions(new Dimension().withName("AvailabilityZone").withValue("a"), new Dimension().withName("LoadBalancerName").withValue("myOtherLB"))));
+        .thenReturn(ListMetricsResponse.builder().metrics(
+            Metric.builder().dimensions(Dimension.builder().name("AvailabilityZone").value("a").build(), Dimension.builder().name("LoadBalancerName").value("myLB1").build()).build(),
+            Metric.builder().dimensions(Dimension.builder().name("AvailabilityZone").value("b").build(), Dimension.builder().name("LoadBalancerName").value("myLB2").build()).build(),
+            Metric.builder().dimensions(Dimension.builder().name("AvailabilityZone").value("a").build(), Dimension.builder().name("LoadBalancerName").value("myOtherLB").build()).build()
+            ).build());
 
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest) argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimension("AvailabilityZone", "a").Dimension("LoadBalancerName", "myLB1"))))
-        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-            new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
+        .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+            Datapoint.builder().timestamp(new Date().toInstant()).average(2.0).build()).build());
 
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest) argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimension("AvailabilityZone", "b").Dimension("LoadBalancerName", "myLB2"))))
-        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-            new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
+        .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+            Datapoint.builder().timestamp(new Date().toInstant()).average(2.0).build()).build());
 
     assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "a", "myLB1"}), .01);
     assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "b", "myLB2"}), .01);
@@ -401,16 +397,16 @@ public class CloudWatchCollectorTest {
     
     Mockito.when(cloudWatchClient.listMetrics((ListMetricsRequest)argThat(
         new ListMetricsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimensions("AvailabilityZone", "LoadBalancerName"))))
-        .thenReturn(new ListMetricsResult().withNextToken("ABC"));
+        .thenReturn(ListMetricsResponse.builder().nextToken("ABC").build());
     Mockito.when(cloudWatchClient.listMetrics((ListMetricsRequest)argThat(
         new ListMetricsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimensions("AvailabilityZone", "LoadBalancerName").NextToken("ABC"))))
-        .thenReturn(new ListMetricsResult().withMetrics(
-            new Metric().withDimensions(new Dimension().withName("AvailabilityZone").withValue("a"), new Dimension().withName("LoadBalancerName").withValue("myLB"))));
+        .thenReturn(ListMetricsResponse.builder().metrics(
+            Metric.builder().dimensions(Dimension.builder().name("AvailabilityZone").value("a").build(), Dimension.builder().name("LoadBalancerName").value("myLB").build()).build()).build());
 
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimension("AvailabilityZone", "a").Dimension("LoadBalancerName", "myLB"))))
-        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-            new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
+        .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+            Datapoint.builder().timestamp(new Date().toInstant()).average(2.0).build()).build());
 
     assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "a", "myLB"}), .01);
   }
@@ -426,8 +422,8 @@ public class CloudWatchCollectorTest {
 
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("Latency"))))
-        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-            new Datapoint().withTimestamp(new Date()).withExtendedStatistics(extendedStatistics)));
+        .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+            Datapoint.builder().timestamp(new Date().toInstant()).extendedStatistics(extendedStatistics).build()).build());
 
     assertEquals(1.0, registry.getSampleValue("aws_elb_latency_p95", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
     assertEquals(2.0, registry.getSampleValue("aws_elb_latency_p99_99", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
@@ -439,29 +435,29 @@ public class CloudWatchCollectorTest {
         "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/DynamoDB\n  aws_metric_name: ConsumedReadCapacityUnits\n  aws_dimensions:\n  - TableName\n  - GlobalSecondaryIndexName\n- aws_namespace: AWS/DynamoDB\n  aws_metric_name: OnlineIndexConsumedWriteCapacity\n  aws_dimensions:\n  - TableName\n  - GlobalSecondaryIndexName\n- aws_namespace: AWS/DynamoDB\n  aws_metric_name: ConsumedReadCapacityUnits\n  aws_dimensions:\n  - TableName", cloudWatchClient, taggingClient).register(registry);
     Mockito.when(cloudWatchClient.listMetrics((ListMetricsRequest)argThat(
         new ListMetricsRequestMatcher().Namespace("AWS/DynamoDB").MetricName("ConsumedReadCapacityUnits").Dimensions("TableName", "GlobalSecondaryIndexName"))))
-        .thenReturn(new ListMetricsResult().withMetrics(
-          new Metric().withDimensions(new Dimension().withName("TableName").withValue("myTable"), new Dimension().withName("GlobalSecondaryIndexName").withValue("myIndex"))));
+        .thenReturn(ListMetricsResponse.builder().metrics(
+          Metric.builder().dimensions(Dimension.builder().name("TableName").value("myTable").build(), Dimension.builder().name("GlobalSecondaryIndexName").value("myIndex").build()).build()).build());
     Mockito.when(cloudWatchClient.listMetrics((ListMetricsRequest)argThat(
         new ListMetricsRequestMatcher().Namespace("AWS/DynamoDB").MetricName("OnlineIndexConsumedWriteCapacity").Dimensions("TableName", "GlobalSecondaryIndexName"))))
-        .thenReturn(new ListMetricsResult().withMetrics(
-          new Metric().withDimensions(new Dimension().withName("TableName").withValue("myTable"), new Dimension().withName("GlobalSecondaryIndexName").withValue("myIndex"))));
+        .thenReturn(ListMetricsResponse.builder().metrics(
+          Metric.builder().dimensions(Dimension.builder().name("TableName").value("myTable").build(), Dimension.builder().name("GlobalSecondaryIndexName").value("myIndex").build()).build()).build());
     Mockito.when(cloudWatchClient.listMetrics((ListMetricsRequest)argThat(
         new ListMetricsRequestMatcher().Namespace("AWS/DynamoDB").MetricName("ConsumedReadCapacityUnits").Dimensions("TableName"))))
-        .thenReturn(new ListMetricsResult().withMetrics(
-          new Metric().withDimensions(new Dimension().withName("TableName").withValue("myTable"))));
+        .thenReturn(ListMetricsResponse.builder().metrics(
+          Metric.builder().dimensions(Dimension.builder().name("TableName").value("myTable").build()).build()).build());
 
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/DynamoDB").MetricName("ConsumedReadCapacityUnits").Dimension("TableName", "myTable").Dimension("GlobalSecondaryIndexName", "myIndex"))))
-        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-            new Datapoint().withTimestamp(new Date()).withSum(1.0)));
+        .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+            Datapoint.builder().timestamp(new Date().toInstant()).sum(1.0).build()).build());
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/DynamoDB").MetricName("OnlineIndexConsumedWriteCapacity").Dimension("TableName", "myTable").Dimension("GlobalSecondaryIndexName", "myIndex"))))
-        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-            new Datapoint().withTimestamp(new Date()).withSum(2.0)));
+        .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+            Datapoint.builder().timestamp(new Date().toInstant()).sum(2.0).build()).build());
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/DynamoDB").MetricName("ConsumedReadCapacityUnits").Dimension("TableName", "myTable"))))
-        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-            new Datapoint().withTimestamp(new Date()).withSum(3.0)));
+        .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+            Datapoint.builder().timestamp(new Date().toInstant()).sum(3.0).build()).build());
 
     assertEquals(1.0, registry.getSampleValue("aws_dynamodb_consumed_read_capacity_units_index_sum", new String[]{"job", "instance", "table_name", "global_secondary_index_name"}, new String[]{"aws_dynamodb", "", "myTable", "myIndex"}), .01);
     assertEquals(2.0, registry.getSampleValue("aws_dynamodb_online_index_consumed_write_capacity_sum", new String[]{"job", "instance", "table_name", "global_secondary_index_name"}, new String[]{"aws_dynamodb", "", "myTable", "myIndex"}), .01);
@@ -475,8 +471,8 @@ public class CloudWatchCollectorTest {
 
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/DynamoDB").MetricName("AccountProvisionedReadCapacityUtilization"))))
-        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-            new Datapoint().withTimestamp(new Date()).withSum(1.0)));
+        .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+            Datapoint.builder().timestamp(new Date().toInstant()).sum(1.0).build()).build());
 
     assertEquals(1.0, registry.getSampleValue("aws_dynamodb_account_provisioned_read_capacity_utilization_sum", new String[]{"job", "instance"}, new String[]{"aws_dynamodb", ""}), .01);
   }
@@ -489,24 +485,25 @@ public class CloudWatchCollectorTest {
     
     Mockito.when(taggingClient.getResources((GetResourcesRequest)argThat(
         new GetResourcesRequestMatcher().ResourceTypeFilter("ec2:instance").TagFilter("Monitoring", Arrays.asList("enabled")))))
-        .thenReturn(new GetResourcesResult().withResourceTagMappingList(
-            new ResourceTagMapping().withTags(new Tag().withKey("Monitoring").withValue("enabled")).withResourceARN("arn:aws:ec2:us-east-1:121212121212:instance/i-1")));
+        .thenReturn(GetResourcesResponse.builder().resourceTagMappingList(
+            ResourceTagMapping.builder().tags(Tag.builder().key("Monitoring").value("enabled").build()).resourceARN("arn:aws:ec2:us-east-1:121212121212:instance/i-1").build()).build());
     
     Mockito.when(cloudWatchClient.listMetrics((ListMetricsRequest)argThat(
         new ListMetricsRequestMatcher().Namespace("AWS/EC2").MetricName("CPUUtilization").Dimensions("InstanceId"))))
-        .thenReturn(new ListMetricsResult().withMetrics(
-            new Metric().withDimensions(new Dimension().withName("InstanceId").withValue("i-1")),
-            new Metric().withDimensions(new Dimension().withName("InstanceId").withValue("i-2"))));
+        .thenReturn(ListMetricsResponse.builder().metrics(
+            Metric.builder().dimensions(Dimension.builder().name("InstanceId").value("i-1").build()).build(),
+            Metric.builder().dimensions(Dimension.builder().name("InstanceId").value("i-2").build()).build()
+        ).build());
 
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/EC2").MetricName("CPUUtilization").Dimension("InstanceId", "i-1"))))
-        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-            new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
+        .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+            Datapoint.builder().timestamp(new Date().toInstant()).average(2.0).build()).build());
     
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/EC2").MetricName("CPUUtilization").Dimension("InstanceId", "i-2"))))
-        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-            new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
+        .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+            Datapoint.builder().timestamp(new Date().toInstant()).average(2.0).build()).build());
 
     assertEquals(2.0, registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id"}, new String[]{"aws_ec2", "", "i-1"}), .01);
     assertNull(registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id"}, new String[]{"aws_ec2", "", "i-2"}));
@@ -522,30 +519,31 @@ public class CloudWatchCollectorTest {
     
     Mockito.when(taggingClient.getResources((GetResourcesRequest)argThat(
         new GetResourcesRequestMatcher().ResourceTypeFilter("elasticloadbalancing:loadbalancer/app").TagFilter("Monitoring", Arrays.asList("enabled")))))
-        .thenReturn(new GetResourcesResult().withResourceTagMappingList(
-            new ResourceTagMapping().withTags(new Tag().withKey("Monitoring").withValue("enabled")).withResourceARN("arn:aws:elasticloadbalancing:us-east-1:121212121212:loadbalancer/app/myLB/123")));
+        .thenReturn(GetResourcesResponse.builder().resourceTagMappingList(
+            ResourceTagMapping.builder().tags(Tag.builder().key("Monitoring").value("enabled").build()).resourceARN("arn:aws:elasticloadbalancing:us-east-1:121212121212:loadbalancer/app/myLB/123").build()).build());
     
     Mockito.when(cloudWatchClient.listMetrics((ListMetricsRequest)argThat(
         new ListMetricsRequestMatcher().Namespace("AWS/ApplicationELB").MetricName("RequestCount").Dimensions("AvailabilityZone", "LoadBalancer"))))
-        .thenReturn(new ListMetricsResult().withMetrics(
-            new Metric().withDimensions(new Dimension().withName("AvailabilityZone").withValue("a"), new Dimension().withName("LoadBalancer").withValue("app/myLB/123")),
-            new Metric().withDimensions(new Dimension().withName("AvailabilityZone").withValue("b"), new Dimension().withName("LoadBalancer").withValue("app/myLB/123")),
-            new Metric().withDimensions(new Dimension().withName("AvailabilityZone").withValue("a"), new Dimension().withName("LoadBalancer").withValue("app/myOtherLB/456"))));
+        .thenReturn(ListMetricsResponse.builder().metrics(
+            Metric.builder().dimensions(Dimension.builder().name("AvailabilityZone").value("a").build(), Dimension.builder().name("LoadBalancer").value("app/myLB/123").build()).build(),
+            Metric.builder().dimensions(Dimension.builder().name("AvailabilityZone").value("b").build(), Dimension.builder().name("LoadBalancer").value("app/myLB/123").build()).build(),
+            Metric.builder().dimensions(Dimension.builder().name("AvailabilityZone").value("a").build(), Dimension.builder().name("LoadBalancer").value("app/myOtherLB/456").build()).build()
+            ).build());
 
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/ApplicationELB").MetricName("RequestCount").Dimension("AvailabilityZone", "a").Dimension("LoadBalancer", "app/myLB/123"))))
-        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-            new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
+        .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+            Datapoint.builder().timestamp(new Date().toInstant()).average(2.0).build()).build());
 
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/ApplicationELB").MetricName("RequestCount").Dimension("AvailabilityZone", "b").Dimension("LoadBalancer", "app/myLB/123"))))
-        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-            new Datapoint().withTimestamp(new Date()).withAverage(3.0)));
+        .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+            Datapoint.builder().timestamp(new Date().toInstant()).average(3.0).build()).build());
 
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/ApplicationELB").MetricName("RequestCount").Dimension("AvailabilityZone", "a").Dimension("LoadBalancer", "app/myOtherLB/456"))))
-        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-            new Datapoint().withTimestamp(new Date()).withAverage(4.0)));
+        .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+            Datapoint.builder().timestamp(new Date().toInstant()).average(4.0).build()).build());
     
     assertEquals(2.0, registry.getSampleValue("aws_applicationelb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer"}, new String[]{"aws_applicationelb", "", "a", "app/myLB/123"}), .01);
     assertEquals(3.0, registry.getSampleValue("aws_applicationelb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer"}, new String[]{"aws_applicationelb", "", "b", "app/myLB/123"}), .01);
@@ -562,29 +560,30 @@ public class CloudWatchCollectorTest {
 
     Mockito.when(taggingClient.getResources((GetResourcesRequest)argThat(
         new GetResourcesRequestMatcher().ResourceTypeFilter("ec2:instance").TagFilter("Monitoring", Arrays.asList("enabled")))))
-        .thenReturn(new GetResourcesResult().withPaginationToken("ABC").withResourceTagMappingList(
-            new ResourceTagMapping().withTags(new Tag().withKey("Monitoring").withValue("enabled")).withResourceARN("arn:aws:ec2:us-east-1:121212121212:instance/i-1")));
+        .thenReturn(GetResourcesResponse.builder().paginationToken("ABC").resourceTagMappingList(
+            ResourceTagMapping.builder().tags(Tag.builder().key("Monitoring").value("enabled").build()).resourceARN("arn:aws:ec2:us-east-1:121212121212:instance/i-1").build()).build());
     
     Mockito.when(taggingClient.getResources((GetResourcesRequest)argThat(
         new GetResourcesRequestMatcher().PaginationToken("ABC").ResourceTypeFilter("ec2:instance").TagFilter("Monitoring", Arrays.asList("enabled")))))
-        .thenReturn(new GetResourcesResult().withResourceTagMappingList(
-            new ResourceTagMapping().withTags(new Tag().withKey("Monitoring").withValue("enabled")).withResourceARN("arn:aws:ec2:us-east-1:121212121212:instance/i-2")));
+        .thenReturn(GetResourcesResponse.builder().resourceTagMappingList(
+            ResourceTagMapping.builder().tags(Tag.builder().key("Monitoring").value("enabled").build()).resourceARN("arn:aws:ec2:us-east-1:121212121212:instance/i-2").build()).build());
     
     Mockito.when(cloudWatchClient.listMetrics((ListMetricsRequest)argThat(
         new ListMetricsRequestMatcher().Namespace("AWS/EC2").MetricName("CPUUtilization").Dimensions("InstanceId"))))
-        .thenReturn(new ListMetricsResult().withMetrics(
-            new Metric().withDimensions(new Dimension().withName("InstanceId").withValue("i-1")),
-            new Metric().withDimensions(new Dimension().withName("InstanceId").withValue("i-2"))));
+        .thenReturn(ListMetricsResponse.builder().metrics(
+            Metric.builder().dimensions(Dimension.builder().name("InstanceId").value("i-1").build()).build(),
+            Metric.builder().dimensions(Dimension.builder().name("InstanceId").value("i-2").build()).build()
+            ).build());
 
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/EC2").MetricName("CPUUtilization").Dimension("InstanceId", "i-1"))))
-        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-            new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
+        .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+            Datapoint.builder().timestamp(new Date().toInstant()).average(2.0).build()).build());
     
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/EC2").MetricName("CPUUtilization").Dimension("InstanceId", "i-2"))))
-        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-            new Datapoint().withTimestamp(new Date()).withAverage(3.0)));
+        .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+            Datapoint.builder().timestamp(new Date().toInstant()).average(3.0).build()).build());
 
     assertEquals(2.0, registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id"}, new String[]{"aws_ec2", "", "i-1"}), .01);
     assertEquals(3.0, registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id"}, new String[]{"aws_ec2", "", "i-2"}), .01);
@@ -601,19 +600,20 @@ public class CloudWatchCollectorTest {
     
     Mockito.when(cloudWatchClient.listMetrics((ListMetricsRequest)argThat(
         new ListMetricsRequestMatcher().Namespace("AWS/EC2").MetricName("CPUUtilization").Dimensions("InstanceId"))))
-        .thenReturn(new ListMetricsResult().withMetrics(
-            new Metric().withDimensions(new Dimension().withName("InstanceId").withValue("i-1")),
-            new Metric().withDimensions(new Dimension().withName("InstanceId").withValue("i-2"))));
+        .thenReturn(ListMetricsResponse.builder().metrics(
+            Metric.builder().dimensions(Dimension.builder().name("InstanceId").value("i-1").build()).build(),
+            Metric.builder().dimensions(Dimension.builder().name("InstanceId").value("i-2").build()).build()
+            ).build());
 
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/EC2").MetricName("CPUUtilization").Dimension("InstanceId", "i-1"))))
-        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-            new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
+        .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+            Datapoint.builder().timestamp(new Date().toInstant()).average(2.0).build()).build());
     
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/EC2").MetricName("CPUUtilization").Dimension("InstanceId", "i-2"))))
-        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-            new Datapoint().withTimestamp(new Date()).withAverage(3.0)));
+        .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+            Datapoint.builder().timestamp(new Date().toInstant()).average(3.0).build()).build());
 
     assertEquals(2.0, registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id"}, new String[]{"aws_ec2", "", "i-1"}), .01);
     assertEquals(3.0, registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id"}, new String[]{"aws_ec2", "", "i-2"}), .01);
@@ -628,25 +628,26 @@ public class CloudWatchCollectorTest {
     
     Mockito.when(taggingClient.getResources((GetResourcesRequest)argThat(
         new GetResourcesRequestMatcher().ResourceTypeFilter("ec2:instance").TagFilter("Monitoring", Arrays.asList("enabled")))))
-        .thenReturn(new GetResourcesResult().withResourceTagMappingList(
-            new ResourceTagMapping().withTags(new Tag().withKey("Monitoring").withValue("enabled")).withResourceARN("arn:aws:ec2:us-east-1:121212121212:instance/i-1"),
-            new ResourceTagMapping().withTags(new Tag().withKey("Monitoring").withValue("enabled")).withResourceARN("arn:aws:ec2:us-east-1:121212121212:instance/i-2")));
+        .thenReturn(GetResourcesResponse.builder().resourceTagMappingList(
+            ResourceTagMapping.builder().tags(Tag.builder().key("Monitoring").value("enabled").build()).resourceARN("arn:aws:ec2:us-east-1:121212121212:instance/i-1").build(),
+            ResourceTagMapping.builder().tags(Tag.builder().key("Monitoring").value("enabled").build()).resourceARN("arn:aws:ec2:us-east-1:121212121212:instance/i-2").build()).build());
     
     Mockito.when(cloudWatchClient.listMetrics((ListMetricsRequest)argThat(
         new ListMetricsRequestMatcher().Namespace("AWS/EC2").MetricName("CPUUtilization").Dimensions("InstanceId"))))
-        .thenReturn(new ListMetricsResult().withMetrics(
-            new Metric().withDimensions(new Dimension().withName("InstanceId").withValue("i-1")),
-            new Metric().withDimensions(new Dimension().withName("InstanceId").withValue("i-2"))));
+        .thenReturn(ListMetricsResponse.builder().metrics(
+            Metric.builder().dimensions(Dimension.builder().name("InstanceId").value("i-1").build()).build(),
+            Metric.builder().dimensions(Dimension.builder().name("InstanceId").value("i-2").build()).build()
+            ).build());
 
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/EC2").MetricName("CPUUtilization").Dimension("InstanceId", "i-1"))))
-        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-            new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
+        .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+            Datapoint.builder().timestamp(new Date().toInstant()).average(2.0).build()).build());
     
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/EC2").MetricName("CPUUtilization").Dimension("InstanceId", "i-2"))))
-        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-            new Datapoint().withTimestamp(new Date()).withAverage(3.0)));
+        .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+            Datapoint.builder().timestamp(new Date().toInstant()).average(3.0).build()).build());
 
     assertEquals(2.0, registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id"}, new String[]{"aws_ec2", "", "i-1"}), .01);
     assertNull(registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id"}, new String[]{"aws_ec2", "", "i-2"}));
@@ -663,31 +664,32 @@ public class CloudWatchCollectorTest {
     
     Mockito.when(taggingClient.getResources((GetResourcesRequest)argThat(
         new GetResourcesRequestMatcher().ResourceTypeFilter("ec2:instance"))))
-        .thenReturn(new GetResourcesResult().withResourceTagMappingList(
-            new ResourceTagMapping().withTags(new Tag().withKey("Monitoring").withValue("enabled")).withResourceARN("arn:aws:ec2:us-east-1:121212121212:instance/i-1"),
-            new ResourceTagMapping().withTags(new Tag().withKey("Monitoring").withValue("enabled")).withResourceARN("arn:aws:ec2:us-east-1:121212121212:instance/i-2")));
+        .thenReturn(GetResourcesResponse.builder().resourceTagMappingList(
+            ResourceTagMapping.builder().tags(Tag.builder().key("Monitoring").value("enabled").build()).resourceARN("arn:aws:ec2:us-east-1:121212121212:instance/i-1").build(),
+            ResourceTagMapping.builder().tags(Tag.builder().key("Monitoring").value("enabled").build()).resourceARN("arn:aws:ec2:us-east-1:121212121212:instance/i-2").build()).build());
     
     Mockito.when(cloudWatchClient.listMetrics((ListMetricsRequest)argThat(
         new ListMetricsRequestMatcher().Namespace("AWS/EC2").MetricName("CPUUtilization").Dimensions("InstanceId"))))
-        .thenReturn(new ListMetricsResult().withMetrics(
-            new Metric().withDimensions(new Dimension().withName("InstanceId").withValue("i-1")),
-            new Metric().withDimensions(new Dimension().withName("InstanceId").withValue("i-2")),
-            new Metric().withDimensions(new Dimension().withName("InstanceId").withValue("i-no-tag"))));
+        .thenReturn(ListMetricsResponse.builder().metrics(
+            Metric.builder().dimensions(Dimension.builder().name("InstanceId").value("i-1").build()).build(),
+            Metric.builder().dimensions(Dimension.builder().name("InstanceId").value("i-2").build()).build(),
+            Metric.builder().dimensions(Dimension.builder().name("InstanceId").value("i-no-tag").build()).build()
+            ).build());
 
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/EC2").MetricName("CPUUtilization").Dimension("InstanceId", "i-1"))))
-        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-            new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
+        .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+            Datapoint.builder().timestamp(new Date().toInstant()).average(2.0).build()).build());
     
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/EC2").MetricName("CPUUtilization").Dimension("InstanceId", "i-2"))))
-        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-            new Datapoint().withTimestamp(new Date()).withAverage(3.0)));
+        .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+            Datapoint.builder().timestamp(new Date().toInstant()).average(3.0).build()).build());
     
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
         new GetMetricStatisticsRequestMatcher().Namespace("AWS/EC2").MetricName("CPUUtilization").Dimension("InstanceId", "i-no-tag"))))
-        .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-            new Datapoint().withTimestamp(new Date()).withAverage(4.0)));
+        .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+            Datapoint.builder().timestamp(new Date().toInstant()).average(4.0).build()).build());
 
     assertEquals(2.0, registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id"}, new String[]{"aws_ec2", "", "i-1"}), .01);
     assertNull(registry.getSampleValue("aws_ec2_cpuutilization_average", new String[]{"job", "instance", "instance_id"}, new String[]{"aws_ec2", "", "i-2"}));
@@ -704,19 +706,20 @@ public class CloudWatchCollectorTest {
 
     Mockito.when(cloudWatchClient.listMetrics((ListMetricsRequest)argThat(
             new ListMetricsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimensions("AvailabilityZone", "LoadBalancerName").RecentlyActive(null))))
-            .thenReturn(new ListMetricsResult().withMetrics(
-                    new Metric().withDimensions(new Dimension().withName("AvailabilityZone").withValue("a"), new Dimension().withName("LoadBalancerName").withValue("myLB")),
-                    new Metric().withDimensions(new Dimension().withName("AvailabilityZone").withValue("a"), new Dimension().withName("LoadBalancerName").withValue("myLB"), new Dimension().withName("ThisExtraDimensionIsIgnored").withValue("dummy")),
-                    new Metric().withDimensions(new Dimension().withName("AvailabilityZone").withValue("b"), new Dimension().withName("LoadBalancerName").withValue("myOtherLB"))));
+            .thenReturn(ListMetricsResponse.builder().metrics(
+                    Metric.builder().dimensions(Dimension.builder().name("AvailabilityZone").value("a").build(), Dimension.builder().name("LoadBalancerName").value("myLB").build()).build(),
+                    Metric.builder().dimensions(Dimension.builder().name("AvailabilityZone").value("a").build(), Dimension.builder().name("LoadBalancerName").value("myLB").build(), Dimension.builder().name("ThisExtraDimensionIsIgnored").value("dummy").build()).build(),
+                    Metric.builder().dimensions(Dimension.builder().name("AvailabilityZone").value("b").build(), Dimension.builder().name("LoadBalancerName").value("myOtherLB").build()).build()
+                    ).build());
 
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
             new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimension("AvailabilityZone", "a").Dimension("LoadBalancerName", "myLB"))))
-            .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-                    new Datapoint().withTimestamp(new Date()).withAverage(2.0)));
+            .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+                    Datapoint.builder().timestamp(new Date().toInstant()).average(2.0).build()).build());
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
             new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount").Dimension("AvailabilityZone", "b").Dimension("LoadBalancerName", "myOtherLB"))))
-            .thenReturn(new GetMetricStatisticsResult().withDatapoints(
-                    new Datapoint().withTimestamp(new Date()).withAverage(3.0)));
+            .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+                    Datapoint.builder().timestamp(new Date().toInstant()).average(3.0).build()).build());
 
     registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance"}, new String[]{"aws_elb", ""});
 
