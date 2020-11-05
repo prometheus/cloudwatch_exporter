@@ -19,7 +19,6 @@ import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import org.yaml.snakeyaml.Yaml;
 
@@ -210,11 +209,15 @@ public class CloudWatchCollector extends Collector implements Describable {
             rule.awsDimensionSelectRegex = (Map<String,List<String>>)yamlMetricRule.get("aws_dimension_select_regex");
           }
           if (yamlMetricRule.containsKey("aws_statistics")) {
-            rule.awsStatistics = ((List<String>)yamlMetricRule.get("aws_statistics"))
-                    .stream().map(e -> Statistic.fromValue(e)).collect(Collectors.toList());
+            rule.awsStatistics = new ArrayList<Statistic>();
+            for (String statistic : (List<String>)yamlMetricRule.get("aws_statistics")) {
+              rule.awsStatistics.add(Statistic.fromValue(statistic));
+            }
           } else if (!yamlMetricRule.containsKey("aws_extended_statistics")) {
-            rule.awsStatistics = Arrays.asList("Sum", "SampleCount", "Minimum", "Maximum", "Average")
-                    .stream().map(e -> Statistic.fromValue(e)).collect(Collectors.toList());
+            rule.awsStatistics = new ArrayList<Statistic>();
+            for (String statistic : Arrays.asList("Sum", "SampleCount", "Minimum", "Maximum", "Average")) {
+              rule.awsStatistics.add(Statistic.fromValue(statistic));
+            }
           }
           if (yamlMetricRule.containsKey("aws_extended_statistics")) {
             rule.awsExtendedStatistics = (List<String>)yamlMetricRule.get("aws_extended_statistics");
