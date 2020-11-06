@@ -334,28 +334,28 @@ metrics:
 
   - aws_namespace: AWS/ApiGateway
     aws_metric_name: 4XXError
-    aws_dimensions: [ApiName, Method, Resource, Stage]
+    aws_dimensions: [ApiName]
 
   - aws_namespace: AWS/ApiGateway
     aws_metric_name: 5XXError
-    aws_dimensions: [ApiName, Method, Resource, Stage]
+    aws_dimensions: [ApiName]
 
   - aws_namespace: AWS/ApiGateway
     aws_metric_name: CacheHitCount
-    aws_dimensions: [ApiName, Method, Resource, Stage]
+    aws_dimensions: [ApiName]
 
   - aws_namespace: AWS/ApiGateway
     aws_metric_name: CacheMissCount
-    aws_dimensions: [ApiName, Method, Resource, Stage]
+    aws_dimensions: [ApiName]
 
   - aws_namespace: AWS/ApiGateway
     aws_metric_name: Count
-    aws_dimensions: [ApiName, Method, Resource, Stage]
+    aws_dimensions: [ApiName]
 
   - aws_namespace: AWS/ApiGateway
     aws_metric_name: IntegrationLatency
-    aws_dimensions: [ApiName, Method, Resource, Stage]
+    aws_dimensions: [ApiName]
 
   - aws_namespace: AWS/ApiGateway
     aws_metric_name: Latency
-    aws_dimensions: [ApiName, Method, Resource, Stage]
+    aws_dimensions: [ApiName]
