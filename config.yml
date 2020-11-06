@@ -357,6 +357,6 @@ metrics:
     aws_metric_name: IntegrationLatency
     aws_dimensions: [ApiName, Method, Resource, Stage]
 
-  - aws_namespace: AWS/cat st
+  - aws_namespace: AWS/ApiGateway
     aws_metric_name: Latency
     aws_dimensions: [ApiName, Method, Resource, Stage]
