@@ -332,7 +332,6 @@ metrics:
     aws_dimensions: [CacheClusterId]
     aws_statistics: [Average]
 
-  # API Gateway Metrics
   - aws_namespace: AWS/ApiGateway
     aws_metric_name: 4XXError
     aws_dimensions: [ApiName, Method, Resource, Stage]
