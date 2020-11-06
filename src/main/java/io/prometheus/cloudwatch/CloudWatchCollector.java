@@ -42,6 +42,7 @@ import software.amazon.awssdk.services.resourcegroupstaggingapi.model.GetResourc
 import software.amazon.awssdk.services.resourcegroupstaggingapi.model.ResourceTagMapping;
 import software.amazon.awssdk.services.resourcegroupstaggingapi.model.Tag;
 import software.amazon.awssdk.services.resourcegroupstaggingapi.model.TagFilter;
+import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 
@@ -280,12 +281,13 @@ public class CloudWatchCollector extends Collector implements Describable {
     }
 
     private AwsCredentialsProvider getRoleCredentialProvider(Map<String, Object> config) {
-        StsAssumeRoleCredentialsProvider credentialsProvider = StsAssumeRoleCredentialsProvider.builder()
-                .refreshRequest(AssumeRoleRequest.builder()
-                        .roleArn((String) config.get("role_arn"))
-                        .roleSessionName("cloudwatch_exporter").build()
-                ).build();
-      return credentialsProvider;
+      StsClient stsClient = StsClient.builder().region(Region.of((String) config.get("region"))).build();
+      AssumeRoleRequest assumeRoleRequest = AssumeRoleRequest.builder()
+              .roleArn((String) config.get("role_arn"))
+              .roleSessionName("cloudwatch_exporter").build();
+      return StsAssumeRoleCredentialsProvider.builder()
+              .stsClient(stsClient)
+              .refreshRequest(assumeRoleRequest).build();
     }
 
     private List<ResourceTagMapping> getResourceTagMappings(MetricRule rule, ResourceGroupsTaggingApiClient taggingClient) {
