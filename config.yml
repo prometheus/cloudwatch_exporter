@@ -282,6 +282,27 @@ metrics:
     aws_dimension_select_regex:
       DBInstanceIdentifier: ["${RDS_DB_INSTANCES_REGEX}"]
 
+  - aws_namespace: AWS/DMS
+    aws_metric_name: CPUUtilization
+    aws_dimensions: [ReplicationInstanceIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      ReplicationInstanceIdentifier: ["${DMS_REPL_INSTANCES_REGEX}"]
+      
+  - aws_namespace: AWS/DMS
+    aws_metric_name: FreeStorageSpace
+    aws_dimensions: [ReplicationInstanceIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      ReplicationInstanceIdentifier: ["${DMS_REPL_INSTANCES_REGEX}"]
+      
+  - aws_namespace: AWS/DMS
+    aws_metric_name: FreeableMemory
+    aws_dimensions: [ReplicationInstanceIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      ReplicationInstanceIdentifier: ["${DMS_REPL_INSTANCES_REGEX}"]
+      
   - aws_namespace: AWS/ElastiCache
     aws_metric_name: CPUUtilization
     aws_dimensions: [CacheClusterId]
