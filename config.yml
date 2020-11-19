@@ -316,6 +316,41 @@ metrics:
     aws_statistics: [Average]
     aws_dimension_select_regex:
       ReplicationInstanceIdentifier: ["${DMS_REPL_INSTANCES_REGEX}"]
+ 
+  - aws_namespace: AWS/DMS
+    aws_metric_name: CPUUtilization
+    aws_dimensions: [ReplicationTaskIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      ReplicationTaskIdentifier: ["${DMS_REPL_TASK_REGEX}"]
+
+  - aws_namespace: AWS/DMS
+    aws_metric_name: SwapUsage
+    aws_dimensions: [ReplicationTaskIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      ReplicationTaskIdentifier: ["${DMS_REPL_TASK_REGEX}"]
+
+  - aws_namespace: AWS/DMS
+    aws_metric_name: AvailableMemory
+    aws_dimensions: [ReplicationTaskIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      ReplicationTaskIdentifier: ["${DMS_REPL_TASK_REGEX}"]
+
+  - aws_namespace: AWS/DMS
+    aws_metric_name: FullLoadThroughputRowsSource
+    aws_dimensions: [ReplicationTaskIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      ReplicationTaskIdentifier: ["${DMS_REPL_TASK_REGEX}"]
+
+  - aws_namespace: AWS/DMS
+    aws_metric_name: FullLoadThroughputRowsTarget
+    aws_dimensions: [ReplicationTaskIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      ReplicationTaskIdentifier: ["${DMS_REPL_TASK_REGEX}"]
       
   - aws_namespace: AWS/ElastiCache
     aws_metric_name: CPUUtilization
