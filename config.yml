@@ -289,7 +289,7 @@ metrics:
     aws_dimension_select_regex:
       DBInstanceIdentifier: ["${RDS_DB_INSTANCES_REGEX}"]
       
-   - aws_namespace: AWS/RDS
+  - aws_namespace: AWS/RDS
     aws_metric_name: ReadIOPS
     aws_dimensions: [DBInstanceIdentifier]
     aws_statistics: [Average]
