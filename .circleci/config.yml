@@ -28,7 +28,7 @@ jobs:
       - run:
           command: docker run --privileged linuxkit/binfmt:v0.7
       - run: |
-          docker build -t quay.io/prometheus/cloudwatch-exporter:latest .
+          docker build -t quay.io/prometheus/cloudwatch-exporter:latest --pull .
           if [[ -n "$CIRCLE_TAG" ]]; then
             docker tag -t quay.io/prometheus/cloudwatch-exporter:"${CIRCLE_TAG}" quay.io/prometheus/cloudwatch-exporter:latest
           fi
