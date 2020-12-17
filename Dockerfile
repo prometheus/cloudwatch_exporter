@@ -6,7 +6,8 @@ RUN apt-get update -qq && apt-get install -qq maven && mvn package && \
     mv target/cloudwatch_exporter-*-with-dependencies.jar /cloudwatch_exporter.jar
 
 FROM openjdk:11-jre-slim as runner
-MAINTAINER Prometheus Team <prometheus-developers@googlegroups.com>
+LABEL maintainer="Prometheus Team <prometheus-developers@googlegroups.com>"
+
 EXPOSE 9106
 
 WORKDIR /
