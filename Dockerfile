@@ -10,7 +10,11 @@ MAINTAINER Prometheus Team <prometheus-developers@googlegroups.com>
 EXPOSE 9106
 
 WORKDIR /
-RUN mkdir /config
-COPY --from=builder /cloudwatch_exporter.jar /cloudwatch_exporter.jar
+RUN mkdir /config \
+    && addgroup -S -g 1000 exporter \
+    && adduser -S -G exporter -u 1000 exporter
+
+COPY --from=builder --chown=exporter:exporter /cloudwatch_exporter.jar .
+
 ENTRYPOINT [ "java", "-jar", "/cloudwatch_exporter.jar", "9106"]
 CMD ["/config/config.yml"]
