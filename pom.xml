@@ -58,6 +58,11 @@
       <artifactId>resourcegroupstaggingapi</artifactId>
       <version>2.15.20</version>
     </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-jdk14</artifactId>
+      <version>1.7.30</version>
+    </dependency>
     <!--
       Older versions of jackson-databind have remote code execution vulnerabilities
       CVEs - 2018-5968, 2017-17485, 2017-7525, 2017-15095, 2018-7489, 2018-19360,
