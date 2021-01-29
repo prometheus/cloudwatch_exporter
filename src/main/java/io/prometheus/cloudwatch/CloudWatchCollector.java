@@ -124,15 +124,10 @@ public class CloudWatchCollector extends Collector implements Describable {
 
     protected void reloadConfig() throws IOException {
         LOGGER.log(Level.INFO, "Reloading configuration");
-        FileReader reader = null;
-        try {
-          reader = new FileReader(WebServer.configFilePath);
+        try (
+          FileReader reader = new FileReader(WebServer.configFilePath);
+        ) {
           loadConfig(reader, activeConfig.cloudWatchClient, activeConfig.taggingClient);
-        } finally {
-          if (reader != null) {
-            reader.close();
-          }
-
         }
     }
 
