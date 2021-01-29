@@ -142,7 +142,7 @@ public class CloudWatchCollector extends Collector implements Describable {
 
     private void loadConfig(Map<String, Object> config, CloudWatchClient cloudWatchClient, ResourceGroupsTaggingApiClient taggingClient) {
         if(config == null) {  // Yaml config empty, set config to empty map.
-            config = new HashMap<String, Object>();
+            config = new HashMap<>();
         }
 
         int defaultPeriod = 60;
@@ -195,7 +195,7 @@ public class CloudWatchCollector extends Collector implements Describable {
           throw new IllegalArgumentException("Must provide metrics");
         }
 
-        ArrayList<MetricRule> rules = new ArrayList<MetricRule>();
+        ArrayList<MetricRule> rules = new ArrayList<>();
 
         for (Object ruleObject : (List<Map<String,Object>>) config.get("metrics")) {
           Map<String, Object> yamlMetricRule = (Map<String, Object>)ruleObject;
@@ -222,12 +222,12 @@ public class CloudWatchCollector extends Collector implements Describable {
             rule.awsDimensionSelectRegex = (Map<String,List<String>>)yamlMetricRule.get("aws_dimension_select_regex");
           }
           if (yamlMetricRule.containsKey("aws_statistics")) {
-            rule.awsStatistics = new ArrayList<Statistic>();
+            rule.awsStatistics = new ArrayList<>();
             for (String statistic : (List<String>)yamlMetricRule.get("aws_statistics")) {
               rule.awsStatistics.add(Statistic.fromValue(statistic));
             }
           } else if (!yamlMetricRule.containsKey("aws_extended_statistics")) {
-            rule.awsStatistics = new ArrayList<Statistic>();
+            rule.awsStatistics = new ArrayList<>();
             for (String statistic : Arrays.asList("Sum", "SampleCount", "Minimum", "Maximum", "Average")) {
               rule.awsStatistics.add(Statistic.fromValue(statistic));
             }
@@ -299,14 +299,14 @@ public class CloudWatchCollector extends Collector implements Describable {
         return Collections.emptyList();
       }
 
-      List<TagFilter> tagFilters = new ArrayList<TagFilter>();
+      List<TagFilter> tagFilters = new ArrayList<>();
       if (rule.awsTagSelect.tagSelections != null) {
         for (Map.Entry<String, List<String>> entry : rule.awsTagSelect.tagSelections.entrySet()) {
           tagFilters.add(TagFilter.builder().key(entry.getKey()).values(entry.getValue()).build());
         }
       }
 
-      List<ResourceTagMapping> resourceTagMappings = new ArrayList<ResourceTagMapping>();
+      List<ResourceTagMapping> resourceTagMappings = new ArrayList<>();
       GetResourcesRequest.Builder requestBuilder = GetResourcesRequest.builder().tagFilters(tagFilters).resourceTypeFilters(rule.awsTagSelect.resourceTypeSelection);
       String paginationToken = "";
       do {
@@ -324,7 +324,7 @@ public class CloudWatchCollector extends Collector implements Describable {
     }
 
     private List<String> extractResourceIds(List<ResourceTagMapping> resourceTagMappings) {
-      List<String> resourceIds = new ArrayList<String>();
+      List<String> resourceIds = new ArrayList<>();
       for (ResourceTagMapping resourceTagMapping : resourceTagMappings) {
         resourceIds.add(extractResourceIdFromArn(resourceTagMapping.resourceARN()));
       }
@@ -359,19 +359,19 @@ public class CloudWatchCollector extends Collector implements Describable {
     }
 
     private List<List<Dimension>> permuteDimensions(List<String> dimensions, Map<String, List<String>> dimensionValues) {
-        ArrayList<List<Dimension>> result = new ArrayList<List<Dimension>>();
+        ArrayList<List<Dimension>> result = new ArrayList<>();
 
         if (dimensions.size() == 0) {
-            result.add(new ArrayList<Dimension>());
+            result.add(new ArrayList<>());
         } else {
-            List<String> dimensionsCopy = new ArrayList<String>(dimensions);
+            List<String> dimensionsCopy = new ArrayList<>(dimensions);
             String dimensionName = dimensionsCopy.remove(dimensionsCopy.size() - 1);
             for (List<Dimension> permutation : permuteDimensions(dimensionsCopy, dimensionValues)) {
                 for (String dimensionValue : dimensionValues.get(dimensionName)) {
                     Dimension.Builder dimensionBuilder = Dimension.builder();
                     dimensionBuilder.value(dimensionValue);
                     dimensionBuilder.name(dimensionName);
-                    ArrayList<Dimension> permutationCopy = new ArrayList<Dimension>(permutation);
+                    ArrayList<Dimension> permutationCopy = new ArrayList<>(permutation);
                     permutationCopy.add(dimensionBuilder.build());
                     result.add(permutationCopy);
                 }
@@ -382,9 +382,9 @@ public class CloudWatchCollector extends Collector implements Describable {
     }
 
     private List<List<Dimension>> listDimensions(MetricRule rule, List<String> tagBasedResourceIds, CloudWatchClient cloudWatchClient) {
-      List<List<Dimension>> dimensions = new ArrayList<List<Dimension>>();
+      List<List<Dimension>> dimensions = new ArrayList<>();
       if (rule.awsDimensions == null) {
-        dimensions.add(new ArrayList<Dimension>());
+        dimensions.add(new ArrayList<>());
         return dimensions;
       }
 
@@ -397,7 +397,7 @@ public class CloudWatchCollector extends Collector implements Describable {
         requestBuilder.recentlyActive("PT3H");
       }
 
-      List<DimensionFilter> dimensionFilters = new ArrayList<DimensionFilter>();
+      List<DimensionFilter> dimensionFilters = new ArrayList<>();
       for (String dimension: rule.awsDimensions) {
         dimensionFilters.add(DimensionFilter.builder().name(dimension).build());
       }
@@ -542,10 +542,10 @@ public class CloudWatchCollector extends Collector implements Describable {
 
     private void scrape(List<MetricFamilySamples> mfs) {
       ActiveConfig config = new ActiveConfig(activeConfig);
-      Set<String> publishedResourceInfo = new HashSet<String>();
+      Set<String> publishedResourceInfo = new HashSet<>();
 
       long start = System.currentTimeMillis();
-      List<MetricFamilySamples.Sample> infoSamples = new ArrayList<MetricFamilySamples.Sample>();
+      List<MetricFamilySamples.Sample> infoSamples = new ArrayList<>();
       for (MetricRule rule: config.rules) {
         Date startDate = new Date(start - 1000 * rule.delaySeconds);
         Date endDate = new Date(start - 1000 * (rule.delaySeconds + rule.rangeSeconds));
@@ -560,12 +560,12 @@ public class CloudWatchCollector extends Collector implements Describable {
 
         String baseName = safeName(rule.awsNamespace.toLowerCase() + "_" + toSnakeCase(rule.awsMetricName));
         String jobName = safeName(rule.awsNamespace.toLowerCase());
-        List<MetricFamilySamples.Sample> sumSamples = new ArrayList<MetricFamilySamples.Sample>();
-        List<MetricFamilySamples.Sample> sampleCountSamples = new ArrayList<MetricFamilySamples.Sample>();
-        List<MetricFamilySamples.Sample> minimumSamples = new ArrayList<MetricFamilySamples.Sample>();
-        List<MetricFamilySamples.Sample> maximumSamples = new ArrayList<MetricFamilySamples.Sample>();
-        List<MetricFamilySamples.Sample> averageSamples = new ArrayList<MetricFamilySamples.Sample>();
-        HashMap<String, ArrayList<MetricFamilySamples.Sample>> extendedSamples = new HashMap<String, ArrayList<MetricFamilySamples.Sample>>();
+        List<MetricFamilySamples.Sample> sumSamples = new ArrayList<>();
+        List<MetricFamilySamples.Sample> sampleCountSamples = new ArrayList<>();
+        List<MetricFamilySamples.Sample> minimumSamples = new ArrayList<>();
+        List<MetricFamilySamples.Sample> maximumSamples = new ArrayList<>();
+        List<MetricFamilySamples.Sample> averageSamples = new ArrayList<>();
+        HashMap<String, ArrayList<MetricFamilySamples.Sample>> extendedSamples = new HashMap<>();
 
         String unit = null;
 
@@ -590,8 +590,8 @@ public class CloudWatchCollector extends Collector implements Describable {
           }
           unit = dp.unitAsString();
 
-          List<String> labelNames = new ArrayList<String>();
-          List<String> labelValues = new ArrayList<String>();
+          List<String> labelNames = new ArrayList<>();
+          List<String> labelValues = new ArrayList<>();
           labelNames.add("job");
           labelValues.add(jobName);
           labelNames.add("instance");
@@ -630,7 +630,7 @@ public class CloudWatchCollector extends Collector implements Describable {
             for (Map.Entry<String, Double> entry : dp.extendedStatistics().entrySet()) {
               ArrayList<MetricFamilySamples.Sample> samples = extendedSamples.get(entry.getKey());
               if (samples == null) {
-                samples = new ArrayList<MetricFamilySamples.Sample>();
+                samples = new ArrayList<>();
                 extendedSamples.put(entry.getKey(), samples);
               }
               samples.add(new MetricFamilySamples.Sample(
@@ -661,8 +661,8 @@ public class CloudWatchCollector extends Collector implements Describable {
         // Add the "aws_resource_info" metric for existing tag mappings
         for (ResourceTagMapping resourceTagMapping : resourceTagMappings) {
           if (!publishedResourceInfo.contains(resourceTagMapping.resourceARN())) {
-            List<String> labelNames = new ArrayList<String>();
-            List<String> labelValues = new ArrayList<String>();
+            List<String> labelNames = new ArrayList<>();
+            List<String> labelValues = new ArrayList<>();
             labelNames.add("job");
             labelValues.add(jobName);
             labelNames.add("instance");
@@ -690,21 +690,21 @@ public class CloudWatchCollector extends Collector implements Describable {
     public List<MetricFamilySamples> collect() {
       long start = System.nanoTime();
       double error = 0;
-      List<MetricFamilySamples> mfs = new ArrayList<MetricFamilySamples>();
+      List<MetricFamilySamples> mfs = new ArrayList<>();
       try {
         scrape(mfs);
       } catch (Exception e) {
         error = 1;
         LOGGER.log(Level.WARNING, "CloudWatch scrape failed", e);
       }
-      List<MetricFamilySamples.Sample> samples = new ArrayList<MetricFamilySamples.Sample>();
+      List<MetricFamilySamples.Sample> samples = new ArrayList<>();
       samples.add(new MetricFamilySamples.Sample(
-          "cloudwatch_exporter_scrape_duration_seconds", new ArrayList<String>(), new ArrayList<String>(), (System.nanoTime() - start) / 1.0E9));
+          "cloudwatch_exporter_scrape_duration_seconds", new ArrayList<>(), new ArrayList<>(), (System.nanoTime() - start) / 1.0E9));
       mfs.add(new MetricFamilySamples("cloudwatch_exporter_scrape_duration_seconds", Type.GAUGE, "Time this CloudWatch scrape took, in seconds.", samples));
 
-      samples = new ArrayList<MetricFamilySamples.Sample>();
+      samples = new ArrayList<>();
       samples.add(new MetricFamilySamples.Sample(
-          "cloudwatch_exporter_scrape_error", new ArrayList<String>(), new ArrayList<String>(), error));
+          "cloudwatch_exporter_scrape_error", new ArrayList<>(), new ArrayList<>(), error));
       mfs.add(new MetricFamilySamples("cloudwatch_exporter_scrape_error", Type.GAUGE, "Non-zero if this scrape failed.", samples));
       return mfs;
     }

@@ -47,4 +47,3 @@ public class WebServer {
         server.join();
     }
 }
-
