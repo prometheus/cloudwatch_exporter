@@ -493,10 +493,8 @@ public class CloudWatchCollector extends Collector implements Describable {
       for (Dimension dimension : metric.dimensions()) {
         String dimensionName = dimension.name();
         String dimensionValue = dimension.value();
-        if (rule.awsTagSelect.resourceIdDimension.equals(dimensionName)) {
-          if (!tagBasedResourceIds.contains(dimensionValue)) {
+        if (rule.awsTagSelect.resourceIdDimension.equals(dimensionName) && !tagBasedResourceIds.contains(dimensionValue)) {
             return false;
-          }
         }
       }
       return true;
