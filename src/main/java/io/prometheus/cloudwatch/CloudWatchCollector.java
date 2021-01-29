@@ -313,7 +313,7 @@ public class CloudWatchCollector extends Collector implements Describable {
         resourceTagMappings.addAll(response.resourceTagMappingList());
 
         paginationToken = response.paginationToken();
-      } while (paginationToken != null && paginationToken != "");
+      } while (paginationToken != null && !paginationToken.isEmpty());
 
       return resourceTagMappings;
     }
@@ -341,7 +341,7 @@ public class CloudWatchCollector extends Collector implements Describable {
         if (
                 rule.awsDimensions != null &&
                 rule.awsDimensionSelect != null &&
-                rule.awsDimensions.size() > 0 &&
+                !rule.awsDimensions.isEmpty() &&
                 rule.awsDimensions.size() == rule.awsDimensionSelect.size() &&
                 rule.awsDimensionSelect.keySet().containsAll(rule.awsDimensions) &&
                 rule.awsTagSelect == null
@@ -356,7 +356,7 @@ public class CloudWatchCollector extends Collector implements Describable {
     private List<List<Dimension>> permuteDimensions(List<String> dimensions, Map<String, List<String>> dimensionValues) {
         ArrayList<List<Dimension>> result = new ArrayList<>();
 
-        if (dimensions.size() == 0) {
+        if (dimensions.isEmpty()) {
             result.add(new ArrayList<>());
         } else {
             List<String> dimensionsCopy = new ArrayList<>(dimensions);
