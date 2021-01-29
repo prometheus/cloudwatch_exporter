@@ -101,7 +101,7 @@ public class CloudWatchCollector extends Collector implements Describable {
             "ProvisionedReadCapacityUnits", "ProvisionedWriteCapacityUnits",
             "ReadThrottleEvents", "WriteThrottleEvents");
 
-    public CloudWatchCollector(Reader in) throws IOException {
+    public CloudWatchCollector(Reader in) {
         loadConfig(in, null, null);
     }
     public CloudWatchCollector(String yamlConfig) {
@@ -136,7 +136,7 @@ public class CloudWatchCollector extends Collector implements Describable {
         }
     }
 
-    protected void loadConfig(Reader in, CloudWatchClient cloudWatchClient, ResourceGroupsTaggingApiClient taggingClient) throws IOException {
+    protected void loadConfig(Reader in, CloudWatchClient cloudWatchClient, ResourceGroupsTaggingApiClient taggingClient) {
         loadConfig((Map<String, Object>)new Yaml().load(in), cloudWatchClient, taggingClient);
     }
 
@@ -712,7 +712,7 @@ public class CloudWatchCollector extends Collector implements Describable {
     /**
      * Convenience function to run standalone.
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
       String region = "eu-west-1";
       if (args.length > 0) {
         region = args[0];
