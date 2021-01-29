@@ -49,14 +49,18 @@ import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 public class CloudWatchCollector extends Collector implements Describable {
     private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
 
-    static class ActiveConfig implements Cloneable {
+    static class ActiveConfig {
         ArrayList<MetricRule> rules;
         CloudWatchClient cloudWatchClient;
         ResourceGroupsTaggingApiClient taggingClient;
 
-        @Override
-        public Object clone() throws CloneNotSupportedException {
-            return super.clone();
+        public ActiveConfig(ActiveConfig cfg) {
+            this.rules = new ArrayList<>(cfg.rules);
+            this.cloudWatchClient = cfg.cloudWatchClient;
+            this.taggingClient = cfg.taggingClient;
+        }
+
+        public ActiveConfig() {
         }
     }
 
@@ -536,8 +540,8 @@ public class CloudWatchCollector extends Collector implements Describable {
           + " Unit: " + unit;
     }
 
-    private void scrape(List<MetricFamilySamples> mfs) throws CloneNotSupportedException {
-      ActiveConfig config = (ActiveConfig) activeConfig.clone();
+    private void scrape(List<MetricFamilySamples> mfs) {
+      ActiveConfig config = new ActiveConfig(activeConfig);
       Set<String> publishedResourceInfo = new HashSet<String>();
 
       long start = System.currentTimeMillis();
@@ -722,4 +726,3 @@ public class CloudWatchCollector extends Collector implements Describable {
       }
     }
 }
-
