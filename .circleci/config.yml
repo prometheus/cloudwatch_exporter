@@ -1,11 +1,9 @@
 version: 2.1
-
 jobs:
   build:
     working_directory: ~/circleci-java
     docker:
       - image: circleci/openjdk:8-jdk-stretch
-
     steps:
       - checkout
       - restore_cache: # restore the saved cache after the first run or if `pom.xml` has changed
@@ -16,11 +14,9 @@ jobs:
             - ~/.m2
           key: circleci-demo-java-spring-{{ checksum "pom.xml" }}
       - run: mvn package
-
   publish_image_to_quay:
     docker:
       - image: circleci/openjdk:8-jdk-stretch
-
     steps:
       - checkout
       - setup_remote_docker:
@@ -39,7 +35,6 @@ jobs:
           if [[ -n "$CIRCLE_TAG" ]]; then
             docker push quay.io/prometheus/cloudwatch-exporter:"${CIRCLE_TAG}"
           fi
-
 workflows:
   version: 2
   cloudwatch_exporter:
@@ -57,3 +52,5 @@ workflows:
               only: master
             tags:
               only: /.*/
+orbs:
+  prometheus: prometheus/prometheus@0.11.0
