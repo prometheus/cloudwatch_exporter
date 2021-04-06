@@ -426,3 +426,7 @@ metrics:
   - aws_namespace: AWS/ApiGateway
     aws_metric_name: Latency
     aws_dimensions: [ApiName]
+  
+  - aws_namespace: subnet-ip-availability
+    aws_metric_name: available_ips
+    aws_dimensions: [vpcid, cidrblock]
