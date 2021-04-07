@@ -427,6 +427,11 @@ metrics:
     aws_metric_name: Latency
     aws_dimensions: [ApiName]
   
-  - aws_namespace: subnet-ip-availability
+  - aws_namespace: monitor-aws-account-limits
     aws_metric_name: available_ips
     aws_dimensions: [vpcid, cidrblock]
+    
+  - aws_namespace: monitor-aws-account-limits
+    aws_metric_name: perc_ec2_vcpus_used
+    aws_dimensions: [ec2-vcpu]
+
