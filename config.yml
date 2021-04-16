@@ -435,3 +435,10 @@ metrics:
     aws_metric_name: perc_ec2_vcpus_used
     aws_dimensions: [ec2-vcpu]
 
+  - aws_namespace: AWS/SQS
+    aws_metric_name: ApproximateNumberOfMessagesVisible
+    aws_dimensions: [QueueName]
+
+  - aws_namespace: AWS/SQS
+    aws_metric_name: ApproximateAgeOfOldestMessage
+    aws_dimensions: [QueueName]
