@@ -295,6 +295,27 @@ metrics:
     aws_statistics: [Average]
     aws_dimension_select_regex:
       DBInstanceIdentifier: ["${RDS_DB_INSTANCES_REGEX}"]
+      
+  - aws_namespace: AWS/RDS
+    aws_metric_name: DBLoad
+    aws_dimensions: [DBInstanceIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      DBInstanceIdentifier: ['${RDS_DB_INSTANCES_REGEX}']
+
+  - aws_namespace: AWS/RDS
+    aws_metric_name: DBLoadCPU
+    aws_dimensions: [DBInstanceIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      DBInstanceIdentifier: ['${RDS_DB_INSTANCES_REGEX}']
+
+  - aws_namespace: AWS/RDS
+    aws_metric_name: DBLoadNonCPU
+    aws_dimensions: [DBInstanceIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      DBInstanceIdentifier: ['${RDS_DB_INSTANCES_REGEX}']
 
   - aws_namespace: AWS/DMS
     aws_metric_name: CPUUtilization
