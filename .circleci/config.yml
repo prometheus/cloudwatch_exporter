@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: ~/circleci-java
     docker:
-      - image: circleci/openjdk:8-jdk-stretch
+      - image: circleci/openjdk:11-jdk-buster
     steps:
       - checkout
       - restore_cache: # restore the saved cache after the first run or if `pom.xml` has changed
@@ -16,7 +16,7 @@ jobs:
       - run: mvn package
   publish_image_to_quay:
     docker:
-      - image: circleci/openjdk:8-jdk-stretch
+      - image: circleci/openjdk:11-jdk-buster
     steps:
       - checkout
       - setup_remote_docker:
