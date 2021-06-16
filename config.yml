@@ -316,6 +316,10 @@ metrics:
     aws_statistics: [Average]
     aws_dimension_select_regex:
       DBInstanceIdentifier: ['${RDS_DB_INSTANCES_REGEX}']
+  
+  - aws_namespace: RDS
+    aws_metric_name: DBInstanceStatus
+    aws_dimensions: [DBName]
 
   - aws_namespace: AWS/DMS
     aws_metric_name: CPUUtilization
