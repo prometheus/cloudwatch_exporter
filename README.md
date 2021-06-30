@@ -64,7 +64,7 @@ role_arn   | Optional. The AWS role to assume. Useful for retrieving cross accou
 metrics  | Required. A list of CloudWatch metrics to retrieve and export
 aws_namespace  | Required. Namespace of the CloudWatch metric.
 aws_metric_name  | Required. Metric name of the CloudWatch metric.
-aws_dimensions | Optional. Which dimension to fan out over.
+aws_dimensions | Required. This should contain exactly all the dimensions available for a metric. Run `aws cloudwatch list-metrics` to find out which dimensions you need to include for your metric.
 aws_dimension_select | Optional. Which dimension values to filter. Specify a map from the dimension name to a list of values to select from that dimension.
 aws_dimension_select_regex | Optional. Which dimension values to filter on with a regular expression. Specify a map from the dimension name to a list of regexes that will be applied to select from that dimension.
 aws_tag_select | Optional. A tag configuration to filter on, based on mapping from the tagged resource ID to a CloudWatch dimension.  
