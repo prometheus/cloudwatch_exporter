@@ -1,30 +1,30 @@
 ---
 region: eu-west-1
 metrics:
-- aws_namespace: AWS/ELB
+- aws_namespace: AWS/NetworkELB
   aws_metric_name: HealthyHostCount
-  aws_dimensions: [AvailabilityZone, LoadBalancerName]
+  aws_dimensions: [AvailabilityZone, LoadBalancer, TargetGroup]
   aws_statistics: [Average]
 
-- aws_namespace: AWS/ELB
+- aws_namespace: AWS/NetworkELB
   aws_metric_name: UnHealthyHostCount
-  aws_dimensions: [AvailabilityZone, LoadBalancerName]
+  aws_dimensions: [AvailabilityZone, LoadBalancer, TargetGroup]
   aws_statistics: [Average]
 
-- aws_namespace: AWS/ELB
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: HealthyHostCount
+  aws_dimensions: [AvailabilityZone, LoadBalancer, TargetGroup]
+  aws_statistics: [Average]
+
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: UnHealthyHostCount
+  aws_dimensions: [AvailabilityZone, LoadBalancer, TargetGroup]
+  aws_statistics: [Average]
+
+- aws_namespace: AWS/ApplicationELB
   aws_metric_name: RequestCount
-  aws_dimensions: [AvailabilityZone, LoadBalancerName]
-  aws_statistics: [Sum]
-
-- aws_namespace: AWS/ELB
-  aws_metric_name: Latency
-  aws_dimensions: [AvailabilityZone, LoadBalancerName]
+  aws_dimensions: [AvailabilityZone, LoadBalancer]
   aws_statistics: [Average]
-
-- aws_namespace: AWS/ELB
-  aws_metric_name: SurgeQueueLength
-  aws_dimensions: [AvailabilityZone, LoadBalancerName]
-  aws_statistics: [Maximum, Sum]
 
 - aws_namespace: AWS/ElastiCache
   aws_metric_name: CPUUtilization
