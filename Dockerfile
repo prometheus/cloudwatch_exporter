@@ -15,4 +15,5 @@ RUN apk update \
 WORKDIR /
 COPY config*.yml /
 COPY exporter.sh /
+RUN chmod 755 /exporter.sh
 LABEL container.name=wehkamp/prometheus-cloudwatch-exporter:1.4.7-4
