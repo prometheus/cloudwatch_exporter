@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 which java
 cat config*
