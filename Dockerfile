@@ -1,6 +1,6 @@
 FROM 234348545939.dkr.ecr.eu-west-1.amazonaws.com/wehkamp/jre:8.121.13-r0_02
 
-ENTRYPOINT [ "java", "-jar", "/cloudwatch_exporter.jar", "9106", "/config.yml" ]
+ENTRYPOINT [ "java", "-jar", "/cloudwatch_exporter.jar", "9106", "/${CONFIG_FILE:-config}.yml" ]
 EXPOSE 9106
 
 WORKDIR /cloudwatch_exporter
@@ -13,5 +13,5 @@ RUN apk update \
     && rm -rf /cloudwatch_exporter
 
 WORKDIR /
-COPY config.yml /
-LABEL container.name=wehkamp/prometheus-cloudwatch-exporter:1.4.7-3
+COPY config*.yml /
+LABEL container.name=wehkamp/prometheus-cloudwatch-exporter:1.4.7-4

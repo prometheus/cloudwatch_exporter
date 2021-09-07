@@ -1,0 +1,58 @@
+---
+region: eu-west-1
+
+# Request data that spans this range:
+range_seconds: 120
+# Request data that is already this old:
+delay_seconds: 120
+# How often do we query AWS?
+period_seconds: 120
+
+metrics:
+  - aws_namespace: AWS/ES
+    aws_metric_name: FreeStorageSpace
+    aws_dimensions: [DomainName, ClientId]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      DomainName: ["${ES_DOMAIN_NAME_REGEX}"]
+      ClientId: ["${ES_DOMAIN_CLIENT_ID}"]
+
+  - aws_namespace: AWS/ES
+    aws_metric_name: CPUUtilization
+    aws_dimensions: [DomainName, ClientId]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      DomainName: ["${ES_DOMAIN_NAME_REGEX}"]
+      ClientId: ["${ES_DOMAIN_CLIENT_ID}"]
+
+  - aws_namespace: AWS/ES
+    aws_metric_name: DiskQueueDepth
+    aws_dimensions: [DomainName, ClientId]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      DomainName: ["${ES_DOMAIN_NAME_REGEX}"]
+      ClientId: ["${ES_DOMAIN_CLIENT_ID}"]
+
+  - aws_namespace: AWS/ES
+    aws_metric_name: ClusterStatus.green
+    aws_dimensions: [DomainName, ClientId]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      DomainName: ["${ES_DOMAIN_NAME_REGEX}"]
+      ClientId: ["${ES_DOMAIN_CLIENT_ID}"]
+
+  - aws_namespace: AWS/ES
+    aws_metric_name: ClusterStatus.yellow
+    aws_dimensions: [DomainName, ClientId]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      DomainName: ["${ES_DOMAIN_NAME_REGEX}"]
+      ClientId: ["${ES_DOMAIN_CLIENT_ID}"]
+
+  - aws_namespace: AWS/ES
+    aws_metric_name: ClusterStatus.red
+    aws_dimensions: [DomainName, ClientId]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      DomainName: ["${ES_DOMAIN_NAME_REGEX}"]
+      ClientId: ["${ES_DOMAIN_CLIENT_ID}"]

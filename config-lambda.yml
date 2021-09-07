@@ -1,0 +1,38 @@
+---
+region: eu-west-1
+
+# Request data that spans this range:
+range_seconds: 120
+# Request data that is already this old:
+delay_seconds: 120
+# How often do we query AWS?
+period_seconds: 120
+
+metrics:
+  - aws_namespace: AWS/Lambda
+    aws_metric_name: Invocations
+    aws_dimensions: [FunctionName]
+
+  - aws_namespace: AWS/Lambda
+    aws_metric_name: Errors
+    aws_dimensions: [FunctionName]
+
+  - aws_namespace: AWS/Lambda
+    aws_metric_name: Duration
+    aws_dimensions: [FunctionName]
+
+  - aws_namespace: AWS/Lambda
+    aws_metric_name: Dead Letter Error
+    aws_dimensions: [FunctionName]
+
+  - aws_namespace: AWS/Lambda
+    aws_metric_name: Throttles
+    aws_dimensions: [FunctionName]
+
+  - aws_namespace: AWS/Lambda
+    aws_metric_name: IteratorAge
+    aws_dimensions: [FunctionName]
+
+  - aws_namespace: AWS/Lambda
+    aws_metric_name: ConcurrentExecutions
+    aws_dimensions: [FunctionName]
