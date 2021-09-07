@@ -1,6 +1,6 @@
 FROM 234348545939.dkr.ecr.eu-west-1.amazonaws.com/wehkamp/jre:8.121.13-r0_02
 
-ENTRYPOINT [ "java", "-jar", "/cloudwatch_exporter.jar", "9106", "/${CONFIG_FILE:-config}.yml" ]
+ENTRYPOINT [ "java", "-jar", "/cloudwatch_exporter.jar", "/${CW_EXPORTER_PORT:-9106}", "/${CW_EXPORTER_CONFIG_FILE:-config}.yml" ]
 EXPOSE 9106
 
 WORKDIR /cloudwatch_exporter
