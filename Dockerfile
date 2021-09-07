@@ -1,6 +1,6 @@
 FROM 234348545939.dkr.ecr.eu-west-1.amazonaws.com/wehkamp/jre:8.121.13-r0_02
 
-ENTRYPOINT ["/exporter.sh"]
+ENTRYPOINT ["/bin/bash"]
 EXPOSE 9106
 
 WORKDIR /cloudwatch_exporter
