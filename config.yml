@@ -487,3 +487,7 @@ metrics:
   - aws_namespace: AWS/SQS
     aws_metric_name: NumberOfMessagesSent
     aws_dimensions: [QueueName]
+
+  - aws_namespace: AWS/EC2
+    aws_metric_name: CPUUtilization
+    aws_dimensions: [InstanceId]
