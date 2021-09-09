@@ -1,0 +1,202 @@
+---
+region: eu-west-1
+
+# Request data that spans this range:
+range_seconds: 120
+# Request data that is already this old:
+delay_seconds: 120
+# How often do we query AWS?
+period_seconds: 120
+
+metrics:
+  - aws_namespace: AWS/ELB
+    aws_metric_name: HealthyHostCount
+    aws_dimensions: [AvailabilityZone, LoadBalancerName]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      LoadBalancerName: ["${LOADBALANCERNAME_REGEX}"]
+
+  - aws_namespace: AWS/ELB
+    aws_metric_name: UnHealthyHostCount
+    aws_dimensions: [AvailabilityZone, LoadBalancerName]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      LoadBalancerName: ["${LOADBALANCERNAME_REGEX}"]
+
+  - aws_namespace: AWS/ELB
+    aws_metric_name: RequestCount
+    aws_dimensions: [AvailabilityZone, LoadBalancerName]
+    aws_statistics: [Sum]
+    aws_dimension_select_regex:
+      LoadBalancerName: ["${LOADBALANCERNAME_REGEX}"]
+
+  - aws_namespace: AWS/ELB
+    aws_metric_name: Latency
+    aws_dimensions: [AvailabilityZone, LoadBalancerName]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      LoadBalancerName: ["${LOADBALANCERNAME_REGEX}"]
+
+  - aws_namespace: AWS/ELB
+    aws_metric_name: SurgeQueueLength
+    aws_dimensions: [AvailabilityZone, LoadBalancerName]
+    aws_statistics: [Maximum, Sum]
+    aws_dimension_select_regex:
+      LoadBalancerName: ["${LOADBALANCERNAME_REGEX}"]
+
+  - aws_namespace: AWS/ApplicationELB
+    aws_metric_name: UnHealthyHostCount
+    aws_dimensions: [LoadBalancer, TargetGroup]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      LoadBalancer: ["${APP_LOADBALANCERNAME_REGEX}"]
+      TargetGroup: ["${APP_LOADBALANCERTG_REGEX}"]
+
+  - aws_namespace: AWS/ApplicationELB
+    aws_metric_name: HTTPCode_Target_4XX_Count
+    aws_dimensions: [LoadBalancer, TargetGroup]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      LoadBalancer: ["${APP_LOADBALANCERNAME_REGEX}"]
+      TargetGroup: ["${APP_LOADBALANCERTG_REGEX}"]
+
+  - aws_namespace: AWS/ApplicationELB
+    aws_metric_name: HTTPCode_Target_5XX_Count
+    aws_dimensions: [LoadBalancer, TargetGroup]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      LoadBalancer: ["${APP_LOADBALANCERNAME_REGEX}"]
+      TargetGroup: ["${APP_LOADBALANCERTG_REGEX}"]
+
+  - aws_namespace: AWS/ApplicationELB
+    aws_metric_name: TargetResponseTime
+    aws_dimensions: [LoadBalancer, TargetGroup]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      LoadBalancer: ["${APP_LOADBALANCERNAME_REGEX}"]
+      TargetGroup: ["${APP_LOADBALANCERTG_REGEX}"]
+
+  - aws_namespace: AWS/ApplicationELB
+    aws_metric_name: RequestCount
+    aws_dimensions: [LoadBalancer, TargetGroup]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      LoadBalancer: ["${APP_LOADBALANCERNAME_REGEX}"]
+      TargetGroup: ["${APP_LOADBALANCERTG_REGEX}"]
+
+  - aws_namespace: AWS/DMS
+    aws_metric_name: CPUUtilization
+    aws_dimensions: [ReplicationInstanceIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      ReplicationInstanceIdentifier: ["${DMS_REPL_INSTANCES_REGEX}"]
+
+  - aws_namespace: AWS/DMS
+    aws_metric_name: FreeStorageSpace
+    aws_dimensions: [ReplicationInstanceIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      ReplicationInstanceIdentifier: ["${DMS_REPL_INSTANCES_REGEX}"]
+
+  - aws_namespace: AWS/DMS
+    aws_metric_name: FreeableMemory
+    aws_dimensions: [ReplicationInstanceIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      ReplicationInstanceIdentifier: ["${DMS_REPL_INSTANCES_REGEX}"]
+
+  - aws_namespace: AWS/DMS
+    aws_metric_name: SwapUsage
+    aws_dimensions: [ReplicationInstanceIdentifier, ReplicationTaskIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      ReplicationTaskIdentifier: ["${DMS_REPL_TASK_REGEX}"]
+      ReplicationInstanceIdentifier: ["${DMS_REPL_INSTANCES_REGEX}"]
+
+  - aws_namespace: AWS/DMS
+    aws_metric_name: AvailableMemory
+    aws_dimensions: [ReplicationInstanceIdentifier, ReplicationTaskIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      ReplicationTaskIdentifier: ["${DMS_REPL_TASK_REGEX}"]
+      ReplicationInstanceIdentifier: ["${DMS_REPL_INSTANCES_REGEX}"]
+
+  - aws_namespace: AWS/DMS
+    aws_metric_name: FullLoadThroughputRowsSource
+    aws_dimensions: [ReplicationInstanceIdentifier, ReplicationTaskIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      ReplicationTaskIdentifier: ["${DMS_REPL_TASK_REGEX}"]
+      ReplicationInstanceIdentifier: ["${DMS_REPL_INSTANCES_REGEX}"]
+
+  - aws_namespace: AWS/DMS
+    aws_metric_name: FullLoadThroughputRowsTarget
+    aws_dimensions: [ReplicationInstanceIdentifier, ReplicationTaskIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      ReplicationTaskIdentifier: ["${DMS_REPL_TASK_REGEX}"]
+      ReplicationInstanceIdentifier: ["${DMS_REPL_INSTANCES_REGEX}"]
+
+  - aws_namespace: AWS/ApiGateway
+    aws_metric_name: 4XXError
+    aws_dimensions: [ApiName]
+
+  - aws_namespace: AWS/ApiGateway
+    aws_metric_name: 5XXError
+    aws_dimensions: [ApiName]
+
+  - aws_namespace: AWS/ApiGateway
+    aws_metric_name: CacheHitCount
+    aws_dimensions: [ApiName]
+
+  - aws_namespace: AWS/ApiGateway
+    aws_metric_name: CacheMissCount
+    aws_dimensions: [ApiName]
+
+  - aws_namespace: AWS/ApiGateway
+    aws_metric_name: Count
+    aws_dimensions: [ApiName]
+
+  - aws_namespace: AWS/ApiGateway
+    aws_metric_name: IntegrationLatency
+    aws_dimensions: [ApiName]
+
+  - aws_namespace: AWS/ApiGateway
+    aws_metric_name: Latency
+    aws_dimensions: [ApiName]
+
+  - aws_namespace: monitor-aws-account-limits
+    aws_metric_name: available_ips
+    aws_dimensions: [vpcid, cidrblock]
+
+  - aws_namespace: monitor-aws-account-limits
+    aws_metric_name: perc_ec2_vcpus_used
+    aws_dimensions: [ec2-vcpu]
+
+  - aws_namespace: AWS/SQS
+    aws_metric_name: ApproximateAgeOfOldestMessage
+    aws_dimensions: [QueueName]
+
+  - aws_namespace: AWS/SQS
+    aws_metric_name: ApproximateNumberOfMessagesDelayed
+    aws_dimensions: [QueueName]
+
+  - aws_namespace: AWS/SQS
+    aws_metric_name: ApproximateNumberOfMessagesNotVisible
+    aws_dimensions: [QueueName]
+
+  - aws_namespace: AWS/SQS
+    aws_metric_name: ApproximateNumberOfMessagesVisible
+    aws_dimensions: [QueueName]
+
+  - aws_namespace: AWS/SQS
+    aws_metric_name: NumberOfMessagesDeleted
+    aws_dimensions: [QueueName]
+
+  - aws_namespace: AWS/SQS
+    aws_metric_name: NumberOfMessagesReceived
+    aws_dimensions: [QueueName]
+
+  - aws_namespace: AWS/SQS
+    aws_metric_name: NumberOfMessagesSent
+    aws_dimensions: [QueueName]

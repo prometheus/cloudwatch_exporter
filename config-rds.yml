@@ -1,0 +1,84 @@
+---
+region: eu-west-1
+
+# Request data that spans this range:
+range_seconds: 120
+# Request data that is already this old:
+delay_seconds: 120
+# How often do we query AWS?
+period_seconds: 120
+
+metrics:
+  - aws_namespace: AWS/RDS
+    aws_metric_name: FreeStorageSpace
+    aws_dimensions: [DBInstanceIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      DBInstanceIdentifier: ["${RDS_DB_INSTANCES_REGEX}"]
+
+  - aws_namespace: AWS/RDS
+    aws_metric_name: FreeableMemory
+    aws_dimensions: [DBInstanceIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      DBInstanceIdentifier: ["${RDS_DB_INSTANCES_REGEX}"]
+
+  - aws_namespace: AWS/RDS
+    aws_metric_name: CPUUtilization
+    aws_dimensions: [DBInstanceIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      DBInstanceIdentifier: ["${RDS_DB_INSTANCES_REGEX}"]
+
+  - aws_namespace: AWS/RDS
+    aws_metric_name: DatabaseConnections
+    aws_dimensions: [DBInstanceIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      DBInstanceIdentifier: ["${RDS_DB_INSTANCES_REGEX}"]
+
+  - aws_namespace: AWS/RDS
+    aws_metric_name: BurstBalance
+    aws_dimensions: [DBInstanceIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      DBInstanceIdentifier: ["${RDS_DB_INSTANCES_REGEX}"]
+
+  - aws_namespace: AWS/RDS
+    aws_metric_name: WriteIOPS
+    aws_dimensions: [DBInstanceIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      DBInstanceIdentifier: ["${RDS_DB_INSTANCES_REGEX}"]
+
+  - aws_namespace: AWS/RDS
+    aws_metric_name: ReadIOPS
+    aws_dimensions: [DBInstanceIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      DBInstanceIdentifier: ["${RDS_DB_INSTANCES_REGEX}"]
+
+  - aws_namespace: AWS/RDS
+    aws_metric_name: DBLoad
+    aws_dimensions: [DBInstanceIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      DBInstanceIdentifier: ["${RDS_DB_INSTANCES_REGEX}"]
+
+  - aws_namespace: AWS/RDS
+    aws_metric_name: DBLoadCPU
+    aws_dimensions: [DBInstanceIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      DBInstanceIdentifier: ["${RDS_DB_INSTANCES_REGEX}"]
+
+  - aws_namespace: AWS/RDS
+    aws_metric_name: DBLoadNonCPU
+    aws_dimensions: [DBInstanceIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      DBInstanceIdentifier: ["${RDS_DB_INSTANCES_REGEX}"]
+
+  - aws_namespace: RDS
+    aws_metric_name: DBInstanceStatus
+    aws_dimensions: [DBName]

@@ -1,0 +1,60 @@
+---
+region: eu-west-1
+
+# Request data that spans this range:
+range_seconds: 120
+# Request data that is already this old:
+delay_seconds: 120
+# How often do we query AWS?
+period_seconds: 120
+
+metrics:
+  - aws_namespace: AWS/ElastiCache
+    aws_metric_name: CPUUtilization
+    aws_dimensions: [CacheClusterId]
+    aws_statistics: [Average]
+
+  - aws_namespace: AWS/ElastiCache
+    aws_metric_name: NetworkBytesIn
+    aws_dimensions: [CacheClusterId]
+    aws_statistics: [Average]
+
+  - aws_namespace: AWS/ElastiCache
+    aws_metric_name: NetworkBytesOut
+    aws_dimensions: [CacheClusterId]
+    aws_statistics: [Average]
+
+  - aws_namespace: AWS/ElastiCache
+    aws_metric_name: FreeableMemory
+    aws_dimensions: [CacheClusterId]
+    aws_statistics: [Average]
+
+  - aws_namespace: AWS/ElastiCache
+    aws_metric_name: BytesUsedForCache
+    aws_dimensions: [CacheClusterId]
+    aws_statistics: [Average]
+
+  - aws_namespace: AWS/ElastiCache
+    aws_metric_name: CurrConnections
+    aws_dimensions: [CacheClusterId]
+    aws_statistics: [Average]
+
+  - aws_namespace: AWS/ElastiCache
+    aws_metric_name: NewConnections
+    aws_dimensions: [CacheClusterId]
+    aws_statistics: [Average]
+
+  - aws_namespace: AWS/ElastiCache
+    aws_metric_name: CacheHits
+    aws_dimensions: [CacheClusterId]
+    aws_statistics: [Average]
+
+  - aws_namespace: AWS/ElastiCache
+    aws_metric_name: CacheMisses
+    aws_dimensions: [CacheClusterId]
+    aws_statistics: [Average]
+
+  - aws_namespace: AWS/ElastiCache
+    aws_metric_name: ReplicationLag
+    aws_dimensions: [CacheClusterId]
+    aws_statistics: [Average]
