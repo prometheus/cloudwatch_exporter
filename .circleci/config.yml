@@ -17,24 +17,38 @@ jobs:
   publish_image_to_quay:
     docker:
       - image: circleci/openjdk:11-jdk-buster
+    environment:
+      DOCKER_BUILDKIT: 1
+      BUILDX_PLATFORMS: linux/amd64,linux/arm64
     steps:
       - checkout
       - setup_remote_docker:
-          version: 18.06.0-ce
+          version: 20.10.8-ce
       - run:
-          command: docker run --privileged linuxkit/binfmt:v0.7
-      - run: |
-          docker build -t quay.io/prometheus/cloudwatch-exporter:latest --pull .
-          if [[ -n "$CIRCLE_TAG" ]]; then
-            docker tag -t quay.io/prometheus/cloudwatch-exporter:"${CIRCLE_TAG}" quay.io/prometheus/cloudwatch-exporter:latest
-          fi
-      - run: docker images
+          name: Install buildx
+          command: |
+            BUILDX_BINARY_URL="https://github.com/docker/buildx/releases/download/v0.6.3/buildx-v0.6.3.linux-amd64"
+
+            curl --output docker-buildx \
+              --silent --show-error --location --fail --retry 3 \
+              "$BUILDX_BINARY_URL"
+
+            mkdir -p ~/.docker/cli-plugins
+
+            mv docker-buildx ~/.docker/cli-plugins/
+            chmod a+x ~/.docker/cli-plugins/docker-buildx
+
+            docker buildx install
+            # Run binfmt
+            docker run --rm --privileged tonistiigi/binfmt:latest --install "$BUILDX_PLATFORMS"
       - run: docker login -u $QUAY_LOGIN -p $QUAY_PASSWORD quay.io
       - run: |
-          docker push quay.io/prometheus/cloudwatch-exporter:latest
           if [[ -n "$CIRCLE_TAG" ]]; then
-            docker push quay.io/prometheus/cloudwatch-exporter:"${CIRCLE_TAG}"
+            docker buildx build -t quay.io/prometheus/cloudwatch-exporter:"${CIRCLE_TAG}" -t quay.io/prometheus/cloudwatch-exporter:latest --push .          
+          else
+            docker buildx build -t quay.io/prometheus/cloudwatch-exporter:latest --push .          
           fi
+      - run: docker images
 workflows:
   version: 2
   cloudwatch_exporter:
