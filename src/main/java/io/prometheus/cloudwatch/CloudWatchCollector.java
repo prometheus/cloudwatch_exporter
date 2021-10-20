@@ -70,6 +70,7 @@ public class CloudWatchCollector extends Collector implements Describable {
       int periodSeconds;
       int rangeSeconds;
       int delaySeconds;
+      Map<String,String> additionalLabels;
       List<Statistic> awsStatistics;
       List<String> awsExtendedStatistics;
       List<String> awsDimensions;
@@ -246,9 +247,14 @@ public class CloudWatchCollector extends Collector implements Describable {
             rule.delaySeconds = defaultDelay;
           }
           if (yamlMetricRule.containsKey("set_timestamp")) {
-              rule.cloudwatchTimestamp = (Boolean)yamlMetricRule.get("set_timestamp");
+            rule.cloudwatchTimestamp = (Boolean)yamlMetricRule.get("set_timestamp");
           } else {
-              rule.cloudwatchTimestamp = defaultCloudwatchTimestamp;
+            rule.cloudwatchTimestamp = defaultCloudwatchTimestamp;
+          }
+          if (yamlMetricRule.containsKey("additional_labels")) {
+            rule.additionalLabels = (Map<String, String>)yamlMetricRule.get("additional_labels");
+          } else {
+            rule.additionalLabels = Collections.emptyMap();
           }
 
           if (yamlMetricRule.containsKey("aws_tag_select")) {
@@ -592,6 +598,11 @@ public class CloudWatchCollector extends Collector implements Describable {
           for (Dimension d: dimensions) {
             labelNames.add(safeLabelName(toSnakeCase(d.name())));
             labelValues.add(d.value());
+          }
+
+          for (Map.Entry<String, String> additionalLabels : rule.additionalLabels.entrySet()) {
+            labelNames.add(safeLabelName(additionalLabels.getKey()));
+            labelValues.add(additionalLabels.getValue());
           }
 
           Long timestamp = null;

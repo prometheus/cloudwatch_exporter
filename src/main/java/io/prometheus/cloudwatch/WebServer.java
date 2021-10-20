@@ -23,7 +23,7 @@ public class WebServer {
         try (
           FileReader reader = new FileReader(configFilePath);
         ) {
-          collector = new CloudWatchCollector(new FileReader(configFilePath)).register();
+          collector = new CloudWatchCollector(reader).register();
         }
 
         ReloadSignalHandler.start(collector);

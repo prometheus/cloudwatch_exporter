@@ -290,6 +290,20 @@ public class CloudWatchCollectorTest {
   }
 
   @Test
+  public void testMetricWithAdditionalLabels() throws Exception {
+    new CloudWatchCollector(
+            "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  additional_labels:\n    label1: value1\n    label2: value2", cloudWatchClient, taggingClient).register(registry);
+
+    Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest)argThat(
+                   new GetMetricStatisticsRequestMatcher().Namespace("AWS/ELB").MetricName("RequestCount"))))
+           .thenReturn(GetMetricStatisticsResponse.builder().datapoints(
+                   Datapoint.builder().timestamp(new Date(1).toInstant()).average(1.0).build()).build());
+
+    assertEquals(Arrays.asList("job", "instance", "label1", "label2"), registry.metricFamilySamples().nextElement().samples.iterator().next().labelNames);
+    assertEquals(Arrays.asList("aws_elb", "", "value1", "value2"), registry.metricFamilySamples().nextElement().samples.iterator().next().labelValues);
+  }
+
+  @Test
   public void testDimensions() throws Exception {
     new CloudWatchCollector(
         "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancerName", cloudWatchClient, taggingClient).register(registry);
