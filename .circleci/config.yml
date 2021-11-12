@@ -42,12 +42,7 @@ jobs:
             # Run binfmt
             docker run --rm --privileged tonistiigi/binfmt:latest --install "$BUILDX_PLATFORMS"
       - run: docker login -u $QUAY_LOGIN -p $QUAY_PASSWORD quay.io
-      - run: |
-          if [[ -n "$CIRCLE_TAG" ]]; then
-            docker buildx build -t quay.io/prometheus/cloudwatch-exporter:"${CIRCLE_TAG}" -t quay.io/prometheus/cloudwatch-exporter:latest --push .          
-          else
-            docker buildx build -t quay.io/prometheus/cloudwatch-exporter:latest --push .          
-          fi
+      - run: "if [[ -n \"$CIRCLE_TAG\" ]]; then\n  docker buildx build -t quay.io/prometheus/cloudwatch-exporter:\"${CIRCLE_TAG}\" -t quay.io/prometheus/cloudwatch-exporter:latest --push .          \nelse\n  docker buildx build -t quay.io/prometheus/cloudwatch-exporter:latest --push .          \nfi\n"
       - run: docker images
 workflows:
   version: 2
@@ -67,4 +62,4 @@ workflows:
             tags:
               only: /.*/
 orbs:
-  prometheus: prometheus/prometheus@0.11.0
+  prometheus: prometheus/prometheus@0.14.0
