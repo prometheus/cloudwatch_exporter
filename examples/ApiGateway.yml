@@ -1,0 +1,51 @@
+region: us-east-1
+metrics:
+- aws_dimensions:
+  - Stage
+  - ApiName
+  aws_metric_name: Count
+  aws_namespace: AWS/ApiGateway
+  aws_statistics:
+  - SampleCount
+- aws_dimensions:
+  - Stage
+  - ApiName
+  aws_metric_name: Latency
+  aws_namespace: AWS/ApiGateway
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - Stage
+  - ApiName
+  aws_metric_name: IntegrationLatency
+  aws_namespace: AWS/ApiGateway
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - Stage
+  - ApiName
+  aws_metric_name: 4XXError
+  aws_namespace: AWS/ApiGateway
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - Stage
+  - ApiName
+  aws_metric_name: 5XXError
+  aws_namespace: AWS/ApiGateway
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - Stage
+  - ApiName
+  aws_metric_name: CacheHitCount
+  aws_namespace: AWS/ApiGateway
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - Stage
+  - ApiName
+  aws_metric_name: CacheMissCount
+  aws_namespace: AWS/ApiGateway
+  aws_statistics:
+  - Sum
