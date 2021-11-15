@@ -1,0 +1,95 @@
+region: us-east-1
+metrics:
+- aws_dimensions:
+  - BucketName
+  - FilterId
+  aws_metric_name: 4xxErrors
+  aws_namespace: AWS/S3
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - BucketName
+  - FilterId
+  aws_metric_name: 5xxErrors
+  aws_namespace: AWS/S3
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - BucketName
+  - FilterId
+  aws_metric_name: AllRequests
+  aws_namespace: AWS/S3
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - BucketName
+  - FilterId
+  aws_metric_name: FirstByteLatency
+  aws_namespace: AWS/S3
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - BucketName
+  - FilterId
+  aws_metric_name: TotalRequestLatency
+  aws_namespace: AWS/S3
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - BucketName
+  - FilterId
+  aws_metric_name: BytesDownloaded
+  aws_namespace: AWS/S3
+  aws_statistics:
+  - Sum
+  - Average
+- aws_dimensions:
+  - BucketName
+  - FilterId
+  aws_metric_name: BytesUploaded
+  aws_namespace: AWS/S3
+  aws_statistics:
+  - Sum
+  - Average
+- aws_dimensions:
+  - BucketName
+  - FilterId
+  aws_metric_name: PutRequests
+  aws_namespace: AWS/S3
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - BucketName
+  - FilterId
+  aws_metric_name: ListRequests
+  aws_namespace: AWS/S3
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - BucketName
+  - FilterId
+  aws_metric_name: HeadRequests
+  aws_namespace: AWS/S3
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - BucketName
+  - FilterId
+  aws_metric_name: GetRequests
+  aws_namespace: AWS/S3
+  aws_statistics:
+  - Sum
+- aws_namespace: AWS/S3
+  aws_metric_name: BucketSizeBytes
+  aws_dimensions: [BucketName, StorageType]
+  aws_statistics: [Average]
+  range_seconds: 172800
+  period_seconds: 86400
+  set_timestamp: false
+- aws_namespace: AWS/S3
+  aws_metric_name: NumberOfObjects
+  aws_dimensions: [BucketName, StorageType]
+  aws_statistics: [Average]
+  range_seconds: 172800
+  period_seconds: 86400
+  set_timestamp: false

@@ -1,0 +1,166 @@
+region: us-east-1
+metrics:
+- aws_dimensions:
+  - AvailabilityZone
+  - LoadBalancerName
+  aws_metric_name: BackendConnectionErrors
+  aws_namespace: AWS/ELB
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - AvailabilityZone
+  - LoadBalancerName
+  aws_metric_name: HTTPCode_Backend_5XX
+  aws_namespace: AWS/ELB
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - AvailabilityZone
+  - LoadBalancerName
+  aws_metric_name: HTTPCode_Backend_4XX
+  aws_namespace: AWS/ELB
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - AvailabilityZone
+  - LoadBalancerName
+  aws_metric_name: HTTPCode_Backend_3XX
+  aws_namespace: AWS/ELB
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - AvailabilityZone
+  - LoadBalancerName
+  aws_metric_name: HTTPCode_Backend_2XX
+  aws_namespace: AWS/ELB
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - LoadBalancerName
+  - AvailabilityZone
+  aws_metric_name: HTTPCode_ELB_5XX
+  aws_namespace: AWS/ELB
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - LoadBalancerName
+  - AvailabilityZone
+  aws_metric_name: RequestCount
+  aws_namespace: AWS/ELB
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - LoadBalancerName
+  - AvailabilityZone
+  aws_metric_name: HTTPCode_ELB_4XX
+  aws_namespace: AWS/ELB
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - AvailabilityZone
+  - LoadBalancerName
+  aws_metric_name: Latency
+  aws_namespace: AWS/ELB
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - LoadBalancerName
+  - AvailabilityZone
+  aws_metric_name: SurgeQueueLength
+  aws_namespace: AWS/ELB
+- aws_dimensions:
+  - LoadBalancer
+  aws_metric_name: ActiveFlowCount
+  aws_namespace: AWS/ELB
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - LoadBalancer
+  aws_metric_name: ActiveFlowCount_TLS
+  aws_namespace: AWS/ELB
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - LoadBalancer
+  aws_metric_name: ProcessedBytes
+  aws_namespace: AWS/ELB
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - LoadBalancer
+  aws_metric_name: ProcessedBytes_TLS
+  aws_namespace: AWS/ELB
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - LoadBalancer
+  aws_metric_name: HealthyHostCount
+  aws_namespace: AWS/ELB
+  aws_statistics:
+  - Minimum
+- aws_dimensions:
+  - LoadBalancer
+  aws_metric_name: HealthyHostCount
+  aws_namespace: AWS/ELB
+  aws_statistics:
+  - Maximum
+- aws_dimensions:
+  - LoadBalancer
+  aws_metric_name: UnHealthyHostCount
+  aws_namespace: AWS/ELB
+  aws_statistics:
+  - Maximum
+- aws_dimensions:
+  - LoadBalancer
+  aws_metric_name: UnHealthyHostCount
+  aws_namespace: AWS/ELB
+  aws_statistics:
+  - Minimum
+- aws_dimensions:
+  - LoadBalancer
+  aws_metric_name: NewFlowCount
+  aws_namespace: AWS/ELB
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - LoadBalancer
+  aws_metric_name: NewFlowCount_TLS
+  aws_namespace: AWS/ELB
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - LoadBalancer
+  aws_metric_name: TCP_Client_Reset_Count
+  aws_namespace: AWS/ELB
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - LoadBalancer
+  aws_metric_name: TCP_Target_Reset_Count
+  aws_namespace: AWS/ELB
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - LoadBalancer
+  aws_metric_name: TCP_ELB_Reset_Count
+  aws_namespace: AWS/ELB
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - LoadBalancer
+  aws_metric_name: ClientTLSNegotiationErrorCount
+  aws_namespace: AWS/ELB
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - LoadBalancer
+  aws_metric_name: TargetTLSNegotiationErrorCount
+  aws_namespace: AWS/ELB
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - LoadBalancer
+  aws_metric_name: ConsumedLCUs
+  aws_namespace: AWS/ELB
+  aws_statistics:
+  - Sum

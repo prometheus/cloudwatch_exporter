@@ -1,0 +1,158 @@
+region: us-east-1
+metrics:
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: HealthyHostCount
+  aws_dimensions:
+  - LoadBalancer
+  aws_statistics:
+  - Sum
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: UnHealthyHostCount
+  aws_dimensions:
+  - LoadBalancer
+  aws_statistics:
+  - Sum
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: RequestCount
+  aws_dimensions:
+  - LoadBalancer
+  aws_statistics:
+  - Average
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: TargetResponseTime
+  aws_dimensions:
+  - LoadBalancer
+  aws_statistics:
+  - Average
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: TargetResponseTime
+  aws_dimensions:
+  - LoadBalancer
+  aws_statistics:
+  - Average
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: ActiveConnectionCount
+  aws_dimensions:
+  - LoadBalancer
+  aws_statistics:
+  - Sum
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: NewConnectionCount
+  aws_dimensions:
+  - LoadBalancer
+  aws_statistics:
+  - Sum
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: RejectedConnectionCount
+  aws_dimensions:
+  - LoadBalancer
+  aws_statistics:
+  - Sum
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: TargetConnectionErrorCount
+  aws_dimensions:
+  - LoadBalancer
+  aws_statistics:
+  - Sum
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: RequestCount
+  aws_dimensions:
+  - LoadBalancer
+  aws_statistics:
+  - Sum
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: IPv6RequestCount
+  aws_dimensions:
+  - LoadBalancer
+  aws_statistics:
+  - Sum
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: RequestCountPerTarget
+  aws_dimensions:
+  - LoadBalancer
+  aws_statistics:
+  - Sum
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: NonStickyRequestCount
+  aws_dimensions:
+  - LoadBalancer
+  aws_statistics:
+  - Sum
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: HTTPCode_Target_2XX_Count
+  aws_dimensions:
+  - LoadBalancer
+  aws_statistics:
+  - Sum
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: HTTPCode_Target_3XX_Count
+  aws_dimensions:
+  - LoadBalancer
+  aws_statistics:
+  - Sum
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: HTTPCode_Target_4XX_Count
+  aws_dimensions:
+  - LoadBalancer
+  aws_statistics:
+  - Sum
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: HTTPCode_Target_5XX_Count
+  aws_dimensions:
+  - LoadBalancer
+  aws_statistics:
+  - Sum
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: HTTPCode_ELB_3XX_Count
+  aws_dimensions:
+  - LoadBalancer
+  aws_statistics:
+  - Sum
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: HTTPCode_ELB_4XX_Count
+  aws_dimensions:
+  - LoadBalancer
+  aws_statistics:
+  - Sum
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: HTTPCode_ELB_5XX_Count
+  aws_dimensions:
+  - LoadBalancer
+  aws_statistics:
+  - Sum
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: ProcessedBytes
+  aws_dimensions:
+  - LoadBalancer
+  aws_statistics:
+  - Sum
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: IPv6ProcessedBytes
+  aws_dimensions:
+  - LoadBalancer
+  aws_statistics:
+  - Sum
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: ConsumedLCUs
+  aws_dimensions:
+  - LoadBalancer
+  aws_statistics:
+  - Sum
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: ClientTLSNegotiationErrorCount
+  aws_dimensions:
+  - LoadBalancer
+  aws_statistics:
+  - Sum
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: TargetTLSNegotiationErrorCount
+  aws_dimensions:
+  - LoadBalancer
+  aws_statistics:
+  - Sum
+- aws_namespace: AWS/ApplicationELB
+  aws_metric_name: RuleEvaluations
+  aws_dimensions:
+  - LoadBalancer
+  aws_statistics:
+  - Sum

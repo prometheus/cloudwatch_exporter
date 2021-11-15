@@ -1,0 +1,21 @@
+region: us-east-1
+metrics:
+- aws_dimensions:
+  - QueryState
+  - QueryType
+  aws_metric_name: ProcessedBytes
+  aws_namespace: AWS/Athena
+  aws_statistics:
+  - Maximum
+- aws_dimensions:
+  - QueryState
+  - QueryType
+  aws_metric_name: TotalExecutionTime
+  aws_namespace: AWS/Athena
+  aws_statistics:
+  - Maximum
+- aws_dimensions:
+  - QueryType
+  - QueryState
+  aws_metric_name: Total
+  aws_namespace: AWS/Athena

@@ -1,0 +1,16 @@
+region: us-east-1
+metrics:
+- aws_dimensions:
+  - ClusterName
+  - ServiceName
+  aws_metric_name: CPUUtilization
+  aws_namespace: AWS/Fargate
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - ClusterName
+  - ServiceName
+  aws_metric_name: MemoryUtilization
+  aws_namespace: AWS/Fargate
+  aws_statistics:
+  - Average

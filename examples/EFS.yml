@@ -1,0 +1,38 @@
+region: us-east-1
+metrics:
+- aws_dimensions:
+  - FileSystemId
+  aws_metric_name: ClientConnections
+  aws_namespace: AWS/EFS
+  aws_statistics:
+  - Maximum
+- aws_dimensions:
+  - FileSystemId
+  aws_metric_name: DataWriteIOBytes
+  aws_namespace: AWS/EFS
+  aws_statistics:
+  - Maximum
+- aws_dimensions:
+  - FileSystemId
+  aws_metric_name: DataReadIOBytes
+  aws_namespace: AWS/EFS
+  aws_statistics:
+  - Maximum
+- aws_dimensions:
+  - FileSystemId
+  aws_metric_name: PermittedThroughput
+  aws_namespace: AWS/EFS
+  aws_statistics:
+  - Maximum
+- aws_dimensions:
+  - FileSystemId
+  aws_metric_name: BurstCreditBalance
+  aws_namespace: AWS/EFS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - FileSystemId
+  aws_metric_name: PercentIOLimit
+  aws_namespace: AWS/EFS
+  aws_statistics:
+  - Average
