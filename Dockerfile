@@ -1,11 +1,11 @@
-FROM openjdk:11 as builder
+FROM openjdk:17 as builder
 
 WORKDIR /cloudwatch_exporter
 ADD . /cloudwatch_exporter
 RUN apt-get update -qq && apt-get install -qq maven && mvn package && \
     mv target/cloudwatch_exporter-*-with-dependencies.jar /cloudwatch_exporter.jar
 
-FROM openjdk:11-jre-slim as runner
+FROM openjdk:17-jre-slim as runner
 LABEL maintainer="The Prometheus Authors <prometheus-developers@googlegroups.com>"
 EXPOSE 9106
 
