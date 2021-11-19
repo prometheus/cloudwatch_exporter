@@ -43,7 +43,8 @@ jobs:
             docker run --rm --privileged tonistiigi/binfmt:latest --install "$BUILDX_PLATFORMS"
       - run: docker login -u $QUAY_LOGIN -p $QUAY_PASSWORD quay.io
       - run: |
-          docker buildx create --use
+          docker context create ctx
+          docker buildx create ctx --name builder --use
           if [[ -n "$CIRCLE_TAG" ]]; then
             docker buildx build \
               --platform "$BUILDX_PLATFORMS" \
