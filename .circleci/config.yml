@@ -14,7 +14,7 @@ jobs:
             - ~/.m2
           key: circleci-demo-java-spring-{{ checksum "pom.xml" }}
       - run: mvn package
-  publish_image_to_quay:
+  image:
     docker:
       - image: circleci/openjdk:17-jdk-buster
     environment:
@@ -41,19 +41,27 @@ jobs:
             docker buildx install
             # Run binfmt
             docker run --rm --privileged tonistiigi/binfmt:latest --install "$BUILDX_PLATFORMS"
+      - run: docker context create buildx
+      - run: docker buildx create --name buildx --use buildx
       - run: docker login -u $QUAY_LOGIN -p $QUAY_PASSWORD quay.io
       - run: |
-          docker buildx create --use
-          if [[ -n "$CIRCLE_TAG" ]]; then
-            docker buildx build \
-              --platform "$BUILDX_PLATFORMS" \
-              -t quay.io/prometheus/cloudwatch-exporter:"${CIRCLE_TAG}" \
-              -t quay.io/prometheus/cloudwatch-exporter:latest --push .
-          else
-            docker buildx build \
-              --platform "$BUILDX_PLATFORMS" \
-              -t quay.io/prometheus/cloudwatch-exporter:latest --push .
+          tags=()
+          push=()
+          if [[ "${CIRCLE_BRANCH}" == "master" ]]; then
+            tags+=(latest)
+            push+=(--push)
+
+            if [[ -n "$CIRCLE_TAG" ]]; then
+              tags+=("${CIRCLE_TAG}")
+            fi
           fi
+
+          set -x
+          docker buildx build \
+            --progress plain \
+            --platform "$BUILDX_PLATFORMS" \
+            "${tags[@]/#/--tag=quay.io/prometheus/cloudwatch-exporter:}" \
+            "${push[@]}" .
       - run: docker images
 workflows:
   version: 2
@@ -63,13 +71,11 @@ workflows:
           filters:
             tags:
               only: /.*/
-      - publish_image_to_quay:
+      - image:
           context: org-context
           requires:
             - build
           filters:
-            branches:
-              only: master
             tags:
               only: /.*/
 orbs:
