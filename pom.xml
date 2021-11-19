@@ -148,12 +148,13 @@
       <plugin>
           <artifactId>maven-release-plugin</artifactId>
           <groupId>org.apache.maven.plugins</groupId>
-          <version>2.5</version>
+          <version>3.0.0-M4</version>
           <configuration>
             <autoVersionSubmodules>true</autoVersionSubmodules>
             <useReleaseProfile>false</useReleaseProfile>
             <releaseProfiles>release</releaseProfiles>
             <goals>deploy</goals>
+            <tagNameFormat>v@{project.version}</tagNameFormat>
           </configuration>
       </plugin>
       <plugin>
