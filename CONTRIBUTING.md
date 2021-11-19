@@ -13,4 +13,4 @@ Prometheus uses GitHub to manage reviews of pull requests.
 
 # Releasing
 
-For release instructions, see the [`java_client` wiki](https://github.com/prometheus/client_java/wiki/Development).
+For release instructions, see [RELEASING](RELEASING.md).
