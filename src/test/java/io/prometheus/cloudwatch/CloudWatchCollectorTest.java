@@ -1,8 +1,11 @@
 package io.prometheus.cloudwatch;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.argThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.hamcrest.MockitoHamcrest.argThat;
+
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
 
 import io.prometheus.client.Collector;
 import io.prometheus.client.CollectorRegistry;
@@ -12,7 +15,6 @@ import static org.junit.Assert.assertNull;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
 
 import java.util.ArrayList;
@@ -44,8 +46,8 @@ public class CloudWatchCollectorTest {
     taggingClient = Mockito.mock(ResourceGroupsTaggingApiClient.class);
     registry = new CollectorRegistry();
   }
-  
-  class ListMetricsRequestMatcher extends ArgumentMatcher {
+
+  class ListMetricsRequestMatcher extends BaseMatcher<ListMetricsRequest> {
     String namespace;
     String metricName;
     String nextToken;
@@ -75,7 +77,7 @@ public class CloudWatchCollectorTest {
       this.recentlyActive = recentlyActive;
       return this;
     }
-    
+
     public boolean matches(Object o) {
      ListMetricsRequest request = (ListMetricsRequest) o;
      if (request == null) return false;
@@ -99,9 +101,13 @@ public class CloudWatchCollectorTest {
      }
      return true;
     }
+
+    public void describeTo(Description description) {
+        description.appendText("list metrics request");
+    }
   }
 
-  class GetMetricStatisticsRequestMatcher extends ArgumentMatcher {
+  class GetMetricStatisticsRequestMatcher extends BaseMatcher<GetMetricStatisticsRequest> {
     String namespace;
     String metricName;
     List<Dimension> dimensions = new ArrayList<Dimension>();
@@ -141,9 +147,13 @@ public class CloudWatchCollectorTest {
      }
      return true;
     }
+
+    public void describeTo(Description description) {
+      description.appendText("get metrics statistics request");
+    }
   }
 
-  class GetResourcesRequestMatcher extends ArgumentMatcher {
+  class GetResourcesRequestMatcher extends BaseMatcher<GetResourcesRequest> {
     String paginationToken = "";
     List<String> resourceTypeFilters = new ArrayList<String>();
     List<TagFilter> tagFilters = new ArrayList<TagFilter>();
@@ -160,7 +170,7 @@ public class CloudWatchCollectorTest {
       tagFilters.add(TagFilter.builder().key(key).values(values).build());
       return this;
     }
-    
+
     public boolean matches(Object o) {
      GetResourcesRequest request = (GetResourcesRequest) o;
      if (request == null) return false;
@@ -178,20 +188,24 @@ public class CloudWatchCollectorTest {
      }
      return true;
     }
+
+    public void describeTo(Description description) {
+      description.appendText("get resources request");
+    }
   }
-  
+
   @Test
   public void testMetricPeriod() {
     new CloudWatchCollector(
             "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  period_seconds: 100\n  range_seconds: 200\n  delay_seconds: 300", cloudWatchClient, taggingClient).register(registry);
 
-    Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest) anyObject()))
+    Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest) any()))
             .thenReturn(GetMetricStatisticsResponse.builder().build());
 
     registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance"}, new String[]{"aws_elb", ""});
 
 
-    Mockito.verify(cloudWatchClient).getMetricStatistics((GetMetricStatisticsRequest) argThat(
+    Mockito.verify(cloudWatchClient).getMetricStatistics(argThat(
             new GetMetricStatisticsRequestMatcher()
                     .Namespace("AWS/ELB")
                     .MetricName("RequestCount")
@@ -204,7 +218,7 @@ public class CloudWatchCollectorTest {
     new CloudWatchCollector(
                     "---\nregion: reg\nperiod_seconds: 100\nrange_seconds: 200\ndelay_seconds: 300\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount", cloudWatchClient, taggingClient).register(registry);
 
-    Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest) anyObject()))
+    Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest) any()))
             .thenReturn(GetMetricStatisticsResponse.builder().build());
 
     registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance"}, new String[]{"aws_elb", ""});
