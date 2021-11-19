@@ -1,0 +1,50 @@
+region: us-east-1
+metrics:
+- aws_dimensions:
+  - QueueName
+  aws_metric_name: NumberOfMessagesSent
+  aws_namespace: AWS/SQS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - QueueName
+  aws_metric_name: NumberOfMessagesReceived
+  aws_namespace: AWS/SQS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - QueueName
+  aws_metric_name: NumberOfEmptyReceives
+  aws_namespace: AWS/SQS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - QueueName
+  aws_metric_name: NumberOfMessagesDeleted
+  aws_namespace: AWS/SQS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - QueueName
+  aws_metric_name: ApproximateNumberOfMessagesDelayed
+  aws_namespace: AWS/SQS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - QueueName
+  aws_metric_name: ApproximateAgeOfOldestMessage
+  aws_namespace: AWS/SQS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - QueueName
+  aws_metric_name: ApproximateNumberOfMessagesNotVisible
+  aws_namespace: AWS/SQS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - QueueName
+  aws_metric_name: ApproximateNumberOfMessagesVisible
+  aws_namespace: AWS/SQS
+  aws_statistics:
+  - Average

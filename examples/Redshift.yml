@@ -1,0 +1,84 @@
+region: us-east-1
+metrics:
+- aws_dimensions:
+  - ClusterIdentifier
+  aws_metric_name: HealthStatus
+  aws_namespace: AWS/Redshift
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - ClusterIdentifier
+  aws_metric_name: CPUUtilization
+  aws_namespace: AWS/Redshift
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - ClusterIdentifier
+  aws_metric_name: DatabaseConnections
+  aws_namespace: AWS/Redshift
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - ClusterIdentifier
+  aws_metric_name: MaintenanceMode
+  aws_namespace: AWS/Redshift
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - ClusterIdentifier
+  aws_metric_name: NetworkReceiveThroughput$AVG
+  aws_namespace: AWS/Redshift
+- aws_dimensions:
+  - ClusterIdentifier
+  aws_metric_name: NetworkTransmitThroughput
+  aws_namespace: AWS/Redshift
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - ClusterIdentifier
+  aws_metric_name: ReadIOPS
+  aws_namespace: AWS/Redshift
+  aws_statistics:
+  - Maximum
+- aws_dimensions:
+  - ClusterIdentifier
+  aws_metric_name: WriteIOPS
+  aws_namespace: AWS/Redshift
+  aws_statistics:
+  - Maximum
+- aws_dimensions:
+  - ClusterIdentifier
+  aws_metric_name: ReadLatency
+  aws_namespace: AWS/Redshift
+  aws_statistics:
+  - Maximum
+- aws_dimensions:
+  - ClusterIdentifier
+  aws_metric_name: WriteLatency
+  aws_namespace: AWS/Redshift
+  aws_statistics:
+  - Maximum
+- aws_dimensions:
+  - ClusterIdentifier
+  aws_metric_name: ReadThroughput
+  aws_namespace: AWS/Redshift
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - ClusterIdentifier
+  aws_metric_name: WriteThroughput
+  aws_namespace: AWS/Redshift
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - ClusterIdentifier
+  aws_metric_name: QueryDuration
+  aws_namespace: AWS/Redshift
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - ClusterIdentifier
+  aws_metric_name: QueriesCompletedPerSecond
+  aws_namespace: AWS/Redshift
+  aws_statistics:
+  - Average

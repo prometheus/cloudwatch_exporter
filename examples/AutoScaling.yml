@@ -1,0 +1,50 @@
+region: us-east-1
+metrics:
+- aws_dimensions:
+  - AutoScalingGroupName
+  aws_metric_name: GroupTotalInstances
+  aws_namespace: AWS/AutoScaling
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - AutoScalingGroupName
+  aws_metric_name: GroupMaxSize
+  aws_namespace: AWS/AutoScaling
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - AutoScalingGroupName
+  aws_metric_name: GroupMinSize
+  aws_namespace: AWS/AutoScaling
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - AutoScalingGroupName
+  aws_metric_name: GroupTerminatingInstances
+  aws_namespace: AWS/AutoScaling
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - AutoScalingGroupName
+  aws_metric_name: GroupPendingInstances
+  aws_namespace: AWS/AutoScaling
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - AutoScalingGroupName
+  aws_metric_name: GroupStandbyInstances
+  aws_namespace: AWS/AutoScaling
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - AutoScalingGroupName
+  aws_metric_name: GroupDesiredCapacity
+  aws_namespace: AWS/AutoScaling
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - AutoScalingGroupName
+  aws_metric_name: GroupInServiceInstances
+  aws_namespace: AWS/AutoScaling
+  aws_statistics:
+  - Average

@@ -3,7 +3,7 @@
 
   <groupId>io.prometheus.cloudwatch</groupId>
   <artifactId>cloudwatch_exporter</artifactId>
-  <version>0.11.1-SNAPSHOT</version>
+  <version>0.12.1-SNAPSHOT</version>
   <description>
     An exporter for AWS CloudWatch metrics, for use with Prometheus.
   </description>

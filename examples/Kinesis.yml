@@ -1,0 +1,68 @@
+region: us-east-1
+metrics:
+- aws_dimensions:
+  - StreamName 
+  aws_metric_name: IncomingBytes
+  aws_namespace: AWS/Kinesis
+  aws_statistics: 
+  - Sum
+- aws_dimensions:
+  - StreamName
+  aws_metric_name: PutRecord.Latency
+  aws_namespace: AWS/Kinesis
+  aws_statistics: 
+  - Average
+- aws_dimensions:
+  - StreamName
+  aws_metric_name: PutRecords.Latency
+  aws_namespace: AWS/Kinesis
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - StreamName
+  aws_metric_name: GetRecords.Latency
+  aws_namespace: AWS/Kinesis
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - StreamName
+  aws_metric_name: GetRecords.Records
+  aws_namespace: AWS/Kinesis
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - StreamName
+  aws_metric_name: GetRecords.Bytes
+  aws_namespace: AWS/Kinesis
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - StreamName
+  aws_metric_name: GetRecords.IteratorAgeMilliseconds
+  aws_namespace: AWS/Kinesis
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - StreamName
+  aws_metric_name: IncomingRecords
+  aws_namespace: AWS/Kinesis
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - StreamName
+  aws_metric_name: IncomingBytes
+  aws_namespace: AWS/Kinesis
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - StreamName
+  aws_metric_name: WriteProvisionedThroughputExceeded
+  aws_namespace: AWS/Kinesis
+  aws_statistics:
+  - Average 
+- aws_dimensions:
+  - StreamName
+  aws_metric_name: ReadProvisionedThroughputExceeded  
+  aws_namespace: AWS/Kinesis
+  aws_statistics:
+  - Average

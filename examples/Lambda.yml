@@ -1,0 +1,58 @@
+region: us-east-1
+metrics:
+- aws_dimensions:
+  - FunctionName
+  - Resource
+  aws_metric_name: Invocations
+  aws_namespace: AWS/Lambda
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - FunctionName
+  - Resource
+  aws_metric_name: Errors
+  aws_namespace: AWS/Lambda
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - FunctionName
+  - Resource
+  aws_metric_name: Duration
+  aws_namespace: AWS/Lambda
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - FunctionName
+  - Resource
+  aws_metric_name: Duration
+  aws_namespace: AWS/Lambda
+  aws_statistics:
+  - Maximum
+- aws_dimensions:
+  - FunctionName
+  - Resource
+  aws_metric_name: Duration
+  aws_namespace: AWS/Lambda
+  aws_statistics:
+  - Minimum
+- aws_dimensions:
+  - FunctionName
+  - Resource
+  aws_metric_name: Throttles
+  aws_namespace: AWS/Lambda
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - FunctionName
+  - Resource
+  aws_metric_name: ConcurrentExecutions
+  aws_namespace: AWS/Lambda
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - FunctionName
+  - Resource
+  aws_metric_name: UnreservedConcurrentExecutions
+  aws_namespace: AWS/Lambda
+  aws_statistics:
+  - Sum

@@ -55,7 +55,7 @@ metrics:
      resource_id_dimension: LoadBalancerName
    aws_statistics: [Sum]
 ```
-
+**Note:** configuration examples for different namespaces can be found in [examples](./examples) directory
 
 Name     | Description
 ---------|------------

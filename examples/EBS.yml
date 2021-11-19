@@ -1,0 +1,86 @@
+region: us-east-1
+metrics:
+- aws_dimensions:
+  - VolumeId
+  aws_metric_name: VolumeWriteBytes
+  aws_namespace: AWS/EBS
+  aws_statistics:
+  - Maximum
+- aws_dimensions:
+  - VolumeId
+  aws_metric_name: VolumeReadBytes
+  aws_namespace: AWS/EBS
+  aws_statistics:
+  - Maximum
+- aws_dimensions:
+  - VolumeId
+  aws_metric_name: VolumeReadOps
+  aws_namespace: AWS/EBS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - VolumeId
+  aws_metric_name: VolumeWriteOps
+  aws_namespace: AWS/EBS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - VolumeId
+  aws_metric_name: VolumeTotalReadTime
+  aws_namespace: AWS/EBS
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - VolumeId
+  aws_metric_name: VolumeTotalWriteTime
+  aws_namespace: AWS/EBS
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - VolumeId
+  aws_metric_name: VolumeQueueLength
+  aws_namespace: AWS/EBS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - VolumeId
+  aws_metric_name: BurstBalance
+  aws_namespace: AWS/EBS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - VolumeId
+  aws_metric_name: VolumeIdleTime
+  aws_namespace: AWS/EBS
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - VolumeId
+  aws_metric_name: VolumeReadOps
+  aws_namespace: AWS/EBS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - VolumeId
+  aws_metric_name: VolumeReadBytes
+  aws_namespace: AWS/EBS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - VolumeId
+  aws_metric_name: VolumeWriteBytes
+  aws_namespace: AWS/EBS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - VolumeId
+  aws_metric_name: VolumeTotalReadTime
+  aws_namespace: AWS/EBS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - VolumeId
+  aws_metric_name: VolumeTotalWriteTime
+  aws_namespace: AWS/EBS
+  aws_statistics:
+  - Average
