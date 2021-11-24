@@ -1,0 +1,83 @@
+region: us-east-1
+metrics:
+- aws_dimensions:
+  - InstanceId
+  aws_metric_name: CPUUtilization
+  aws_namespace: AWS/EC2
+  aws_statistics:
+  - Average
+  aws_tag_select:
+    resource_type_selection: ec2:instance
+    resource_id_dimension: InstanceId
+- aws_dimensions:
+  - InstanceId
+  aws_metric_name: NetworkIn
+  aws_namespace: AWS/EC2
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - InstanceId
+  aws_metric_name: NetworkOut
+  aws_namespace: AWS/EC2
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - InstanceId
+  aws_metric_name: NetworkPacketsIn
+  aws_namespace: AWS/EC2
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - InstanceId
+  aws_metric_name: NetworkPacketsOut
+  aws_namespace: AWS/EC2
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - InstanceId
+  aws_metric_name: DiskWriteBytes
+  aws_namespace: AWS/EC2
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - InstanceId
+  aws_metric_name: DiskReadBytes
+  aws_namespace: AWS/EC2
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - InstanceId
+  aws_metric_name: CPUCreditBalance
+  aws_namespace: AWS/EC2
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - InstanceId
+  aws_metric_name: CPUCreditUsage
+  aws_namespace: AWS/EC2
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - InstanceId
+  aws_metric_name: CPUCreditUsage
+  aws_namespace: AWS/EC2
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - InstanceId
+  aws_metric_name: StatusCheckFailed
+  aws_namespace: AWS/EC2
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - InstanceId
+  aws_metric_name: StatusCheckFailed_Instance
+  aws_namespace: AWS/EC2
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - InstanceId
+  aws_metric_name: StatusCheckFailed_System
+  aws_namespace: AWS/EC2
+  aws_statistics:
+  - Sum

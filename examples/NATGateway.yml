@@ -1,0 +1,80 @@
+region: us-east-1
+metrics:
+- aws_dimensions:
+  - NatGatewayId
+  aws_metric_name: ActiveConnectionCount
+  aws_namespace: AWS/NATGateway
+  aws_statistics:
+  - Max
+- aws_dimensions:
+  - NatGatewayId
+  aws_metric_name: BytesInFromDestination
+  aws_namespace: AWS/NATGateway
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - NatGatewayId
+  aws_metric_name: BytesInFromSource
+  aws_namespace: AWS/NATGateway
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - NatGatewayId
+  aws_metric_name: BytesOutToDestination
+  aws_namespace: AWS/NATGateway
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - NatGatewayId
+  aws_metric_name: BytesOutToSource
+  aws_namespace: AWS/NATGateway
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - NatGatewayId
+  aws_metric_name: ConnectionAttemptCount
+  aws_namespace: AWS/NATGateway
+  aws_statistics:
+  - Sum
+  - aws_dimensions:
+  - NatGatewayId
+  aws_metric_name: ConnectionEstablishedCount
+  aws_namespace: AWS/NATGateway
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - NatGatewayId
+  aws_metric_name: IdleTimeoutCount
+  aws_namespace: AWS/NATGateway
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - NatGatewayId
+  aws_metric_name: PacketsDropCount
+  aws_namespace: AWS/NATGateway
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - NatGatewayId
+  aws_metric_name: PacketsInFromDestination
+  aws_namespace: AWS/NATGateway
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - NatGatewayId
+  aws_metric_name: PacketsInFromSource
+  aws_namespace: AWS/NATGateway
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - NatGatewayId
+  aws_metric_name: PacketsOutToDestination
+  aws_namespace: AWS/NATGateway
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - NatGatewayId
+  aws_metric_name: PacketsOutToSource
+  aws_namespace: AWS/NATGateway
+  aws_statistics:
+  - Sum

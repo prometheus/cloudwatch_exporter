@@ -1,0 +1,38 @@
+region: us-east-1
+metrics:
+- aws_dimensions:
+  - HealthCheckId
+  aws_metric_name: TimeToFirstByte
+  aws_namespace: AWS/Route53
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - HealthCheckId
+  aws_metric_name: HealthCheckPercentageHealthy
+  aws_namespace: AWS/Route53
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - HealthCheckId
+  aws_metric_name: HealthCheckStatus
+  aws_namespace: AWS/Route53
+  aws_statistics:
+  - Minimum
+- aws_dimensions:
+  - HealthCheckId
+  aws_metric_name: ChildHealthCheckHealthyCount
+  aws_namespace: AWS/Route53
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - HealthCheckId
+  aws_metric_name: ConnectionTime
+  aws_namespace: AWS/Route53
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - HealthCheckId
+  aws_metric_name: SSLHandshakeTime
+  aws_namespace: AWS/Route53
+  aws_statistics:
+  - Average
