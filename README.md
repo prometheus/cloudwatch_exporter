@@ -1,7 +1,13 @@
 CloudWatch Exporter
 =====
 
-An exporter for [Amazon CloudWatch](http://aws.amazon.com/cloudwatch/), for Prometheus. For ECS-specifc workloads, there's also an [ECS exporter](https://github.com/prometheus-community/ecs_exporter).
+A Prometheus exporter for [Amazon CloudWatch](http://aws.amazon.com/cloudwatch/).
+
+## Alternatives
+
+For ECS workloads, there is also an [ECS exporter](https://github.com/prometheus-community/ecs_exporter).
+
+For a different approach to CloudWatch metrics, with automatic discovery, consider [Yet Another CloudWatch Exporter (YACE)](https://github.com/nerdswords/yet-another-cloudwatch-exporter).
 
 ## Building and running
 
