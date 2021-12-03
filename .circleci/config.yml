@@ -44,7 +44,7 @@ jobs:
       - run: docker context create buildx
       - run: docker buildx create --name buildx --use buildx
       - run: docker login -u "$QUAY_LOGIN" -p "$QUAY_PASSWORD" quay.io
-      - run: docker login -u "$DOCKER_LOGIN" -p "DOCKER_PASSWORD"
+      - run: docker login -u "$DOCKER_LOGIN" -p "$DOCKER_PASSWORD"
       - run: |
           tags=(master main)
           if [[ -n "$CIRCLE_TAG" ]]; then
