@@ -73,7 +73,10 @@ mvn release:perform
 
 This will upload everything to OSSRH into a **staging repository**.
 [Locate it](https://central.sonatype.org/publish/release/#locate-and-examine-your-staging-repository).
-Press "Close" to promote it.
+
+Download the artifacts (4 JAR files).
+
+Press "Close" to promote the release.
 
 The staging repository will show "Activity: Operation in progress" for a few seconds.
 Refresh or check the Activity tab to see what's going on.
@@ -88,3 +91,35 @@ It can take a few hours to show up.
 
 As part of the release process, `mvn` will create the git tag.
 This tag is picked up by [CircleCI](https://app.circleci.com/pipelines/github/prometheus/cloudwatch_exporter?branch=master), which builds and pushes the [Docker images](README.md#docker-images).
+
+## GitHub Release
+
+Create a [new GitHub release](https://github.com/prometheus/cloudwatch_exporter/releases/new).
+Select the tag for this version that Maven pushed.
+
+Use the format `A.B.C / YYYY-MM-DD` as the release title.
+Summarize the changes.
+
+Sign the artifacts:
+
+```bash
+for jar in cloudwatch_exporter*.jar; do
+  gpg --sign --armor --detach-sign "$jar"
+done
+```
+
+or using [fish](https://fishshell.com/):
+
+```fish
+for jar in cloudwatch_exporter*.jar
+  gpg --sign --armor --detach-sign "$jar"
+end
+```
+
+Upload the `.jar` and `.asc` files to the GitHub release.
+
+Publish the release.
+
+## Announcement
+
+Announce the changes to [prometheus-announce](mailto:prometheus-announce@groups.google.com), linking to OSSRH and the GitHub release.
