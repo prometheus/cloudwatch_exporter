@@ -5,7 +5,7 @@ The process is based on the [`java_client` release process](https://github.com/p
 
 ## Requirements
 
-* JDK 11
+* JDK 17
 * Maven
 * GPG
 
