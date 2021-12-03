@@ -185,26 +185,36 @@ requests (as of Aug 2018), that is around $45 per month. The
 When using the `aws_tag_select` feature, additional requests are made to the Resource Groups Tagging API, but these are [free](https://aws.amazon.com/blogs/aws/new-aws-resource-tagging-api/).
 The `tagging_api_requests_total` counter tracks how many requests are being made for these.
 
-## Docker Image
+## Docker Images
 
-To run the CloudWatch exporter on Docker, you can use the [prom/cloudwatch-exporter](https://hub.docker.com/r/prom/cloudwatch-exporter/)
-image. It exposes port 9106 and expects the config in `/config/config.yml`. To
-configure it, you can bind-mount a config from your host:
+To run the CloudWatch exporter on Docker, you can use the image from
 
-```
-$ docker run -p 9106 -v /path/on/host/config.yml:/config/config.yml prom/cloudwatch-exporter
+* [prom/cloudwatch-exporter](https://hub.docker.com/r/prom/cloudwatch-exporter/)
+* [quay.io/prometheus/cloudwatch-exporter](https://quay.io/repository/prometheus/cloudwatch-exporter)
+
+The available tags are
+
+* `main`: snapshot updated on every push to the main branch
+* `latest`: the latest released version
+* `vX.Y.Z`: the specific version X.Y.Z. Note that up to version 0.11.0, the format was `cloudwatch-exporter_X.Y.Z`.
+
+The image exposes port 9106 and expects the config in `/config/config.yml`.
+To configure it, you can bind-mount a config from your host:
+
+```sh
+docker run -p 9106 -v /path/on/host/config.yml:/config/config.yml quay.io/prometheus/cloudwatch-exporter
 ```
 
 Specify the config as the CMD:
 
-```
-$ docker run -p 9106 -v /path/on/host/us-west-1.yml:/config/us-west-1.yml prom/cloudwatch-exporter /config/us-west-1.yml
+```sh
+docker run -p 9106 -v /path/on/host/us-west-1.yml:/config/us-west-1.yml quay.io/prometheus/cloudwatch-exporter /config/us-west-1.yml
 ```
 
 Or create a config file named `config.yml` along with following
 Dockerfile in the same directory and build it with `docker build`:
 
-```
+```Dockerfile
 FROM prom/cloudwatch-exporter
 ADD config.yml /config/
 ```
