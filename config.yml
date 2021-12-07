@@ -219,6 +219,14 @@ metrics:
       DomainName: ["${ES_DOMAIN_NAME_REGEX}"]
       ClientId: ["${ES_DOMAIN_CLIENT_ID}"]
 
+  - aws_namespace: AWS/ES
+    aws_metric_name: JVMMemoryPressure
+    aws_dimensions: [DomainName, ClientId]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      DomainName: ["${ES_DOMAIN_NAME_REGEX}"]
+      ClientId: ["${ES_DOMAIN_CLIENT_ID}"]
+
   - aws_namespace: AWS/Lambda
     aws_metric_name: Invocations
     aws_dimensions: [FunctionName]
@@ -245,6 +253,22 @@ metrics:
 
   - aws_namespace: AWS/Lambda
     aws_metric_name: ConcurrentExecutions
+    aws_dimensions: [FunctionName]
+
+  - aws_namespace: AWS/LambdaInsights
+    aws_metric_name: cpu_total_time
+    aws_dimensions: [FunctionName]
+
+  - aws_namespace: AWS/LambdaInsights
+    aws_metric_name: memory_utilization
+    aws_dimensions: [FunctionName]
+
+  - aws_namespace: AWS/LambdaInsights
+    aws_metric_name: rx_bytes
+    aws_dimensions: [FunctionName]
+
+  - aws_namespace: AWS/LambdaInsights
+    aws_metric_name: tx_bytes
     aws_dimensions: [FunctionName]
 
   - aws_namespace: AWS/RDS
@@ -281,42 +305,42 @@ metrics:
     aws_statistics: [Average]
     aws_dimension_select_regex:
       DBInstanceIdentifier: ["${RDS_DB_INSTANCES_REGEX}"]
-      
+
   - aws_namespace: AWS/RDS
     aws_metric_name: WriteIOPS
     aws_dimensions: [DBInstanceIdentifier]
     aws_statistics: [Average]
     aws_dimension_select_regex:
       DBInstanceIdentifier: ["${RDS_DB_INSTANCES_REGEX}"]
-      
+
   - aws_namespace: AWS/RDS
     aws_metric_name: ReadIOPS
     aws_dimensions: [DBInstanceIdentifier]
     aws_statistics: [Average]
     aws_dimension_select_regex:
       DBInstanceIdentifier: ["${RDS_DB_INSTANCES_REGEX}"]
-      
+
   - aws_namespace: AWS/RDS
     aws_metric_name: DBLoad
     aws_dimensions: [DBInstanceIdentifier]
     aws_statistics: [Average]
     aws_dimension_select_regex:
-      DBInstanceIdentifier: ['${RDS_DB_INSTANCES_REGEX}']
+      DBInstanceIdentifier: ["${RDS_DB_INSTANCES_REGEX}"]
 
   - aws_namespace: AWS/RDS
     aws_metric_name: DBLoadCPU
     aws_dimensions: [DBInstanceIdentifier]
     aws_statistics: [Average]
     aws_dimension_select_regex:
-      DBInstanceIdentifier: ['${RDS_DB_INSTANCES_REGEX}']
+      DBInstanceIdentifier: ["${RDS_DB_INSTANCES_REGEX}"]
 
   - aws_namespace: AWS/RDS
     aws_metric_name: DBLoadNonCPU
     aws_dimensions: [DBInstanceIdentifier]
     aws_statistics: [Average]
     aws_dimension_select_regex:
-      DBInstanceIdentifier: ['${RDS_DB_INSTANCES_REGEX}']
-  
+      DBInstanceIdentifier: ["${RDS_DB_INSTANCES_REGEX}"]
+
   - aws_namespace: RDS
     aws_metric_name: DBInstanceStatus
     aws_dimensions: [DBName]
@@ -327,14 +351,14 @@ metrics:
     aws_statistics: [Average]
     aws_dimension_select_regex:
       ReplicationInstanceIdentifier: ["${DMS_REPL_INSTANCES_REGEX}"]
-      
+
   - aws_namespace: AWS/DMS
     aws_metric_name: FreeStorageSpace
     aws_dimensions: [ReplicationInstanceIdentifier]
     aws_statistics: [Average]
     aws_dimension_select_regex:
       ReplicationInstanceIdentifier: ["${DMS_REPL_INSTANCES_REGEX}"]
-      
+
   - aws_namespace: AWS/DMS
     aws_metric_name: FreeableMemory
     aws_dimensions: [ReplicationInstanceIdentifier]
@@ -373,7 +397,7 @@ metrics:
     aws_dimension_select_regex:
       ReplicationTaskIdentifier: ["${DMS_REPL_TASK_REGEX}"]
       ReplicationInstanceIdentifier: ["${DMS_REPL_INSTANCES_REGEX}"]
-      
+
   - aws_namespace: AWS/ElastiCache
     aws_metric_name: CPUUtilization
     aws_dimensions: [CacheClusterId]
@@ -451,11 +475,11 @@ metrics:
   - aws_namespace: AWS/ApiGateway
     aws_metric_name: Latency
     aws_dimensions: [ApiName]
-  
+
   - aws_namespace: monitor-aws-account-limits
     aws_metric_name: available_ips
     aws_dimensions: [vpcid, cidrblock]
-    
+
   - aws_namespace: monitor-aws-account-limits
     aws_metric_name: perc_ec2_vcpus_used
     aws_dimensions: [ec2-vcpu]
