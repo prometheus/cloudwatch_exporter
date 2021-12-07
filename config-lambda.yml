@@ -39,16 +39,16 @@ metrics:
 
   - aws_namespace: LambdaInsights
     aws_metric_name: cpu_total_time
-    aws_dimensions: [FunctionName]
+    aws_dimensions: [function_name]
 
   - aws_namespace: LambdaInsights
     aws_metric_name: memory_utilization
-    aws_dimensions: [FunctionName]
+    aws_dimensions: [function_name]
 
   - aws_namespace: LambdaInsights
     aws_metric_name: rx_bytes
-    aws_dimensions: [FunctionName]
+    aws_dimensions: [function_name]
 
   - aws_namespace: LambdaInsights
     aws_metric_name: tx_bytes
-    aws_dimensions: [FunctionName]
+    aws_dimensions: [function_name]
