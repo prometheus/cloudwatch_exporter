@@ -48,6 +48,7 @@ import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 
 public class CloudWatchCollector extends Collector implements Describable {
     private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
+    private boolean errorOccuredOnLastScrape = false;
 
     static class ActiveConfig {
         ArrayList<MetricRule> rules;
@@ -680,14 +681,20 @@ public class CloudWatchCollector extends Collector implements Describable {
       mfs.add(new MetricFamilySamples("aws_resource_info", Type.GAUGE, "AWS information available for resource", infoSamples));
     }
 
+    public boolean hasError() {
+      return errorOccuredOnLastScrape;
+    }
+
     public List<MetricFamilySamples> collect() {
       long start = System.nanoTime();
       double error = 0;
       List<MetricFamilySamples> mfs = new ArrayList<>();
       try {
         scrape(mfs);
+        errorOccuredOnLastScrape = false;
       } catch (Exception e) {
         error = 1;
+        errorOccuredOnLastScrape = true;
         LOGGER.log(Level.WARNING, "CloudWatch scrape failed", e);
       }
       List<MetricFamilySamples.Sample> samples = new ArrayList<>();
