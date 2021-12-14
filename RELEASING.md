@@ -72,9 +72,8 @@ mvn release:perform
 ```
 
 This will upload everything to OSSRH into a **staging repository**.
-[Locate it](https://central.sonatype.org/publish/release/#locate-and-examine-your-staging-repository).
-
-Download the artifacts (4 JAR files).
+To locate it, [log into Sonatype OSS](https://oss.sonatype.org/), then open [Staging Repositories](https://oss.sonatype.org/#stagingRepositories).
+If it spins forever, open the [main page](https://oss.sonatype.org/) and log in first.
 
 Press "Close" to promote the release.
 
@@ -100,23 +99,8 @@ Select the tag for this version that Maven pushed.
 Use the format `A.B.C / YYYY-MM-DD` as the release title.
 Summarize the changes.
 
-Sign the artifacts:
-
-```bash
-for jar in cloudwatch_exporter*.jar; do
-  gpg --sign --armor --detach-sign "$jar"
-done
-```
-
-or using [fish](https://fishshell.com/):
-
-```fish
-for jar in cloudwatch_exporter*.jar
-  gpg --sign --armor --detach-sign "$jar"
-end
-```
-
-Upload the `.jar` and `.asc` files to the GitHub release.
+The release files and signatures are available in `target/checkout/target/`.
+Upload the `.jar` and `.jar.asc` files to the GitHub release.
 
 Publish the release.
 
