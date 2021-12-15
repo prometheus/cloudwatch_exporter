@@ -63,7 +63,7 @@ metrics:
 ```
 **Note:** configuration examples for different namespaces can be found in [examples](./examples) directory
 
-**Note:** A configuration builder can be found [here](https://github.com/djloude/cloudwatch_exporter_metrics_config_builder/blob/main/README.md).
+**Note:** A configuration builder can be found [here](https://github.com/djloude/cloudwatch_exporter_metrics_config_builder).
 
 Name     | Description
 ---------|------------
