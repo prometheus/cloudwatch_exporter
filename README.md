@@ -63,6 +63,8 @@ metrics:
 ```
 **Note:** configuration examples for different namespaces can be found in [examples](./examples) directory
 
+**Note:** A configuration builder can be found [here](https://github.com/djloude/cloudwatch_exporter_metrics_config_builder/blob/main/README.md).
+
 Name     | Description
 ---------|------------
 region   | Optional. The AWS region to connect to. If none is provided, an attempt will be made to determine the region from the [default region provider chain](https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/java-dg-region-selection.html#default-region-provider-chain).
