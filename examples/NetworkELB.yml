@@ -5,7 +5,7 @@ metrics:
   - LoadBalancer
   - TargetGroup
   aws_metric_name: ActiveFlowCount
-  aws_namespace: AWS/NetworkELB 
+  aws_namespace: AWS/NetworkELB
   aws_statistics:
   - Average
 - aws_dimensions:
@@ -13,7 +13,7 @@ metrics:
   - LoadBalancer
   - TargetGroup
   aws_metric_name: ActiveFlowCount_TCP
-  aws_namespace: AWS/NetworkELB 
+  aws_namespace: AWS/NetworkELB
   aws_statistics:
   - Average
 - aws_dimensions:
@@ -21,15 +21,7 @@ metrics:
   - LoadBalancer
   - TargetGroup
   aws_metric_name: ActiveFlowCount_UDP
-  aws_namespace: AWS/NetworkELB 
-  aws_statistics:
-  - Average
-- aws_dimensions:
-  - AvailabilityZone
-  - LoadBalancer
-  - TargetGroup
-  aws_metric_name: ActiveFlowCount
-  aws_namespace: AWS/NetworkELB 
+  aws_namespace: AWS/NetworkELB
   aws_statistics:
   - Average
 - aws_dimensions:
@@ -37,31 +29,31 @@ metrics:
   - LoadBalancer
   - TargetGroup
   aws_metric_name: ClientTLSNegotiationErrorCount
-  aws_namespace: AWS/NetworkELB 
+  aws_namespace: AWS/NetworkELB
   aws_statistics:
   - Sum
 - aws_dimensions:
   - LoadBalancer
   aws_metric_name: ConsumedLCUs
-  aws_namespace: AWS/NetworkELB 
+  aws_namespace: AWS/NetworkELB
   aws_statistics:
   - Average
 - aws_dimensions:
   - LoadBalancer
   aws_metric_name: ConsumedLCUs_TCP
-  aws_namespace: AWS/NetworkELB 
+  aws_namespace: AWS/NetworkELB
   aws_statistics:
   - Average
 - aws_dimensions:
   - LoadBalancer
   aws_metric_name: ConsumedLCUs_TLS
-  aws_namespace: AWS/NetworkELB 
+  aws_namespace: AWS/NetworkELB
   aws_statistics:
   - Average
 - aws_dimensions:
   - LoadBalancer
   aws_metric_name: ConsumedLCUs_UDP
-  aws_namespace: AWS/NetworkELB 
+  aws_namespace: AWS/NetworkELB
   aws_statistics:
   - Average
 - aws_dimensions:
@@ -69,7 +61,7 @@ metrics:
   - LoadBalancer
   - TargetGroup
   aws_metric_name: HealthyHostCount
-  aws_namespace: AWS/NetworkELB 
+  aws_namespace: AWS/NetworkELB
   aws_statistics:
   - Minimum
 - aws_dimensions:
@@ -77,7 +69,7 @@ metrics:
   - LoadBalancer
   - TargetGroup
   aws_metric_name: NewFlowCount
-  aws_namespace: AWS/NetworkELB 
+  aws_namespace: AWS/NetworkELB
   aws_statistics:
   - Sum
 - aws_dimensions:
@@ -85,7 +77,7 @@ metrics:
   - LoadBalancer
   - TargetGroup
   aws_metric_name: NewFlowCount_TCP
-  aws_namespace: AWS/NetworkELB 
+  aws_namespace: AWS/NetworkELB
   aws_statistics:
   - Sum
 - aws_dimensions:
@@ -93,7 +85,7 @@ metrics:
   - LoadBalancer
   - TargetGroup
   aws_metric_name: NewFlowCount_TLS
-  aws_namespace: AWS/NetworkELB 
+  aws_namespace: AWS/NetworkELB
   aws_statistics:
   - Sum
 - aws_dimensions:
@@ -101,7 +93,7 @@ metrics:
   - LoadBalancer
   - TargetGroup
   aws_metric_name: NewFlowCount_UDP
-  aws_namespace: AWS/NetworkELB 
+  aws_namespace: AWS/NetworkELB
   aws_statistics:
   - Sum
 - aws_dimensions:
@@ -109,7 +101,7 @@ metrics:
   - LoadBalancer
   - TargetGroup
   aws_metric_name: ProcessedBytes
-  aws_namespace: AWS/NetworkELB 
+  aws_namespace: AWS/NetworkELB
   aws_statistics:
   - Sum
 - aws_dimensions:
@@ -117,7 +109,7 @@ metrics:
   - LoadBalancer
   - TargetGroup
   aws_metric_name: ProcessedBytes_TLS
-  aws_namespace: AWS/NetworkELB 
+  aws_namespace: AWS/NetworkELB
   aws_statistics:
   - Sum
 - aws_dimensions:
@@ -125,7 +117,7 @@ metrics:
   - LoadBalancer
   - TargetGroup
   aws_metric_name: ProcessedBytes_UDP
-  aws_namespace: AWS/NetworkELB 
+  aws_namespace: AWS/NetworkELB
   aws_statistics:
   - Sum
 - aws_dimensions:
@@ -133,7 +125,7 @@ metrics:
   - LoadBalancer
   - TargetGroup
   aws_metric_name: ProcessedPackets
-  aws_namespace: AWS/NetworkELB 
+  aws_namespace: AWS/NetworkELB
   aws_statistics:
   - Sum
 - aws_dimensions:
@@ -141,7 +133,7 @@ metrics:
   - LoadBalancer
   - TargetGroup
   aws_metric_name: TargetTLSNegotiationErrorCount
-  aws_namespace: AWS/NetworkELB 
+  aws_namespace: AWS/NetworkELB
   aws_statistics:
   - Sum
 - aws_dimensions:
@@ -149,7 +141,7 @@ metrics:
   - LoadBalancer
   - TargetGroup
   aws_metric_name: TCP_Client_Reset_Count
-  aws_namespace: AWS/NetworkELB 
+  aws_namespace: AWS/NetworkELB
   aws_statistics:
   - Sum
 - aws_dimensions:
@@ -157,7 +149,7 @@ metrics:
   - LoadBalancer
   - TargetGroup
   aws_metric_name: TCP_Target_Reset_Count
-  aws_namespace: AWS/NetworkELB 
+  aws_namespace: AWS/NetworkELB
   aws_statistics:
   - Sum
 - aws_dimensions:
@@ -165,7 +157,7 @@ metrics:
   - LoadBalancer
   - TargetGroup
   aws_metric_name: UnHealthyHostCount
-  aws_namespace: AWS/NetworkELB 
+  aws_namespace: AWS/NetworkELB
   aws_statistics:
   - Maximum
 
