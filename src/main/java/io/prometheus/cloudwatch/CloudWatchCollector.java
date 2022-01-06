@@ -3,51 +3,33 @@ package io.prometheus.cloudwatch;
 import io.prometheus.client.Collector;
 import io.prometheus.client.Collector.Describable;
 import io.prometheus.client.Counter;
-
-import java.io.FileReader;
-import java.io.Reader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
-
 import org.yaml.snakeyaml.Yaml;
-
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClientBuilder;
-import software.amazon.awssdk.services.cloudwatch.model.Datapoint;
-import software.amazon.awssdk.services.cloudwatch.model.Dimension;
-import software.amazon.awssdk.services.cloudwatch.model.DimensionFilter;
-import software.amazon.awssdk.services.cloudwatch.model.GetMetricStatisticsRequest;
-import software.amazon.awssdk.services.cloudwatch.model.GetMetricStatisticsResponse;
-import software.amazon.awssdk.services.cloudwatch.model.ListMetricsRequest;
-import software.amazon.awssdk.services.cloudwatch.model.ListMetricsResponse;
-import software.amazon.awssdk.services.cloudwatch.model.Metric;
-import software.amazon.awssdk.services.cloudwatch.model.Statistic;
+import software.amazon.awssdk.services.cloudwatch.model.*;
 import software.amazon.awssdk.services.resourcegroupstaggingapi.ResourceGroupsTaggingApiClient;
 import software.amazon.awssdk.services.resourcegroupstaggingapi.ResourceGroupsTaggingApiClientBuilder;
-import software.amazon.awssdk.services.resourcegroupstaggingapi.model.GetResourcesRequest;
-import software.amazon.awssdk.services.resourcegroupstaggingapi.model.GetResourcesResponse;
-import software.amazon.awssdk.services.resourcegroupstaggingapi.model.ResourceTagMapping;
 import software.amazon.awssdk.services.resourcegroupstaggingapi.model.Tag;
-import software.amazon.awssdk.services.resourcegroupstaggingapi.model.TagFilter;
+import software.amazon.awssdk.services.resourcegroupstaggingapi.model.*;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
+
 public class CloudWatchCollector extends Collector implements Describable {
     private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
+
+    private static final String BuildVersion = "0.12.2";
+    private static final String ReleaseDate = "2021-12-14";
 
     static class ActiveConfig {
         ArrayList<MetricRule> rules;
@@ -684,6 +666,8 @@ public class CloudWatchCollector extends Collector implements Describable {
       long start = System.nanoTime();
       double error = 0;
       List<MetricFamilySamples> mfs = new ArrayList<>();
+      List<String> labelNames = new ArrayList<>();
+      List<String> labelValues = new ArrayList<>();
       try {
         scrape(mfs);
       } catch (Exception e) {
@@ -699,6 +683,28 @@ public class CloudWatchCollector extends Collector implements Describable {
       samples.add(new MetricFamilySamples.Sample(
           "cloudwatch_exporter_scrape_error", new ArrayList<>(), new ArrayList<>(), error));
       mfs.add(new MetricFamilySamples("cloudwatch_exporter_scrape_error", Type.GAUGE, "Non-zero if this scrape failed.", samples));
+
+      /**
+       * New static cloudwatch_exporter_build_info implementation. Sets a gauge to 1 and creates two label/value
+       * pairs that can be displayed (Grafana style UI).
+       * NOTE - When releasing a new version the private class variables must be set. (lines 31 and 32).
+       *
+       * To display the label value in Grafana:
+       *   1. Query for the cloudwatch_exporter_build_info
+       *   2. Set the Legend to the desired label (ex. {{build_version}} or {{release_date}})
+       *   3. Select Stat visualization
+       *   4. Under stat styles select Name
+       *   5. To remove the graph, select Graph Mode None
+       */
+      samples = new ArrayList<>();
+      labelNames.add("build_version");
+      labelValues.add(BuildVersion);
+      labelNames.add("release_date");
+      labelValues.add(ReleaseDate);
+
+      samples.add(new MetricFamilySamples.Sample(
+              "cloudwatch_exporter_build_info", labelNames, labelValues, 1));
+      mfs.add(new MetricFamilySamples("cloudwatch_exporter_build_info", Type.GAUGE, "Static value of 1, desired info are the label values.", samples));
       return mfs;
     }
 
