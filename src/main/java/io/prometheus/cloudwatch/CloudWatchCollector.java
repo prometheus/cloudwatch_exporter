@@ -28,8 +28,12 @@ import java.util.regex.Pattern;
 public class CloudWatchCollector extends Collector implements Describable {
     private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
 
-    private static final String BuildVersion = "0.12.2";
-    private static final String ReleaseDate = "2021-12-14";
+    public static void set_stuff() throws IOException {
+        final Properties properties = new Properties();
+        properties.load(CloudWatchCollector.class.getClassLoader().getResourceAsStream(".properties"));
+        final String BuildVersion = properties.getProperty("BuildVersion");
+        final String BuildDate = properties.getProperty("BuildDate");
+    }
 
     static class ActiveConfig {
         ArrayList<MetricRule> rules;
@@ -684,27 +688,33 @@ public class CloudWatchCollector extends Collector implements Describable {
           "cloudwatch_exporter_scrape_error", new ArrayList<>(), new ArrayList<>(), error));
       mfs.add(new MetricFamilySamples("cloudwatch_exporter_scrape_error", Type.GAUGE, "Non-zero if this scrape failed.", samples));
 
-      /**
-       * New static cloudwatch_exporter_build_info implementation. Sets a gauge to 1 and creates two label/value
-       * pairs that can be displayed (Grafana style UI).
-       * NOTE - When releasing a new version the private class variables must be set. (lines 31 and 32).
-       *
-       * To display the label value in Grafana:
-       *   1. Query for the cloudwatch_exporter_build_info
-       *   2. Set the Legend to the desired label (ex. {{build_version}} or {{release_date}})
-       *   3. Select Stat visualization
-       *   4. Under stat styles select Name
-       *   5. To remove the graph, select Graph Mode None
-       */
-      samples = new ArrayList<>();
-      labelNames.add("build_version");
-      labelValues.add(BuildVersion);
-      labelNames.add("release_date");
-      labelValues.add(ReleaseDate);
+      String buildVersion = "";
+      String releaseDate = "";
+      int errorFlag = 0;
+      try {
+          final Properties properties = new Properties();
+          properties.load(CloudWatchCollector.class.getClassLoader().getResourceAsStream(".properties"));
+          buildVersion = properties.getProperty("BuildVersion");
+          releaseDate = properties.getProperty("ReleaseDate");
 
+      }
+      catch (IOException e) {
+          buildVersion = "Error";
+          releaseDate = "Error";
+          errorFlag = 1;
+          LOGGER.log(Level.WARNING, "CloudWatch build info scrape failed", e);
+      }
+
+      labelNames.add("build_version");
+      labelValues.add(buildVersion);
+      labelNames.add("release_date");
+      labelValues.add(releaseDate);
+
+      samples = new ArrayList<>();
       samples.add(new MetricFamilySamples.Sample(
-              "cloudwatch_exporter_build_info", labelNames, labelValues, 1));
-      mfs.add(new MetricFamilySamples("cloudwatch_exporter_build_info", Type.GAUGE, "Static value of 1, desired info are the label values.", samples));
+          "cloudwatch_exporter_build_info", labelNames, labelValues, errorFlag));
+      mfs.add(new MetricFamilySamples("cloudwatch_exporter_build_info", Type.GAUGE, "Non-zero if build info scrape failed.", samples));
+
       return mfs;
     }
 

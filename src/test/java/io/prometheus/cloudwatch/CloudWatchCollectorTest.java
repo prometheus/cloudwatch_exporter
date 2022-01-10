@@ -1,39 +1,23 @@
 package io.prometheus.cloudwatch;
 
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.hamcrest.MockitoHamcrest.argThat;
-
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
-
 import io.prometheus.client.Collector;
 import io.prometheus.client.CollectorRegistry;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
-
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 import software.amazon.awssdk.services.cloudwatch.model.*;
 import software.amazon.awssdk.services.resourcegroupstaggingapi.ResourceGroupsTaggingApiClient;
-import software.amazon.awssdk.services.resourcegroupstaggingapi.model.GetResourcesRequest;
-import software.amazon.awssdk.services.resourcegroupstaggingapi.model.GetResourcesResponse;
-import software.amazon.awssdk.services.resourcegroupstaggingapi.model.ResourceTagMapping;
-import software.amazon.awssdk.services.resourcegroupstaggingapi.model.TagFilter;
 import software.amazon.awssdk.services.resourcegroupstaggingapi.model.Tag;
+import software.amazon.awssdk.services.resourcegroupstaggingapi.model.*;
+
+import java.util.*;
+
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
 public class CloudWatchCollectorTest {
   CloudWatchClient cloudWatchClient;

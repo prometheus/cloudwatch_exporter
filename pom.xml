@@ -3,7 +3,13 @@
 
   <groupId>io.prometheus.cloudwatch</groupId>
   <artifactId>cloudwatch_exporter</artifactId>
-  <version>0.12.3-SNAPSHOT</version>
+  <version>0.12.4-SNAPSHOT</version>
+  <properties>
+    <project.releaseDate>2022-01-07</project.releaseDate>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+  </properties>
+
   <description>
     An exporter for AWS CloudWatch metrics, for use with Prometheus.
   </description>
@@ -198,12 +204,15 @@
           </executions>
       </plugin>
     </plugins>
+
+    <resources>
+        <resource>
+            <directory>src/main/resources</directory>
+            <filtering>true</filtering>
+        </resource>
+    </resources>
   </build>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-  </properties>
 
   <profiles>
       <profile>
