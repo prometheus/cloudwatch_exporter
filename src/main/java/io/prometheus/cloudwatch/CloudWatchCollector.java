@@ -3,37 +3,52 @@ package io.prometheus.cloudwatch;
 import io.prometheus.client.Collector;
 import io.prometheus.client.Collector.Describable;
 import io.prometheus.client.Counter;
+
+import java.io.FileReader;
+import java.io.Reader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.Map;
+import java.util.Properties;
+import java.util.regex.Pattern;
+import java.util.Set;
+
 import org.yaml.snakeyaml.Yaml;
+
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClientBuilder;
-import software.amazon.awssdk.services.cloudwatch.model.*;
+import software.amazon.awssdk.services.cloudwatch.model.Datapoint;
+import software.amazon.awssdk.services.cloudwatch.model.Dimension;
+import software.amazon.awssdk.services.cloudwatch.model.DimensionFilter;
+import software.amazon.awssdk.services.cloudwatch.model.GetMetricStatisticsRequest;
+import software.amazon.awssdk.services.cloudwatch.model.GetMetricStatisticsResponse;
+import software.amazon.awssdk.services.cloudwatch.model.ListMetricsRequest;
+import software.amazon.awssdk.services.cloudwatch.model.ListMetricsResponse;
+import software.amazon.awssdk.services.cloudwatch.model.Metric;
+import software.amazon.awssdk.services.cloudwatch.model.Statistic;
 import software.amazon.awssdk.services.resourcegroupstaggingapi.ResourceGroupsTaggingApiClient;
 import software.amazon.awssdk.services.resourcegroupstaggingapi.ResourceGroupsTaggingApiClientBuilder;
+import software.amazon.awssdk.services.resourcegroupstaggingapi.model.GetResourcesRequest;
+import software.amazon.awssdk.services.resourcegroupstaggingapi.model.GetResourcesResponse;
+import software.amazon.awssdk.services.resourcegroupstaggingapi.model.ResourceTagMapping;
 import software.amazon.awssdk.services.resourcegroupstaggingapi.model.Tag;
-import software.amazon.awssdk.services.resourcegroupstaggingapi.model.*;
+import software.amazon.awssdk.services.resourcegroupstaggingapi.model.TagFilter;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
-import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
-
 public class CloudWatchCollector extends Collector implements Describable {
     private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
-
-    public static void set_stuff() throws IOException {
-        final Properties properties = new Properties();
-        properties.load(CloudWatchCollector.class.getClassLoader().getResourceAsStream(".properties"));
-        final String BuildVersion = properties.getProperty("BuildVersion");
-        final String BuildDate = properties.getProperty("BuildDate");
-    }
 
     static class ActiveConfig {
         ArrayList<MetricRule> rules;
