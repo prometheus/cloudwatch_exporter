@@ -685,8 +685,6 @@ public class CloudWatchCollector extends Collector implements Describable {
       long start = System.nanoTime();
       double error = 0;
       List<MetricFamilySamples> mfs = new ArrayList<>();
-      List<String> labelNames = new ArrayList<>();
-      List<String> labelValues = new ArrayList<>();
       try {
         scrape(mfs);
       } catch (Exception e) {
@@ -702,32 +700,6 @@ public class CloudWatchCollector extends Collector implements Describable {
       samples.add(new MetricFamilySamples.Sample(
           "cloudwatch_exporter_scrape_error", new ArrayList<>(), new ArrayList<>(), error));
       mfs.add(new MetricFamilySamples("cloudwatch_exporter_scrape_error", Type.GAUGE, "Non-zero if this scrape failed.", samples));
-
-      String buildVersion = "";
-      String releaseDate = "";
-      int errorFlag = 1;
-      try {
-          final Properties properties = new Properties();
-          properties.load(CloudWatchCollector.class.getClassLoader().getResourceAsStream(".properties"));
-          buildVersion = properties.getProperty("BuildVersion");
-          releaseDate = properties.getProperty("ReleaseDate");
-
-      }
-      catch (IOException e) {
-          buildVersion = "unknown";
-          releaseDate = "unknown";
-          LOGGER.log(Level.WARNING, "CloudWatch build info scrape failed", e);
-      }
-
-      labelNames.add("build_version");
-      labelValues.add(buildVersion);
-      labelNames.add("release_date");
-      labelValues.add(releaseDate);
-
-      samples = new ArrayList<>();
-      samples.add(new MetricFamilySamples.Sample(
-          "cloudwatch_exporter_build_info", labelNames, labelValues, errorFlag));
-      mfs.add(new MetricFamilySamples("cloudwatch_exporter_build_info", Type.GAUGE, "Non-zero if build info scrape failed.", samples));
 
       return mfs;
     }
