@@ -705,7 +705,7 @@ public class CloudWatchCollector extends Collector implements Describable {
 
       String buildVersion = "";
       String releaseDate = "";
-      int errorFlag = 0;
+      int errorFlag = 1;
       try {
           final Properties properties = new Properties();
           properties.load(CloudWatchCollector.class.getClassLoader().getResourceAsStream(".properties"));
@@ -714,9 +714,8 @@ public class CloudWatchCollector extends Collector implements Describable {
 
       }
       catch (IOException e) {
-          buildVersion = "Error";
-          releaseDate = "Error";
-          errorFlag = 1;
+          buildVersion = "unknown";
+          releaseDate = "unknown";
           LOGGER.log(Level.WARNING, "CloudWatch build info scrape failed", e);
       }
 
