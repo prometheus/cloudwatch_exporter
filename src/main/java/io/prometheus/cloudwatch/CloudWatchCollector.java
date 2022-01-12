@@ -712,6 +712,7 @@ public class CloudWatchCollector extends Collector implements Describable {
       if (args.length > 0) {
         region = args[0];
       }
+      new BuildInfoCollector().register();
       CloudWatchCollector jc = new CloudWatchCollector(("{"
       + "`region`: `" + region + "`,"
       + "`metrics`: [{`aws_namespace`: `AWS/ELB`, `aws_metric_name`: `RequestCount`, `aws_dimensions`: [`AvailabilityZone`, `LoadBalancerName`]}] ,"

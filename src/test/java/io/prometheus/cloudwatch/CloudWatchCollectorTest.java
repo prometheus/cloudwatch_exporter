@@ -13,6 +13,7 @@ import software.amazon.awssdk.services.resourcegroupstaggingapi.ResourceGroupsTa
 import software.amazon.awssdk.services.resourcegroupstaggingapi.model.Tag;
 import software.amazon.awssdk.services.resourcegroupstaggingapi.model.*;
 
+import java.io.IOException;
 import java.util.*;
 
 import static org.junit.Assert.*;
@@ -729,5 +730,21 @@ public class CloudWatchCollectorTest {
                     MetricName("RequestCount").
                     Dimensions("AvailabilityZone", "LoadBalancerName")
     ));
+  }
+
+  @Test
+  public void testBuildInfo() throws Exception {
+    new BuildInfoCollector().register(registry);
+    final Properties properties = new Properties();
+    properties.load(CloudWatchCollector.class.getClassLoader().getResourceAsStream(".properties"));
+    String buildVersion = properties.getProperty("BuildVersion");
+    String releaseDate = properties.getProperty("ReleaseDate");
+
+    assertEquals(1L,
+            registry.getSampleValue("cloudwatch_exporter_build_info",
+            new String[]{"build_version", "release_date"},
+            new String[]{buildVersion != null ? buildVersion: "unknown",
+            releaseDate != null ? releaseDate: "unknown"}),
+            .00001);
   }
 }

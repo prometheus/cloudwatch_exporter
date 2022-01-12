@@ -41,8 +41,8 @@ public class BuildInfoCollector extends Collector {
         samples = new ArrayList<>();
         samples.add(new MetricFamilySamples.Sample(
                 "cloudwatch_exporter_build_info", labelNames, labelValues, 1));
-        mfs.add(new MetricFamilySamples("cloudwatch_exporter_build_info", Type.GAUGE, "Non-zero if build info scrape failed.", samples));
-
+        mfs.add(new MetricFamilySamples("cloudwatch_exporter_build_info",
+                Type.GAUGE, "Non-zero if build info scrape failed.", samples));
 
         return mfs;
     }
