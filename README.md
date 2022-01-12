@@ -110,13 +110,14 @@ All metrics are exported as gauges.
 
 In addition `cloudwatch_exporter_scrape_error` will be non-zero if an error
 occurred during the scrape, and `cloudwatch_exporter_scrape_duration_seconds`
-contains the duration of that scrape. `cloudwatch_exporter_build_info` will be
-non-zero if an error occurred scraping the build info.
+contains the duration of that scrape. `cloudwatch_exporter_build_info` contains 
+labels referencing the current build version and build release date.
 
-### Build Info Metric (New)
-`cloudwatch_exporter_build_info` is a new default cloudwatch exporter metric that contains the current
-cloudwatch exporter version and release date as label values. If the numeric metric value is non-zero
-the build information scrap failed. 
+### Build Info Metric
+
+`cloudwatch_exporter_build_info` is a default cloudwatch exporter metric that contains the current
+cloudwatch exporter version and release date as label values. The numeric metric value is statically
+set to 1. If the metrics label values are "unknown" the build information scrap failed. 
 
 To display the metrics label values in Grafana:
 ```
