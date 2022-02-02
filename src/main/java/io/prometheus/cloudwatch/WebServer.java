@@ -7,6 +7,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
 import io.prometheus.client.exporter.MetricsServlet;
+import io.prometheus.client.hotspot.DefaultExports;
 
 public class WebServer {
 
@@ -25,6 +26,7 @@ public class WebServer {
         ) {
           collector = new CloudWatchCollector(new FileReader(configFilePath)).register();
         }
+        DefaultExports.initialize();
 
         ReloadSignalHandler.start(collector);
 
