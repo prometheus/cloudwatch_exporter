@@ -83,12 +83,17 @@
     <dependency>
       <groupId>io.prometheus</groupId>
       <artifactId>simpleclient</artifactId>
-      <version>0.13.0</version>
+      <version>0.14.1</version>
     </dependency>
     <dependency>
       <groupId>io.prometheus</groupId>
       <artifactId>simpleclient_servlet</artifactId>
-      <version>0.13.0</version>
+      <version>0.14.1</version>
+    </dependency>
+    <dependency>
+      <groupId>io.prometheus</groupId>
+      <artifactId>simpleclient_hotspot</artifactId>
+      <version>0.14.1</version>
     </dependency>
     <dependency>
         <groupId>org.eclipse.jetty</groupId>
