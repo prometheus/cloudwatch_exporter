@@ -4,6 +4,8 @@ jobs:
     working_directory: ~/circleci-java
     docker:
       - image: circleci/openjdk:17-jdk-buster
+    environment:
+      MAVEN_OPTS: "-Djdk.lang.Process.launchMechanism=vfork"
     steps:
       - checkout
       - restore_cache: # restore the saved cache after the first run or if `pom.xml` has changed
@@ -12,22 +14,26 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
-          key: circleci-demo-java-spring-{{ checksum "pom.xml" }}
+            - target
+          key: circleci-demo-java-spring-{{ checksum "pom.xml" }}-{{ .Branch }}
       - run: mvn package
   publish_image:
     docker:
-      - image: circleci/openjdk:17-jdk-buster
+      - image: circleci/openjdk:17-jdk-bullseye
     environment:
       DOCKER_BUILDKIT: 1
       BUILDX_PLATFORMS: linux/amd64,linux/arm64
     steps:
       - checkout
       - setup_remote_docker:
-          version: "20.10.7"
+          version: "20.10.12"
+      - restore_cache:
+          keys:
+            - circleci-demo-java-spring-{{ checksum "pom.xml" }}-{{ .Branch }}
       - run:
           name: Install buildx
           command: |
-            BUILDX_BINARY_URL="https://github.com/docker/buildx/releases/download/v0.7.0/buildx-v0.7.0.linux-amd64"
+            BUILDX_BINARY_URL="https://github.com/docker/buildx/releases/download/v0.7.1/buildx-v0.7.1.linux-amd64"
 
             curl --output docker-buildx \
               --silent --show-error --location --fail --retry 3 \
@@ -58,21 +64,37 @@ jobs:
             "${tags[@]/#/--tag=quay.io/prometheus/cloudwatch-exporter:}" \
             "${tags[@]/#/--tag=prom/cloudwatch-exporter:}" \
             --push .
+
+      - run: |
+          tags=(minimal)
+          if [[ -n "$CIRCLE_TAG" ]]; then
+            tags+=("${CIRCLE_TAG}-minimal" latest-minimal)
+          fi
+
+          set -x
+          docker buildx build \
+            --dockerfile Dockerfile-minimal \
+            --progress plain \
+            --platform "$BUILDX_PLATFORMS" \
+            "${tags[@]/#/--tag=quay.io/prometheus/cloudwatch-exporter:}" \
+            "${tags[@]/#/--tag=prom/cloudwatch-exporter:}" \
+            --push .
+
       - run: docker images
   build_image:
     docker:
-      - image: circleci/openjdk:17-jdk-buster
+      - image: circleci/openjdk:17-jdk-bullseye
     environment:
       DOCKER_BUILDKIT: 1
       BUILDX_PLATFORMS: linux/amd64,linux/arm64
     steps:
       - checkout
       - setup_remote_docker:
-          version: "20.10.7"
+          version: "20.10.12"
       - run:
           name: Install buildx
           command: |
-            BUILDX_BINARY_URL="https://github.com/docker/buildx/releases/download/v0.7.0/buildx-v0.7.0.linux-amd64"
+            BUILDX_BINARY_URL="https://github.com/docker/buildx/releases/download/v0.7.1/buildx-v0.7.1.linux-amd64"
 
             curl --output docker-buildx \
               --silent --show-error --location --fail --retry 3 \
@@ -90,6 +112,12 @@ jobs:
       - run: docker buildx create --name buildx --use buildx
       - run: |
           docker buildx build \
+            --progress plain \
+            --platform "$BUILDX_PLATFORMS" \
+            .
+      - run: |
+          docker buildx build \
+            --dockerfile Dockerfile-minimal \
             --progress plain \
             --platform "$BUILDX_PLATFORMS" \
             .
@@ -117,5 +145,6 @@ workflows:
               only: /.*/
             branches:
               only: master
+
 orbs:
   prometheus: prometheus/prometheus@0.14.0
