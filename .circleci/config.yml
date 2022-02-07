@@ -14,9 +14,13 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
-            - target
-          key: circleci-demo-java-spring-{{ checksum "pom.xml" }}-{{ .Branch }}
+          key: circleci-demo-java-spring-{{ checksum "pom.xml" }}
       - run: mvn package
+      - run: mv target/cloudwatch_exporter-*-with-dependencies.jar cloudwatch_exporter.jar
+      - save_cache:
+          paths:
+            - cloudwatch_exporter.jar
+          key: cloudwatch-exporter-jar-{{ .Branch }}
   publish_image:
     docker:
       - image: circleci/openjdk:17-jdk-bullseye
@@ -29,7 +33,7 @@ jobs:
           version: "20.10.12"
       - restore_cache:
           keys:
-            - circleci-demo-java-spring-{{ checksum "pom.xml" }}-{{ .Branch }}
+            - cloudwatch-exporter-jar-{{ .Branch }}
       - run:
           name: Install buildx
           command: |
