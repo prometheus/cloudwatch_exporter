@@ -20,6 +20,7 @@ public class WebServer {
 
         configFilePath = args[1];
         CloudWatchCollector collector = null;
+        new BuildInfoCollector().register();
         try (
           FileReader reader = new FileReader(configFilePath);
         ) {
