@@ -1,4 +1,4 @@
-FROM openjdk:17-jdk-bullseye as builder
+FROM eclipse-temurin:17-jdk-focal as builder
 
 ENV MAVEN_VERSION 3.8.4
 ENV MAVEN_SHA512 a9b2d825eacf2e771ed5d6b0e01398589ac1bfa4171f36154d1b5787879605507802f699da6f7cfc80732a5282fd31b28e4cd6052338cbef0fa1358b48a5e3c8
@@ -19,7 +19,7 @@ ENV MAVEN_OPTS "-Djdk.lang.Process.launchMechanism=vfork"
 RUN mvn package
 RUN mv target/cloudwatch_exporter-*-with-dependencies.jar /cloudwatch_exporter.jar
 
-FROM openjdk:17-slim-bullseye as runner
+FROM eclipse-temurin:17-jre-focal as runner
 LABEL maintainer="The Prometheus Authors <prometheus-developers@googlegroups.com>"
 EXPOSE 9106
 
