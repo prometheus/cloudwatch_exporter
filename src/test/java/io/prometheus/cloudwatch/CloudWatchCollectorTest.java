@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Properties;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -745,5 +746,21 @@ public class CloudWatchCollectorTest {
                     MetricName("RequestCount").
                     Dimensions("AvailabilityZone", "LoadBalancerName")
     ));
+  }
+
+  @Test
+  public void testBuildInfo() throws Exception {
+    new BuildInfoCollector().register(registry);
+    final Properties properties = new Properties();
+    properties.load(CloudWatchCollector.class.getClassLoader().getResourceAsStream(".properties"));
+    String buildVersion = properties.getProperty("BuildVersion");
+    String releaseDate = properties.getProperty("ReleaseDate");
+
+    assertEquals(1L,
+            registry.getSampleValue("cloudwatch_exporter_build_info",
+                    new String[]{"build_version", "release_date"},
+                    new String[]{buildVersion != null ? buildVersion: "unknown",
+                            releaseDate != null ? releaseDate: "unknown"}),
+            .00001);
   }
 }
