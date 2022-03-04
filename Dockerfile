@@ -1,11 +1,13 @@
 FROM eclipse-temurin:17-jdk-focal as builder
 
+SHELL ["/bin/bash", "-xe", "-o", "pipefail", "-c"]
+
 ENV MAVEN_VERSION 3.8.4
 ENV MAVEN_SHA512 a9b2d825eacf2e771ed5d6b0e01398589ac1bfa4171f36154d1b5787879605507802f699da6f7cfc80732a5282fd31b28e4cd6052338cbef0fa1358b48a5e3c8
 
 RUN mkdir -p /opt/maven
 RUN curl -o /opt/maven.tar.gz -sSfL https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz
-RUN echo "${MAVEN_SHA512}  /opt/maven.tar.gz" | shasum -a 512 -c
+RUN echo "${MAVEN_SHA512}  /opt/maven.tar.gz" | sha512sum -c
 RUN tar -x --strip-components=1 -C /opt/maven -f /opt/maven.tar.gz
 ENV PATH /opt/maven/bin:${PATH}
 
