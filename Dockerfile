@@ -5,7 +5,7 @@ ENV MAVEN_SHA512 a9b2d825eacf2e771ed5d6b0e01398589ac1bfa4171f36154d1b57878796055
 
 RUN mkdir -p /opt/maven
 RUN curl -o /opt/maven.tar.gz -sSfL https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz
-RUN echo "${MAVEN_SHA512}  /opt/maven.tar.gz" | shasum -a 512 -c
+RUN echo "${MAVEN_SHA512}  /opt/maven.tar.gz" | sha512sum -c
 RUN tar -x --strip-components=1 -C /opt/maven -f /opt/maven.tar.gz
 ENV PATH /opt/maven/bin:${PATH}
 
