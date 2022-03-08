@@ -102,7 +102,6 @@ workflows:
             tags:
               only: /.*/
       - build_image:
-          context: org-context
           requires:
             - build
           filters:
