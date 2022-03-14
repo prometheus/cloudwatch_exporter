@@ -117,4 +117,4 @@ workflows:
             branches:
               only: master
 orbs:
-  prometheus: prometheus/prometheus@0.15.0
+  prometheus: prometheus/prometheus@0.16.0
