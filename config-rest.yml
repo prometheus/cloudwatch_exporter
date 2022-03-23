@@ -204,3 +204,6 @@ metrics:
   - aws_namespace: ServicesMarathon
     aws_metric_name: ConsulRegistrationError
     aws_dimensions: [ServiceName]
+
+  - aws_namespace: IpChangeAdyen
+    aws_metric_name: IpChangeAdyen
