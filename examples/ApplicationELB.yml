@@ -25,12 +25,6 @@ metrics:
   aws_statistics:
   - Average
 - aws_namespace: AWS/ApplicationELB
-  aws_metric_name: TargetResponseTime
-  aws_dimensions:
-  - LoadBalancer
-  aws_statistics:
-  - Average
-- aws_namespace: AWS/ApplicationELB
   aws_metric_name: ActiveConnectionCount
   aws_dimensions:
   - LoadBalancer
