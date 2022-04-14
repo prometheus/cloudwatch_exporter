@@ -1,7 +1,9 @@
 package io.prometheus.cloudwatch;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.never;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
 import org.hamcrest.BaseMatcher;
@@ -212,6 +214,22 @@ public class CloudWatchCollectorTest {
                     .MetricName("RequestCount")
                     .Period(100)
     ));
+  }
+
+  @Test
+  public void testMetricPeriodUsingGetMetricData() {
+    new CloudWatchCollector(
+            "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  period_seconds: 100\n  range_seconds: 200\n  delay_seconds: 300\n  use_get_metric_data: true\n", cloudWatchClient, taggingClient).register(registry);
+
+    Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest) any()))
+            .thenReturn(GetMetricStatisticsResponse.builder().build());
+
+    Mockito.when(cloudWatchClient.getMetricData((GetMetricDataRequest) any()))
+            .thenReturn(GetMetricDataResponse.builder().build());
+    registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance"}, new String[]{"aws_elb", ""});
+
+
+    Mockito.verify(cloudWatchClient, never()).getMetricStatistics(isA(GetMetricStatisticsRequest.class));
   }
 
   @Test
