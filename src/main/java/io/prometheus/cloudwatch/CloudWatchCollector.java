@@ -78,6 +78,7 @@ public class CloudWatchCollector extends Collector implements Describable {
       AWSTagSelect awsTagSelect;
       String help;
       boolean cloudwatchTimestamp;
+      boolean useGetMetricData;
     }
 
     static class AWSTagSelect {
@@ -158,6 +159,11 @@ public class CloudWatchCollector extends Collector implements Describable {
             defaultCloudwatchTimestamp = (Boolean)config.get("set_timestamp");
         }
 
+        boolean defaultUseGetMetricData = false;
+        if (config.containsKey("use_get_metric_data")) { 
+          defaultUseGetMetricData = (Boolean)config.get("use_get_metric_data");
+        }
+        
         String region = (String) config.get("region");
 
         if (cloudWatchClient == null) {
@@ -249,6 +255,11 @@ public class CloudWatchCollector extends Collector implements Describable {
               rule.cloudwatchTimestamp = (Boolean)yamlMetricRule.get("set_timestamp");
           } else {
               rule.cloudwatchTimestamp = defaultCloudwatchTimestamp;
+          }
+          if (yamlMetricRule.containsKey("use_get_metric_data")) {
+              rule.useGetMetricData = (Boolean)yamlMetricRule.get("use_get_metric_data");
+          } else {
+              rule.useGetMetricData = defaultUseGetMetricData;
           }
 
           if (yamlMetricRule.containsKey("aws_tag_select")) {
