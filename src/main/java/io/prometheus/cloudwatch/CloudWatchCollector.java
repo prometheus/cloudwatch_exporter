@@ -543,25 +543,15 @@ public class CloudWatchCollector extends Collector implements Describable {
           + " Dimensions: " + rule.awsDimensions + " Statistic: " + statistic
           + " Unit: " + unit;
     }
-
+    
     private void scrape(List<MetricFamilySamples> mfs) {
       ActiveConfig config = new ActiveConfig(activeConfig);
       Set<String> publishedResourceInfo = new HashSet<>();
 
       long start = System.currentTimeMillis();
       List<MetricFamilySamples.Sample> infoSamples = new ArrayList<>();
-      for (MetricRule rule: config.rules) {
-        Date startDate = new Date(start - 1000 * rule.delaySeconds);
-        Date endDate = new Date(start - 1000 * (rule.delaySeconds + rule.rangeSeconds));
-        GetMetricStatisticsRequest.Builder requestBuilder = GetMetricStatisticsRequest.builder();
-        requestBuilder.namespace(rule.awsNamespace);
-        requestBuilder.metricName(rule.awsMetricName);
-        requestBuilder.statistics(rule.awsStatistics);
-        requestBuilder.extendedStatistics(rule.awsExtendedStatistics);
-        requestBuilder.endTime(startDate.toInstant());
-        requestBuilder.startTime(endDate.toInstant());
-        requestBuilder.period(rule.periodSeconds);
 
+      for (MetricRule rule: config.rules) {
         String baseName = safeName(rule.awsNamespace.toLowerCase() + "_" + toSnakeCase(rule.awsMetricName));
         String jobName = safeName(rule.awsNamespace.toLowerCase());
         List<MetricFamilySamples.Sample> sumSamples = new ArrayList<>();
@@ -583,12 +573,12 @@ public class CloudWatchCollector extends Collector implements Describable {
         List<ResourceTagMapping> resourceTagMappings = getResourceTagMappings(rule, config.taggingClient);
         List<String> tagBasedResourceIds = extractResourceIds(resourceTagMappings);
 
-        for (List<Dimension> dimensions: getDimensions(rule, tagBasedResourceIds, config.cloudWatchClient)) {
-          requestBuilder.dimensions(dimensions);
-
-          GetMetricStatisticsResponse response = config.cloudWatchClient.getMetricStatistics(requestBuilder.build());
-          cloudwatchRequests.labels("getMetricStatistics", rule.awsNamespace).inc();
-          Datapoint dp = getNewestDatapoint(response.datapoints());
+        List<List<Dimension>> dimentionsList = getDimensions(rule, tagBasedResourceIds, config.cloudWatchClient);
+        DataPointsGetter datapointsGetter = new GetMetricStatisticsDataPointGetter(config.cloudWatchClient, start, rule, cloudwatchRequests);
+        
+        for (List<Dimension> dimensions: dimentionsList) {
+          List<Datapoint> datapoints = datapointsGetter.GetDataPoints(dimensions);
+          Datapoint dp = getNewestDatapoint(datapoints);
           if (dp == null) {
             continue;
           }
