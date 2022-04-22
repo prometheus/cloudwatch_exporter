@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 import io.prometheus.cloudwatch.CloudWatchCollector.MetricRule;
 import software.amazon.awssdk.services.cloudwatch.model.Dimension;
@@ -22,6 +23,8 @@ import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 import io.prometheus.client.Counter;
 
 class GetMetricDataDataGetter implements DataGetter {
+    private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
+
     private final static int MAX_QUERIES_PER_REQUEST = 500;
     private long start;
     private MetricRule rule;
@@ -141,14 +144,14 @@ class GetMetricDataDataGetter implements DataGetter {
             String labelsKey = statAndDimentions.dimetionsAsString;
             Instant timestamp = dataResult.timestamps().get(0);
             Double value = dataResult.values().get(0);
-            MetricRuleData vals = res.getOrDefault(labelsKey, new MetricRuleData(timestamp));
+            MetricRuleData metricRuleData = res.getOrDefault(labelsKey, new MetricRuleData(timestamp));
             Statistic stat = Statistic.fromValue(statString);
             if (stat == Statistic.UNKNOWN_TO_SDK_VERSION) {
-                vals.extendedValues.put(statString, value);
+                metricRuleData.extendedValues.put(statString, value);
             } else {
-                vals.statisticValues.put(stat, value);
+                metricRuleData.statisticValues.put(stat, value);
             }
-            res.put(labelsKey, vals);
+            res.put(labelsKey, metricRuleData);
         }
         return res;
     }
@@ -183,14 +186,19 @@ class GetMetricDataDataGetter implements DataGetter {
         }
 
         static StatAndDimentions decode(String label) {
-            String[] labelParts = label.split("/", 1);
-            // TODO: throw exception if size != 2
+            String[] labelParts = label.split("/", 2);
+            if (labelParts.length != 2) {
+                throw new UnexpectedLabel(label);
+            }
             String statString = labelParts[0];
             String labelsKey = labelParts[1];
             return new StatAndDimentions(statString, labelsKey);
         }
 
-        static class UnexpectedLabel extends Exception {
+        static class UnexpectedLabel extends RuntimeException {
+            public UnexpectedLabel(String label) {
+                super(String.format("Cannot decode label %s", label));
+            }
         }
     }
 
