@@ -13,6 +13,16 @@ jobs:
           paths:
             - ~/.m2
           key: circleci-demo-java-spring-{{ checksum "pom.xml" }}
+      - run: 
+          name: Check formatting
+          command: |
+            if (mvn fmt:check);
+            then
+              echo "Code is well formatted"
+            else
+              echo "Code is not formatted well. Please run 'mvn fmt:format' and commit changes"
+              exit 1
+            fi 
       - run: mvn package
   publish_image:
     docker:
