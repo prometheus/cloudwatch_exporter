@@ -17,13 +17,15 @@ class GetMetricStatisticsDataGetter implements DataGetter {
     private long start;
     private MetricRule rule;
     private CloudWatchClient client;
-    private Counter counter;
+    private Counter apiRequestsCounter;
+    private Counter metricsRequestedCounter;
 
-    GetMetricStatisticsDataGetter(CloudWatchClient client, long start, MetricRule rule, Counter counter) {
+    GetMetricStatisticsDataGetter(CloudWatchClient client, long start, MetricRule rule, Counter apiRequestsCounter, Counter metricsRequestedCounter) {
         this.client = client;
         this.start = start;
         this.rule = rule;
-        this.counter = counter;
+        this.apiRequestsCounter = apiRequestsCounter;
+        this.metricsRequestedCounter = metricsRequestedCounter;
     }
 
     private GetMetricStatisticsRequest.Builder metricStatisticsRequestBuilder() {
@@ -45,7 +47,8 @@ class GetMetricStatisticsDataGetter implements DataGetter {
         GetMetricStatisticsRequest.Builder builder = metricStatisticsRequestBuilder();
         builder.dimensions(dimensions);
         GetMetricStatisticsResponse response = client.getMetricStatistics(builder.build());
-        counter.labels("getMetricStatistics", rule.awsNamespace).inc();
+        apiRequestsCounter.labels("getMetricStatistics", rule.awsNamespace).inc();
+        metricsRequestedCounter.labels(rule.awsMetricName, rule.awsNamespace).inc();
         Datapoint latestDp = getNewestDatapoint(response.datapoints());
         return toMetricValues(latestDp);
     }

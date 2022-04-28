@@ -23,21 +23,25 @@ import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 import io.prometheus.client.Counter;
 
 class GetMetricDataDataGetter implements DataGetter {
-    private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
 
     private final static int MAX_QUERIES_PER_REQUEST = 500;
+    // https://aws.amazon.com/cloudwatch/pricing/
+    private final static int MAX_STATS_PER_BILLED_METRIC_REQUEST = 5;
     private long start;
     private MetricRule rule;
     private CloudWatchClient client;
-    private Counter counter;
+    private Counter apiRequestsCounter;
+    private Counter metricsRequestedCounter;
     private Map<String, MetricRuleData> results;
+    private Double metricRequestedForBilling;
 
     private static String dimentionToString(Dimension d) {
         return String.format("%s=%s", d.name(), d.value());
     }
 
     private static String dimentionsToKey(List<Dimension> dimentions) {
-        return String.join(",", dimentions.stream().map(d -> dimentionToString(d)).sorted().toList());
+        return String.join(",",
+                dimentions.stream().map(d -> dimentionToString(d)).sorted().toList());
     }
 
     private List<String> buildStatsList(MetricRule rule) {
@@ -51,9 +55,11 @@ class GetMetricDataDataGetter implements DataGetter {
         return stats;
     }
 
-    private List<MetricDataQuery> buildMetricDataQueries(MetricRule rule, List<List<Dimension>> dimentionsList) {
+    private List<MetricDataQuery> buildMetricDataQueries(MetricRule rule,
+            List<List<Dimension>> dimentionsList) {
         List<MetricDataQuery> queries = new ArrayList<>();
-        for (String stat : buildStatsList(rule)) {
+        List<String> stats = buildStatsList(rule);
+        for (String stat : stats) {
             for (List<Dimension> dl : dimentionsList) {
                 Metric metric = buildMetric(rule, dl);
                 MetricStat metricStat = buildMetricStat(rule, stat, metric);
@@ -61,6 +67,8 @@ class GetMetricDataDataGetter implements DataGetter {
                 queries.add(query);
             }
         }
+        Double metricRequested = Math.ceil((double) stats.size() / MAX_STATS_PER_BILLED_METRIC_REQUEST);
+        metricRequestedForBilling += metricRequested;
         return queries;
     }
 
@@ -108,7 +116,8 @@ class GetMetricDataDataGetter implements DataGetter {
         return partitions;
     }
 
-    private List<GetMetricDataRequest> buildMetricDataRequests(MetricRule rule, List<List<Dimension>> dimentionsList) {
+    private List<GetMetricDataRequest> buildMetricDataRequests(MetricRule rule,
+            List<List<Dimension>> dimentionsList) {
         Date startDate = new Date(start - 1000 * rule.delaySeconds);
         Date endDate = new Date(start - 1000 * (rule.delaySeconds + rule.rangeSeconds));
         GetMetricDataRequest.Builder builder = GetMetricDataRequest.builder();
@@ -117,7 +126,8 @@ class GetMetricDataDataGetter implements DataGetter {
         builder.scanBy(ScanBy.TIMESTAMP_DESCENDING);
         List<MetricDataQuery> queries = buildMetricDataQueries(rule, dimentionsList);
         List<GetMetricDataRequest> requests = new ArrayList<>();
-        for (List<MetricDataQuery> queriesPartition : partitionByMaxSize(queries, MAX_QUERIES_PER_REQUEST)) {
+        for (List<MetricDataQuery> queriesPartition : partitionByMaxSize(queries,
+                MAX_QUERIES_PER_REQUEST)) {
             requests.add(builder.metricDataQueries(queriesPartition).build());
         }
         return requests;
@@ -127,9 +137,11 @@ class GetMetricDataDataGetter implements DataGetter {
         List<MetricDataResult> results = new ArrayList<>();
         for (GetMetricDataRequest request : buildMetricDataRequests(rule, dimentionsList)) {
             GetMetricDataResponse response = client.getMetricData(request);
-            counter.labels("getMetricData", rule.awsNamespace).inc();
+            apiRequestsCounter.labels("getMetricData", rule.awsNamespace).inc();
             results.addAll(response.metricDataResults());
         }
+        metricsRequestedCounter.labels(rule.awsMetricName, rule.awsNamespace)
+                .inc(metricRequestedForBilling);
         return toMap(results);
     }
 
@@ -144,7 +156,8 @@ class GetMetricDataDataGetter implements DataGetter {
             String labelsKey = statAndDimentions.dimetionsAsString;
             Instant timestamp = dataResult.timestamps().get(0);
             Double value = dataResult.values().get(0);
-            MetricRuleData metricRuleData = res.getOrDefault(labelsKey, new MetricRuleData(timestamp));
+            MetricRuleData metricRuleData =
+                    res.getOrDefault(labelsKey, new MetricRuleData(timestamp));
             Statistic stat = Statistic.fromValue(statString);
             if (stat == Statistic.UNKNOWN_TO_SDK_VERSION) {
                 metricRuleData.extendedValues.put(statString, value);
@@ -156,12 +169,15 @@ class GetMetricDataDataGetter implements DataGetter {
         return res;
     }
 
-    GetMetricDataDataGetter(CloudWatchClient client, long start, MetricRule rule, Counter counter,
+    GetMetricDataDataGetter(CloudWatchClient client, long start, MetricRule rule,
+            Counter apiRequestsCounter, Counter metricsRequestedCounter,
             List<List<Dimension>> dimentionsList) {
         this.client = client;
         this.start = start;
         this.rule = rule;
-        this.counter = counter;
+        this.apiRequestsCounter = apiRequestsCounter;
+        this.metricsRequestedCounter = metricsRequestedCounter;
+        this.metricRequestedForBilling = 0d;
         this.results = fetchAllDataPoints(dimentionsList);
     }
 

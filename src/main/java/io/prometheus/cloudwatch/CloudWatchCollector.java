@@ -90,6 +90,10 @@ public class CloudWatchCollector extends Collector implements Describable {
             .labelNames("action", "namespace")
             .name("cloudwatch_requests_total").help("API requests made to CloudWatch").register();
 
+    private static final Counter cloudwatchMetricsRequsted = Counter.build()
+            .labelNames("metric_name", "namespace")
+            .name("cloudwatch_metrics_requsted_total").help("Metrics requested by either GetMetricStatistics or GetMetricData").register();
+
     private static final Counter taggingApiRequests = Counter.build()
         .labelNames("action", "resource_type")
         .name("tagging_api_requests_total").help("API requests made to the Resource Groups Tagging API").register();
@@ -579,10 +583,10 @@ public class CloudWatchCollector extends Collector implements Describable {
         List<List<Dimension>> dimentionsList = getDimensions(rule, tagBasedResourceIds, config.cloudWatchClient);
         DataGetter dataGetter = null;
         if (rule.useGetMetricData) {
-          dataGetter = new GetMetricDataDataGetter(config.cloudWatchClient, start, rule, cloudwatchRequests,
+          dataGetter = new GetMetricDataDataGetter(config.cloudWatchClient, start, rule, cloudwatchRequests,cloudwatchMetricsRequsted,
                     dimentionsList);
         } else {
-          dataGetter = new GetMetricStatisticsDataGetter(config.cloudWatchClient, start, rule, cloudwatchRequests);
+          dataGetter = new GetMetricStatisticsDataGetter(config.cloudWatchClient, start, rule, cloudwatchRequests, cloudwatchMetricsRequsted);
         }
         
         for (List<Dimension> dimensions : dimentionsList) {
