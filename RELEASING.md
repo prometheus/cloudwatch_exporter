@@ -84,7 +84,7 @@ Once closing is done, the "Release" button unlocks.
 Press it.
 
 This runs for a while, and the new version should become available on [OSSRH](https://oss.sonatype.org/#nexus-search;quick~io.prometheus.cloudwatch).
-It can take a few hours to show up.
+It usually appears immediately after the release process is done, but can take a few hours to show up.
 
 ## Docker images
 
