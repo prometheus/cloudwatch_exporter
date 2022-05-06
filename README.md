@@ -11,7 +11,7 @@ For a different approach to CloudWatch metrics, with automatic discovery, consid
 
 ## Building and running
 
-Cloudwatch Exporter requires at least Java 8.
+Cloudwatch Exporter requires at least Java 11.
 
 `mvn package` to build.
 
