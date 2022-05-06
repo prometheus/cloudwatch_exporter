@@ -2,10 +2,10 @@ package io.prometheus.cloudwatch;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.never;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
-
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
+import io.prometheus.cloudwatch.RequestsMatchers.*;
 
 import io.prometheus.client.Collector;
 import io.prometheus.client.CollectorRegistry;
@@ -16,15 +16,14 @@ import static org.junit.Assert.assertNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import java.util.ArrayList;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.List;
 import java.util.Properties;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
@@ -33,7 +32,6 @@ import software.amazon.awssdk.services.resourcegroupstaggingapi.ResourceGroupsTa
 import software.amazon.awssdk.services.resourcegroupstaggingapi.model.GetResourcesRequest;
 import software.amazon.awssdk.services.resourcegroupstaggingapi.model.GetResourcesResponse;
 import software.amazon.awssdk.services.resourcegroupstaggingapi.model.ResourceTagMapping;
-import software.amazon.awssdk.services.resourcegroupstaggingapi.model.TagFilter;
 import software.amazon.awssdk.services.resourcegroupstaggingapi.model.Tag;
 
 public class CloudWatchCollectorTest {
@@ -46,153 +44,6 @@ public class CloudWatchCollectorTest {
     cloudWatchClient = Mockito.mock(CloudWatchClient.class);
     taggingClient = Mockito.mock(ResourceGroupsTaggingApiClient.class);
     registry = new CollectorRegistry();
-  }
-
-  class ListMetricsRequestMatcher extends BaseMatcher<ListMetricsRequest> {
-    String namespace;
-    String metricName;
-    String nextToken;
-    String recentlyActive;
-    List<DimensionFilter> dimensions = new ArrayList<DimensionFilter>();
-
-    public ListMetricsRequestMatcher Namespace(String namespace) {
-      this.namespace = namespace;
-      return this;
-    }
-    public ListMetricsRequestMatcher MetricName(String metricName) {
-      this.metricName = metricName;
-      return this;
-    }
-    public ListMetricsRequestMatcher NextToken(String nextToken) {
-      this.nextToken = nextToken;
-      return this;
-    }
-    public ListMetricsRequestMatcher Dimensions(String... dimensions) {
-      this.dimensions = new ArrayList<DimensionFilter>();
-      for (int i = 0; i < dimensions.length; i++) {
-        this.dimensions.add(DimensionFilter.builder().name(dimensions[i]).build());
-      }
-      return this;
-    }
-    public ListMetricsRequestMatcher RecentlyActive(String recentlyActive) {
-      this.recentlyActive = recentlyActive;
-      return this;
-    }
-
-    public boolean matches(Object o) {
-     ListMetricsRequest request = (ListMetricsRequest) o;
-     if (request == null) return false;
-     if (namespace != null && !namespace.equals(request.namespace())){
-       return false;
-     }
-     if (metricName != null && !metricName.equals(request.metricName())){
-       return false;
-     }
-     if (nextToken == null ^ request.nextToken() == null) {
-       return false;
-     }
-     if (nextToken != null && !nextToken.equals(request.nextToken())) {
-       return false;
-     }
-     if (!dimensions.equals(request.dimensions())) {
-       return false;
-     }
-     if (recentlyActive != null && !recentlyActive.equals(request.recentlyActive())) {
-       return false;
-     }
-     return true;
-    }
-
-    public void describeTo(Description description) {
-        description.appendText("list metrics request");
-    }
-  }
-
-  class GetMetricStatisticsRequestMatcher extends BaseMatcher<GetMetricStatisticsRequest> {
-    String namespace;
-    String metricName;
-    List<Dimension> dimensions = new ArrayList<Dimension>();
-    Integer period;
-
-    public GetMetricStatisticsRequestMatcher Namespace(String namespace) {
-      this.namespace = namespace;
-      return this;
-    }
-    public GetMetricStatisticsRequestMatcher MetricName(String metricName) {
-      this.metricName = metricName;
-      return this;
-    }
-    public GetMetricStatisticsRequestMatcher Dimension(String name, String value) {
-      dimensions.add(Dimension.builder().name(name).value(value).build());
-      return this;
-    }
-    public GetMetricStatisticsRequestMatcher Period(int period) {
-      this.period = period;
-      return this;
-    }
-
-    public boolean matches(Object o) {
-     GetMetricStatisticsRequest request = (GetMetricStatisticsRequest) o;
-     if (request == null) return false;
-     if (namespace != null && !namespace.equals(request.namespace())){
-       return false;
-     }
-     if (metricName != null && !metricName.equals(request.metricName())){
-       return false;
-     }
-     if (!dimensions.equals(request.dimensions())) {
-       return false;
-     }
-     if (period != null && !period.equals(request.period())) {
-         return false;
-     }
-     return true;
-    }
-
-    public void describeTo(Description description) {
-      description.appendText("get metrics statistics request");
-    }
-  }
-
-  class GetResourcesRequestMatcher extends BaseMatcher<GetResourcesRequest> {
-    String paginationToken = "";
-    List<String> resourceTypeFilters = new ArrayList<String>();
-    List<TagFilter> tagFilters = new ArrayList<TagFilter>();
-
-    public GetResourcesRequestMatcher PaginationToken(String paginationToken) {
-      this.paginationToken = paginationToken;
-      return this;
-    }
-    public GetResourcesRequestMatcher ResourceTypeFilter(String resourceTypeFilter) {
-      resourceTypeFilters.add(resourceTypeFilter);
-      return this;
-    }
-    public GetResourcesRequestMatcher TagFilter(String key, List<String> values ) {
-      tagFilters.add(TagFilter.builder().key(key).values(values).build());
-      return this;
-    }
-
-    public boolean matches(Object o) {
-     GetResourcesRequest request = (GetResourcesRequest) o;
-     if (request == null) return false;
-     if (paginationToken == "" ^ request.paginationToken() == "") {
-       return false;
-     }
-     if (paginationToken != "" && !paginationToken.equals(request.paginationToken())) {
-       return false;
-     }
-     if (!resourceTypeFilters.equals(request.resourceTypeFilters())) {
-       return false;
-     }
-     if (!tagFilters.equals(request.tagFilters())) {
-       return false;
-     }
-     return true;
-    }
-
-    public void describeTo(Description description) {
-      description.appendText("get resources request");
-    }
   }
 
   @Test
@@ -214,6 +65,31 @@ public class CloudWatchCollectorTest {
     ));
   }
 
+  @Test
+  public void testMetricPeriodUsingGetMetricData() {
+    new CloudWatchCollector(
+            "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  period_seconds: 100\n  range_seconds: 200\n  delay_seconds: 300\n  use_get_metric_data: true\n", cloudWatchClient, taggingClient).register(registry);
+
+    Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest) any()))
+            .thenReturn(GetMetricStatisticsResponse.builder().build());
+
+    Mockito.when(cloudWatchClient.getMetricData((GetMetricDataRequest) any()))
+            .thenReturn(GetMetricDataResponse.builder().build());
+    registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance"}, new String[]{"aws_elb", ""});
+
+    Mockito.verify(cloudWatchClient, never()).getMetricStatistics(isA(GetMetricStatisticsRequest.class));
+    Mockito.verify(cloudWatchClient).getMetricData(argThat(
+      new GetMetricDataRequestMatcher().Query(
+        new MetricDataQueryMatcher().MetricStat(
+          new MetricStatMatcher().Period(100).metric(
+            new MetricMatcher()
+            .Namespace("AWS/ELB")
+            .MetricName("RequestCount")
+          )
+        ))
+    ));
+  }
+  
   @Test
   public void testDefaultPeriod() {
     new CloudWatchCollector(
@@ -244,6 +120,38 @@ public class CloudWatchCollectorTest {
             Datapoint.builder().timestamp(new Date().toInstant()).average(1.0)
                 .maximum(2.0).minimum(3.0).sampleCount(4.0).sum(5.0).build()).build());
 
+    assertEquals(1.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
+    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_maximum", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
+    assertEquals(3.0, registry.getSampleValue("aws_elb_request_count_minimum", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
+    assertEquals(4.0, registry.getSampleValue("aws_elb_request_count_sample_count", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
+    assertEquals(5.0, registry.getSampleValue("aws_elb_request_count_sum", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
+  }
+
+  @Test
+  public void testAllStatisticsUsingGetMetricData() throws Exception {
+    new CloudWatchCollector(
+        "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  use_get_metric_data: true\n", cloudWatchClient, taggingClient).register(registry);
+    List<Instant> timestamps = List.of(new Date().toInstant());
+    MetricMatcher metricMatcher = new MetricMatcher()
+          .Namespace("AWS/ELB")
+          .MetricName("RequestCount");
+          
+    Mockito.when(cloudWatchClient.getMetricData((GetMetricDataRequest) argThat(
+        new GetMetricDataRequestMatcher()
+        .Query(new MetricDataQueryMatcher().MetricStat(new MetricStatMatcher().Stat("Average").metric(metricMatcher)))
+        .Query(new MetricDataQueryMatcher().MetricStat(new MetricStatMatcher().Stat("Maximum").metric(metricMatcher)))
+        .Query(new MetricDataQueryMatcher().MetricStat(new MetricStatMatcher().Stat("Minimum").metric(metricMatcher)))
+        .Query(new MetricDataQueryMatcher().MetricStat(new MetricStatMatcher().Stat("SampleCount").metric(metricMatcher)))
+        .Query(new MetricDataQueryMatcher().MetricStat(new MetricStatMatcher().Stat("Sum").metric(metricMatcher)))
+        )))
+        .thenReturn(GetMetricDataResponse.builder().metricDataResults(
+          List.of(
+            MetricDataResult.builder().label("Average/").values(List.of(Double.valueOf(1.0))).timestamps(timestamps).build(),
+            MetricDataResult.builder().label("Maximum/").values(List.of(Double.valueOf(2.0))).timestamps(timestamps).build(),
+            MetricDataResult.builder().label("Minimum/").values(List.of(Double.valueOf(3.0))).timestamps(timestamps).build(),
+            MetricDataResult.builder().label("SampleCount/").values(List.of(Double.valueOf(4.0))).timestamps(timestamps).build(),
+            MetricDataResult.builder().label("Sum/").values(List.of(Double.valueOf(5.0))).timestamps(timestamps).build())).build());
+            
     assertEquals(1.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
     assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_maximum", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
     assertEquals(3.0, registry.getSampleValue("aws_elb_request_count_minimum", new String[]{"job", "instance"}, new String[]{"aws_elb", ""}), .01);
@@ -374,6 +282,37 @@ public class CloudWatchCollectorTest {
 
     assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "a", "myLB"}), .01);
     assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "b", "myLB"}), .01);
+    assertNull(registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "a", "myOtherLB"}));
+  }
+
+  @Test
+  public void testAllSelectDimensionsKnownUsingGetMetricData() throws Exception {
+    new CloudWatchCollector(
+            "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancerName\n  aws_dimension_select:\n    LoadBalancerName:\n    - myLB\n    AvailabilityZone:\n    - a\n    - b\n  use_get_metric_data: true\n", cloudWatchClient, taggingClient).register(registry);
+    List<Instant> timestamps = List.of(new Date().toInstant());
+    MetricMatcher firstMetric = new MetricMatcher()
+          .Namespace("AWS/ELB")
+          .MetricName("RequestCount")
+          .Dimension("AvailabilityZone", "a").Dimension("LoadBalancerName", "myLB");
+
+    MetricMatcher secondMetric = new MetricMatcher()
+          .Namespace("AWS/ELB")
+          .MetricName("RequestCount")
+          .Dimension("AvailabilityZone", "b").Dimension("LoadBalancerName", "myLB");
+
+    Mockito.when(cloudWatchClient.getMetricData((GetMetricDataRequest) argThat(
+      new GetMetricDataRequestMatcher()
+      .Query(new MetricDataQueryMatcher().MetricStat(new MetricStatMatcher().Stat("Average").metric(firstMetric)))
+      .Query(new MetricDataQueryMatcher().MetricStat(new MetricStatMatcher().Stat("Average").metric(secondMetric)))
+      )))
+      .thenReturn(GetMetricDataResponse.builder().metricDataResults(
+        List.of(
+          MetricDataResult.builder().label("Average/AvailabilityZone=a,LoadBalancerName=myLB").values(List.of(Double.valueOf(2.0))).timestamps(timestamps).build(),
+          MetricDataResult.builder().label("Average/AvailabilityZone=b,LoadBalancerName=myLB").values(List.of(Double.valueOf(3.0))).timestamps(timestamps).build()
+          )).build());
+
+    assertEquals(2.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "a", "myLB"}), .01);
+    assertEquals(3.0, registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "b", "myLB"}), .01);
     assertNull(registry.getSampleValue("aws_elb_request_count_average", new String[]{"job", "instance", "availability_zone", "load_balancer_name"}, new String[]{"aws_elb", "", "a", "myOtherLB"}));
   }
 

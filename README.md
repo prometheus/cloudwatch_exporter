@@ -85,6 +85,8 @@ delay_seconds | Optional. The newest data to request. Used to avoid collecting d
 range_seconds | Optional. How far back to request data for. Useful for cases such as Billing metrics that are only set every few hours. Defaults to 600s. Can be set globally and per metric.
 period_seconds | Optional. [Period](http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/cloudwatch_concepts.html#CloudWatchPeriods) to request the metric for. Only the most recent data point is used. Defaults to 60s. Can be set globally and per metric.
 set_timestamp | Optional. Boolean for whether to set the Prometheus metric timestamp as the original Cloudwatch timestamp. For some metrics which are updated very infrequently (such as S3/BucketSize), Prometheus may refuse to scrape them if this is set to true (see #100). Defaults to true. Can be set globally and per metric.
+use_get_metric_data | Optional. Boolean (experimental) Use GetMetricData API to get metrics instead of GetMetricStatistics.
+
 
 The above config will export time series such as
 ```
@@ -176,12 +178,11 @@ If an error occurs during the reload, check the exporter's log output.
 
 ### Cost
 
-Amazon charges for every CloudWatch API request, see the [current charges](http://aws.amazon.com/cloudwatch/pricing/).
+Amazon charges for every CloudWatch API request or for every Cloudwatch metric requested, see the [current charges](http://aws.amazon.com/cloudwatch/pricing/).
 
-Every metric retrieved requires one API request, which can include multiple
-statistics. In addition, when `aws_dimensions` is provided, the exporter needs
-to do API requests to determine what metrics to request. This should be
-negligible compared to the requests for the metrics themselves.
+- In case of using `GetMetricStatistics` (default) - Every metric retrieved requires one API request, which can include multiple
+statistics. 
+- In addition, when `aws_dimensions` is provided, the exporter needs to do API requests to determine what metrics to request. This should be negligible compared to the requests for the metrics themselves.
 
 In the case that all `aws_dimensions` are provided in the `aws_dimension_select` list, the exporter will not perform the
 above API request.  It will request all possible combination of values for those dimensions.
@@ -193,6 +194,23 @@ requests (as of Aug 2018), that is around $45 per month. The
 
 When using the `aws_tag_select` feature, additional requests are made to the Resource Groups Tagging API, but these are [free](https://aws.amazon.com/blogs/aws/new-aws-resource-tagging-api/).
 The `tagging_api_requests_total` counter tracks how many requests are being made for these.
+
+### Experimental GetMetricData
+We are transitioning to use `GetMetricsData` instead of `GetMetricsStatistics`.
+The benefits of using `GetMetricsData` is mainly around much better performence.
+
+Please refer to [this doc](https://aws.amazon.com/premiumsupport/knowledge-center/cloudwatch-getmetricdata-api/) explaining why it is best practice to use `GetMetricData`
+
+API | performence | Costs | Stability 
+--- |--- |--- |--- 
+`GetMetricStatistics` | May be slow at scale | Charged per API request | stable. (Default option)
+`GetMetricData` | Can retrieve data faster at scale | Charged per **metric** requested | New (opt-in via configuration)
+
+#### Transition plan
+At first this feature would be opt-in to allow you to decide when and how to test it
+On later versions we would swap the default so everyone can enjoy the benefits.
+
+Cloudwatch exporter also expose a new self metric called `cloudwatch_metrics_requsted_total` that allows you to track number of requested metrics in addition to the number of API requests.
 
 ## Docker Images
 
