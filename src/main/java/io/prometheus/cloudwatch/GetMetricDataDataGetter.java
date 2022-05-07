@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 import software.amazon.awssdk.services.cloudwatch.model.Dimension;
 import software.amazon.awssdk.services.cloudwatch.model.GetMetricDataRequest;
@@ -38,13 +39,17 @@ class GetMetricDataDataGetter implements DataGetter {
   }
 
   private static String dimentionsToKey(List<Dimension> dimentions) {
-    return String.join(",", dimentions.stream().map(d -> dimentionToString(d)).sorted().toList());
+    return dimentions.stream()
+        .map(GetMetricDataDataGetter::dimentionToString)
+        .sorted()
+        .collect(Collectors.joining(","));
   }
 
   private List<String> buildStatsList(MetricRule rule) {
     List<String> stats = new ArrayList<>();
     if (rule.awsStatistics != null) {
-      stats.addAll(rule.awsStatistics.stream().map(s -> s.toString()).toList());
+      stats.addAll(
+          rule.awsStatistics.stream().map(Statistic::toString).collect(Collectors.toList()));
     }
     if (rule.awsExtendedStatistics != null) {
       stats.addAll(rule.awsExtendedStatistics);

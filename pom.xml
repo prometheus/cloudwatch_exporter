@@ -41,32 +41,40 @@
       <tag>HEAD</tag>
   </scm>
 
+  <properties>
+    <maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <project.releaseDate>${maven.build.timestamp}</project.releaseDate>
+    <software.amazon.awssdk.version>2.17.170</software.amazon.awssdk.version>
+    <io.prometheus.version>0.15.0</io.prometheus.version>
+  </properties>
   <dependencies>
 
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>cloudwatch</artifactId>
-      <version>2.17.170</version>
+      <version>${software.amazon.awssdk.version}</version>
     </dependency>
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>sts</artifactId>
-      <version>2.17.170</version>
+      <version>${software.amazon.awssdk.version}</version>
     </dependency>
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>resourcegroupstaggingapi</artifactId>
-      <version>2.17.170</version>
+      <version>${software.amazon.awssdk.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
-      <version>1.13</version>
+      <version>1.15</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-jdk14</artifactId>
-      <version>1.7.32</version>
+      <version>1.7.36</version>
     </dependency>
     <!--
       Older versions of jackson-databind have remote code execution vulnerabilities
@@ -83,27 +91,27 @@
     <dependency>
       <groupId>org.yaml</groupId>
       <artifactId>snakeyaml</artifactId>
-      <version>1.29</version>
+      <version>1.30</version>
     </dependency>
     <dependency>
       <groupId>io.prometheus</groupId>
       <artifactId>simpleclient</artifactId>
-      <version>0.14.1</version>
+      <version>${io.prometheus.version}</version>
     </dependency>
     <dependency>
       <groupId>io.prometheus</groupId>
-      <artifactId>simpleclient_servlet</artifactId>
-      <version>0.14.1</version>
+      <artifactId>simpleclient_servlet_jakarta</artifactId>
+      <version>${io.prometheus.version}</version>
     </dependency>
     <dependency>
       <groupId>io.prometheus</groupId>
       <artifactId>simpleclient_hotspot</artifactId>
-      <version>0.14.1</version>
+      <version>${io.prometheus.version}</version>
     </dependency>
     <dependency>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-servlet</artifactId>
-        <version>10.0.8</version>
+        <version>11.0.9</version>
     </dependency>
 
     <dependency>
@@ -138,10 +146,9 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.3.2</version>
+        <version>3.10.1</version>
         <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
+          <release>11</release>
         </configuration>
       </plugin>
       <!-- Build a full jar with dependencies -->
@@ -233,13 +240,6 @@
     </plugin>
     </plugins>
   </build>
-
-  <properties>
-    <maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <project.releaseDate>${maven.build.timestamp}</project.releaseDate>
-  </properties>
 
   <profiles>
       <profile>

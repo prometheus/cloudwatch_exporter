@@ -1,7 +1,7 @@
 package io.prometheus.cloudwatch;
 
-import io.prometheus.client.exporter.MetricsServlet;
 import io.prometheus.client.hotspot.DefaultExports;
+import io.prometheus.client.servlet.jakarta.exporter.MetricsServlet;
 import java.io.FileReader;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
