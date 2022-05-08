@@ -27,7 +27,7 @@ which offers [a variety of ways to provide credentials](http://docs.aws.amazon.c
 This includes the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment
 variables.
 
-The `cloudwatch:ListMetrics` and `cloudwatch:GetMetricStatistics` IAM permissions are required.
+The `cloudwatch:ListMetrics`, `cloudwatch:GetMetricStatistics` and `cloudwatch:GetMetricData` IAM permissions are required.
 The `tag:GetResources` IAM permission is also required to use the `aws_tag_select` feature.
 
 ## Configuration
