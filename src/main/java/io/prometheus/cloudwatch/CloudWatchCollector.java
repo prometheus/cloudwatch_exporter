@@ -652,7 +652,7 @@ public class CloudWatchCollector extends Collector implements Describable {
         if (values == null) {
           continue;
         }
-
+        unit = values.unit;
         List<String> labelNames = new ArrayList<>();
         List<String> labelValues = new ArrayList<>();
         labelNames.add("job");

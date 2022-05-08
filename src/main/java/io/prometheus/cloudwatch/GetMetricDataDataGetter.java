@@ -154,7 +154,8 @@ class GetMetricDataDataGetter implements DataGetter {
       String labelsKey = statAndDimentions.dimetionsAsString;
       Instant timestamp = dataResult.timestamps().get(0);
       Double value = dataResult.values().get(0);
-      MetricRuleData metricRuleData = res.getOrDefault(labelsKey, new MetricRuleData(timestamp));
+      MetricRuleData metricRuleData =
+          res.getOrDefault(labelsKey, new MetricRuleData(timestamp, "N/A"));
       Statistic stat = Statistic.fromValue(statString);
       if (stat == Statistic.UNKNOWN_TO_SDK_VERSION) {
         metricRuleData.extendedValues.put(statString, value);

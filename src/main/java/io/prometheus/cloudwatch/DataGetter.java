@@ -15,8 +15,11 @@ interface DataGetter {
     Map<String, Double> extendedValues;
     Instant timestamp;
 
-    MetricRuleData(Instant timestamp) {
+    String unit;
+
+    MetricRuleData(Instant timestamp, String unit) {
       this.timestamp = timestamp;
+      this.unit = unit;
       this.statisticValues = new HashMap<>();
       this.extendedValues = new HashMap<>();
     }
