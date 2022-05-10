@@ -454,6 +454,22 @@ metrics:
       ReplicationTaskIdentifier: ["${DMS_REPL_TASK_REGEX}"]
       ReplicationInstanceIdentifier: ["${DMS_REPL_INSTANCES_REGEX}"]
 
+  - aws_namespace: AWS/DMS
+    aws_metric_name: CDCLatencySource
+    aws_dimensions: [ReplicationInstanceIdentifier, ReplicationTaskIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      ReplicationTaskIdentifier: ["${DMS_REPL_TASK_REGEX}"]
+      ReplicationInstanceIdentifier: ["${DMS_REPL_INSTANCES_REGEX}"]
+
+  - aws_namespace: AWS/DMS
+    aws_metric_name: CDCLatencyTarget
+    aws_dimensions: [ReplicationInstanceIdentifier, ReplicationTaskIdentifier]
+    aws_statistics: [Average]
+    aws_dimension_select_regex:
+      ReplicationTaskIdentifier: ["${DMS_REPL_TASK_REGEX}"]
+      ReplicationInstanceIdentifier: ["${DMS_REPL_INSTANCES_REGEX}"]
+
   - aws_namespace: AWS/ElastiCache
     aws_metric_name: CPUUtilization
     aws_dimensions: [CacheClusterId]
