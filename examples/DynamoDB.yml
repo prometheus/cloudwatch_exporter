@@ -1,0 +1,51 @@
+region: us-east-1
+metrics:
+- aws_dimensions:
+  - TableName
+  - GlobalSecondaryIndexName
+  aws_metric_name: ConsumedReadCapacityUnits
+  aws_namespace: AWS/DynamoDB
+  aws_statistics:
+  - Maximum
+- aws_dimensions:
+  - TableName
+  - GlobalSecondaryIndexName
+  aws_metric_name: ConsumedWriteCapacityUnits
+  aws_namespace: AWS/DynamoDB
+  aws_statistics:
+  - Maximum
+- aws_dimensions:
+  - TableName
+  - Operation
+  aws_metric_name: ThrottledRequests
+  aws_namespace: AWS/DynamoDB
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - TableName
+  - Operation
+  aws_metric_name: SystemErrors
+  aws_namespace: AWS/DynamoDB
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - TableName
+  - Operation
+  aws_metric_name: SuccessfulRequestLatency
+  aws_namespace: AWS/DynamoDB
+  aws_statistics:
+  - Maximum
+- aws_dimensions:
+  - TableName
+  - GlobalSecondaryIndexName
+  aws_metric_name: WriteThrottleEvents
+  aws_namespace: AWS/DynamoDB
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - TableName
+  - GlobalSecondaryIndexName
+  aws_metric_name: ReadThrottleEvents
+  aws_namespace: AWS/DynamoDB
+  aws_statistics:
+  - Sum
