@@ -71,7 +71,7 @@ class GetMetricStatisticsDataGetter implements DataGetter {
     if (dp == null) {
       return null;
     }
-    MetricRuleData values = new MetricRuleData(dp.timestamp());
+    MetricRuleData values = new MetricRuleData(dp.timestamp(), dp.unitAsString());
     if (dp.sum() != null) {
       values.statisticValues.put(Statistic.SUM, dp.sum());
     }
