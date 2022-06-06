@@ -59,12 +59,6 @@ metrics:
   - Average
 - aws_dimensions:
   - InstanceId
-  aws_metric_name: CPUCreditUsage
-  aws_namespace: AWS/EC2
-  aws_statistics:
-  - Average
-- aws_dimensions:
-  - InstanceId
   aws_metric_name: StatusCheckFailed
   aws_namespace: AWS/EC2
   aws_statistics:
