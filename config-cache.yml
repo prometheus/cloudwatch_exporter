@@ -58,3 +58,8 @@ metrics:
     aws_metric_name: ReplicationLag
     aws_dimensions: [CacheClusterId]
     aws_statistics: [Average]
+    
+  - aws_namespace: AWS/ElastiCache
+    aws_metric_name: DatabaseMemoryUsagePercentage
+    aws_dimensions: [CacheClusterId]
+    aws_statistics: [Average]
