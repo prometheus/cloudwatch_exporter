@@ -46,7 +46,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <project.releaseDate>${maven.build.timestamp}</project.releaseDate>
-    <software.amazon.awssdk.version>2.17.170</software.amazon.awssdk.version>
+    <software.amazon.awssdk.version>2.17.206</software.amazon.awssdk.version>
     <io.prometheus.version>0.15.0</io.prometheus.version>
   </properties>
   <dependencies>
@@ -86,7 +86,7 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.13.2.1</version>
+      <version>2.13.3</version>
     </dependency>
     <dependency>
       <groupId>org.yaml</groupId>
@@ -123,7 +123,7 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>4.1.0</version>
+      <version>4.6.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
