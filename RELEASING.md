@@ -15,7 +15,7 @@ Sign up through [Sonatype JIRA](https://issues.sonatype.org) if you don't have a
 [File a Publishing Support ticket](https://central.sonatype.org/faq/get-support/#producers) ([example](https://issues.sonatype.org/browse/OSSRH-70163)) to gain access to the `io.prometheus` group in the Sonatype OSSRH.
 The same login will be used for the repository.
 
-Verify that you can log into [OSSRH](https://https://oss.sonatype.org/).
+Verify that you can log into [OSSRH](https://oss.sonatype.org/).
 The CloudWatch Exporter is at [io.prometheus.cloudwatch](https://oss.sonatype.org/#nexus-search;quick~io.prometheus.cloudwatch).
 
 Set up [Maven publishing](https://central.sonatype.org/publish/publish-maven/), specifically the `<server>` block in `~/.m2/settings.xml`.
