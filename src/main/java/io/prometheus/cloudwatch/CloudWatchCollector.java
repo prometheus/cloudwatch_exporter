@@ -424,7 +424,6 @@ public class CloudWatchCollector extends Collector implements Describable {
         }
       }
     }
-
     return result;
   }
 
@@ -468,7 +467,12 @@ public class CloudWatchCollector extends Collector implements Describable {
       }
       nextToken = response.nextToken();
     } while (nextToken != null);
-
+    if (dimensions.isEmpty()) {
+      LOGGER.warning(
+          String.format(
+              "(listDimensions) ignoring metric %s:%s due to dimensions mismatch",
+              rule.awsNamespace, rule.awsMetricName));
+    }
     return dimensions;
   }
 
