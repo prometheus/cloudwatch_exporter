@@ -10,35 +10,35 @@
   <url>http://github.com/prometheus/cloudwatch_exporter</url>
 
   <parent>
-      <groupId>org.sonatype.oss</groupId>
-      <artifactId>oss-parent</artifactId>
-      <version>7</version>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>7</version>
   </parent>
 
   <distributionManagement>
-      <snapshotRepository>
-          <id>ossrh</id>
-          <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-      </snapshotRepository>
-      <repository>
-          <id>ossrh</id>
-          <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-      </repository>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
   </distributionManagement>
 
   <licenses>
-      <license>
-          <name>The Apache Software License, Version 2.0</name>
-          <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-          <distribution>repo</distribution>
-      </license>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
   </licenses>
 
   <scm>
-      <connection>scm:git:git@github.com:prometheus/cloudwatch_exporter.git</connection>
-      <developerConnection>scm:git:git@github.com:prometheus/cloudwatch_exporter.git</developerConnection>
-      <url>git@github.com:prometheus/cloudwatch_exporter.git</url>
-      <tag>HEAD</tag>
+    <connection>scm:git:git@github.com:prometheus/cloudwatch_exporter.git</connection>
+    <developerConnection>scm:git:git@github.com:prometheus/cloudwatch_exporter.git</developerConnection>
+    <url>git@github.com:prometheus/cloudwatch_exporter.git</url>
+    <tag>HEAD</tag>
   </scm>
 
   <properties>
@@ -47,7 +47,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <project.releaseDate>${maven.build.timestamp}</project.releaseDate>
     <software.amazon.awssdk.version>2.17.206</software.amazon.awssdk.version>
-    <io.prometheus.version>0.15.0</io.prometheus.version>
+    <io.prometheus.version>0.16.0</io.prometheus.version>
   </properties>
   <dependencies>
 
@@ -109,9 +109,9 @@
       <version>${io.prometheus.version}</version>
     </dependency>
     <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-servlet</artifactId>
-        <version>11.0.9</version>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-servlet</artifactId>
+      <version>11.0.9</version>
     </dependency>
 
     <dependency>
@@ -131,7 +131,7 @@
       <artifactId>hamcrest-library</artifactId>
       <version>1.3</version>
       <scope>test</scope>
-  </dependency> 
+    </dependency>
   </dependencies>
 
 
@@ -175,119 +175,119 @@
         </executions>
       </plugin>
       <plugin>
-          <artifactId>maven-release-plugin</artifactId>
-          <groupId>org.apache.maven.plugins</groupId>
-          <version>3.0.0-M4</version>
-          <configuration>
-            <autoVersionSubmodules>true</autoVersionSubmodules>
-            <useReleaseProfile>false</useReleaseProfile>
-            <releaseProfiles>release</releaseProfiles>
-            <goals>deploy</goals>
-            <tagNameFormat>v@{project.version}</tagNameFormat>
-          </configuration>
+        <artifactId>maven-release-plugin</artifactId>
+        <groupId>org.apache.maven.plugins</groupId>
+        <version>3.0.0-M4</version>
+        <configuration>
+          <autoVersionSubmodules>true</autoVersionSubmodules>
+          <useReleaseProfile>false</useReleaseProfile>
+          <releaseProfiles>release</releaseProfiles>
+          <goals>deploy</goals>
+          <tagNameFormat>v@{project.version}</tagNameFormat>
+        </configuration>
       </plugin>
       <plugin>
-          <artifactId>maven-deploy-plugin</artifactId>
-          <groupId>org.apache.maven.plugins</groupId>
-          <version>2.7</version>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <groupId>org.apache.maven.plugins</groupId>
+        <version>2.7</version>
       </plugin>
       <plugin>
-          <groupId>org.apache.felix</groupId>
-          <artifactId>maven-bundle-plugin</artifactId>
-          <version>2.4.0</version>
-          <extensions>true</extensions>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <version>2.4.0</version>
+        <extensions>true</extensions>
       </plugin>
       <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>3.0.0-M5</version>
-	  <configuration>
-              <argLine>-Djdk.net.URLClassPath.disableClassPathURLCheck=true</argLine>
-	  </configuration>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.0.0-M5</version>
+        <configuration>
+          <argLine>-Djdk.net.URLClassPath.disableClassPathURLCheck=true</argLine>
+        </configuration>
       </plugin>
       <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-javadoc-plugin</artifactId>
-          <version>2.8</version>
-          <configuration>
-              <encoding>UTF-8</encoding>
-              <docencoding>UTF-8</docencoding>
-              <linksource>true</linksource>
-              <source>8</source>
-              <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
-          </configuration>
-          <executions>
-              <execution>
-                  <id>generate-javadoc-site-report</id>
-                  <phase>site</phase>
-                  <goals>
-                      <goal>javadoc</goal>
-                  </goals>
-              </execution>
-          </executions>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.8</version>
+        <configuration>
+          <encoding>UTF-8</encoding>
+          <docencoding>UTF-8</docencoding>
+          <linksource>true</linksource>
+          <source>8</source>
+          <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
+        </configuration>
+        <executions>
+          <execution>
+            <id>generate-javadoc-site-report</id>
+            <phase>site</phase>
+            <goals>
+              <goal>javadoc</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>com.spotify.fmt</groupId>
         <artifactId>fmt-maven-plugin</artifactId>
         <version>2.18</version>
         <executions>
-            <execution>
-                <goals>
-                    <goal>format</goal>
-                </goals>
-            </execution>
+          <execution>
+            <goals>
+              <goal>format</goal>
+            </goals>
+          </execution>
         </executions>
-    </plugin>
+      </plugin>
     </plugins>
   </build>
 
   <profiles>
-      <profile>
-          <id>release</id>
-          <build>
-              <plugins>
-                  <plugin>
-                      <groupId>org.apache.maven.plugins</groupId>
-                      <artifactId>maven-gpg-plugin</artifactId>
-                      <version>1.5</version>
-                      <executions>
-                          <execution>
-                              <id>sign-artifacts</id>
-                              <phase>verify</phase>
-                              <goals>
-                                  <goal>sign</goal>
-                              </goals>
-                          </execution>
-                      </executions>
-                  </plugin>
-                  <plugin>
-                      <groupId>org.apache.maven.plugins</groupId>
-                      <artifactId>maven-source-plugin</artifactId>
-                      <version>2.2.1</version>
-                      <executions>
-                          <execution>
-                              <id>attach-sources</id>
-                                <goals>
-                                    <goal>jar-no-fork</goal>
-                                </goals>
-                          </execution>
-                      </executions>
-                  </plugin>
-                  <plugin>
-                      <groupId>org.apache.maven.plugins</groupId>
-                      <artifactId>maven-javadoc-plugin</artifactId>
-                      <version>2.9.1</version>
-                      <executions>
-                          <execution>
-                              <id>attach-javadocs</id>
-                              <goals>
-                                  <goal>jar</goal>
-                              </goals>
-                          </execution>
-                      </executions>
-                  </plugin>
-              </plugins>
-          </build>
-      </profile>
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.5</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>2.2.1</version>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar-no-fork</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.9.1</version>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 </project>
