@@ -210,7 +210,7 @@ API | performence | Costs | Stability
 At first this feature would be opt-in to allow you to decide when and how to test it
 On later versions we would swap the default so everyone can enjoy the benefits.
 
-Cloudwatch exporter also expose a new self metric called `cloudwatch_metrics_requsted_total` that allows you to track number of requested metrics in addition to the number of API requests.
+Cloudwatch exporter also expose a new self metric called `cloudwatch_metrics_requested_total` that allows you to track number of requested metrics in addition to the number of API requests.
 
 ## Docker Images
 
