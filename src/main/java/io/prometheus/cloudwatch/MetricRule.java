@@ -22,6 +22,7 @@ class MetricRule {
   boolean cloudwatchTimestamp;
   boolean useGetMetricData;
   Duration listMetricsCacheTtl;
+  boolean warnOnEmptyListDimensions;
 
   @Override
   public boolean equals(Object o) {

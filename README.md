@@ -87,6 +87,7 @@ period_seconds | Optional. [Period](http://docs.aws.amazon.com/AmazonCloudWatch/
 set_timestamp | Optional. Boolean for whether to set the Prometheus metric timestamp as the original Cloudwatch timestamp. For some metrics which are updated very infrequently (such as S3/BucketSize), Prometheus may refuse to scrape them if this is set to true (see #100). Defaults to true. Can be set globally and per metric.
 use_get_metric_data | Optional. Boolean (experimental) Use GetMetricData API to get metrics instead of GetMetricStatistics.
 list_metrics_cache_ttl | Optional. Number of seconds to cache the result of calling the ListMetrics API. Defaults to 0 (no cache). Can be set globally and per metric.
+warn_on_empty_list_dimensions | Optional. Boolean Emit warning if the exporter cannot determine what metrics to request
 
 
 The above config will export time series such as

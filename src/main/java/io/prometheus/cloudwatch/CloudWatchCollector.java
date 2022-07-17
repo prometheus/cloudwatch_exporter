@@ -170,6 +170,11 @@ public class CloudWatchCollector extends Collector implements Describable {
           Duration.ofSeconds(((Number) config.get("list_metrics_cache_ttl")).intValue());
     }
 
+    boolean defaultWarnOnMissingDimensions = false;
+    if (config.containsKey("warn_on_empty_list_dimensions")) {
+      defaultWarnOnMissingDimensions = (Boolean) config.get("warn_on_empty_list_dimensions");
+    }
+
     String region = (String) config.get("region");
 
     if (cloudWatchClient == null) {
@@ -274,6 +279,12 @@ public class CloudWatchCollector extends Collector implements Describable {
         rule.useGetMetricData = (Boolean) yamlMetricRule.get("use_get_metric_data");
       } else {
         rule.useGetMetricData = defaultUseGetMetricData;
+      }
+      if (yamlMetricRule.containsKey("warn_on_empty_list_dimensions")) {
+        rule.warnOnEmptyListDimensions =
+            (Boolean) yamlMetricRule.get("warn_on_empty_list_dimensions");
+      } else {
+        rule.warnOnEmptyListDimensions = defaultWarnOnMissingDimensions;
       }
 
       if (yamlMetricRule.containsKey("aws_tag_select")) {
