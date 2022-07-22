@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Prometheus community channels
+    url: https://prometheus.io/community
+    about: For general prometheus questions ❓❓ 
+  - name: Cloudwatch Service quotas
+    url: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_limits.html
+    about: Read about Cloudwatch quotas
