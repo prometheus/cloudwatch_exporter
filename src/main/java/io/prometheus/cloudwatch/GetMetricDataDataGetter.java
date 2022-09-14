@@ -1,7 +1,6 @@
 package io.prometheus.cloudwatch;
 
 import io.prometheus.client.Counter;
-import io.prometheus.cloudwatch.CloudWatchCollector.MetricRule;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;

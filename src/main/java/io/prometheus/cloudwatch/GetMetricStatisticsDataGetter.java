@@ -1,7 +1,6 @@
 package io.prometheus.cloudwatch;
 
 import io.prometheus.client.Counter;
-import io.prometheus.cloudwatch.CloudWatchCollector.MetricRule;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +56,7 @@ class GetMetricStatisticsDataGetter implements DataGetter {
     return toMetricValues(latestDp);
   }
 
-  private Datapoint getNewestDatapoint(java.util.List<Datapoint> datapoints) {
+  private Datapoint getNewestDatapoint(List<Datapoint> datapoints) {
     Datapoint newest = null;
     for (Datapoint d : datapoints) {
       if (newest == null || newest.timestamp().isBefore(d.timestamp())) {

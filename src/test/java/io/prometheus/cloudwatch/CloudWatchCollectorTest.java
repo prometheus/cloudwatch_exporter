@@ -1,11 +1,12 @@
 package io.prometheus.cloudwatch;
 
-import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
 import io.prometheus.client.Collector;
@@ -1821,5 +1822,127 @@ public class CloudWatchCollectorTest {
               releaseDate != null ? releaseDate : "unknown"
             }),
         .00001);
+  }
+
+  @Test
+  public void testDimensionsWithDefaultCache() throws Exception {
+    new CloudWatchCollector(
+            "---\nregion: reg\nlist_metrics_cache_ttl: 500\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancerName",
+            cloudWatchClient,
+            taggingClient)
+        .register(registry);
+
+    Mockito.when(
+            cloudWatchClient.listMetrics(
+                (ListMetricsRequest)
+                    argThat(
+                        new ListMetricsRequestMatcher()
+                            .Namespace("AWS/ELB")
+                                .MetricName("RequestCount")
+                                .Dimensions("AvailabilityZone", "LoadBalancerName"))))
+        .thenReturn(
+            ListMetricsResponse.builder()
+                .metrics(
+                    Metric.builder()
+                        .dimensions(
+                            Dimension.builder().name("AvailabilityZone").value("a").build(),
+                            Dimension.builder().name("LoadBalancerName").value("myLB").build())
+                        .build())
+                .build());
+
+    Mockito.when(
+            cloudWatchClient.getMetricStatistics(
+                (GetMetricStatisticsRequest)
+                    argThat(
+                        new GetMetricStatisticsRequestMatcher()
+                            .Namespace("AWS/ELB")
+                                .MetricName("RequestCount")
+                                .Dimension("AvailabilityZone", "a")
+                                .Dimension("LoadBalancerName", "myLB"))))
+        .thenReturn(
+            GetMetricStatisticsResponse.builder()
+                .datapoints(
+                    Datapoint.builder().timestamp(new Date().toInstant()).average(2.0).build())
+                .build());
+
+    assertEquals(
+        2.0,
+        registry.getSampleValue(
+            "aws_elb_request_count_average",
+            new String[] {"job", "instance", "availability_zone", "load_balancer_name"},
+            new String[] {"aws_elb", "", "a", "myLB"}),
+        .01);
+    assertEquals(
+        2.0,
+        registry.getSampleValue(
+            "aws_elb_request_count_average",
+            new String[] {"job", "instance", "availability_zone", "load_balancer_name"},
+            new String[] {"aws_elb", "", "a", "myLB"}),
+        .01);
+
+    Mockito.verify(cloudWatchClient).listMetrics(any(ListMetricsRequest.class));
+    Mockito.verify(cloudWatchClient, times(2))
+        .getMetricStatistics(any(GetMetricStatisticsRequest.class));
+  }
+
+  @Test
+  public void testDimensionsWithMetricLevelCache() throws Exception {
+    new CloudWatchCollector(
+            "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  list_metrics_cache_ttl: 500\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancerName",
+            cloudWatchClient,
+            taggingClient)
+        .register(registry);
+
+    Mockito.when(
+            cloudWatchClient.listMetrics(
+                (ListMetricsRequest)
+                    argThat(
+                        new ListMetricsRequestMatcher()
+                            .Namespace("AWS/ELB")
+                                .MetricName("RequestCount")
+                                .Dimensions("AvailabilityZone", "LoadBalancerName"))))
+        .thenReturn(
+            ListMetricsResponse.builder()
+                .metrics(
+                    Metric.builder()
+                        .dimensions(
+                            Dimension.builder().name("AvailabilityZone").value("a").build(),
+                            Dimension.builder().name("LoadBalancerName").value("myLB").build())
+                        .build())
+                .build());
+
+    Mockito.when(
+            cloudWatchClient.getMetricStatistics(
+                (GetMetricStatisticsRequest)
+                    argThat(
+                        new GetMetricStatisticsRequestMatcher()
+                            .Namespace("AWS/ELB")
+                                .MetricName("RequestCount")
+                                .Dimension("AvailabilityZone", "a")
+                                .Dimension("LoadBalancerName", "myLB"))))
+        .thenReturn(
+            GetMetricStatisticsResponse.builder()
+                .datapoints(
+                    Datapoint.builder().timestamp(new Date().toInstant()).average(2.0).build())
+                .build());
+
+    assertEquals(
+        2.0,
+        registry.getSampleValue(
+            "aws_elb_request_count_average",
+            new String[] {"job", "instance", "availability_zone", "load_balancer_name"},
+            new String[] {"aws_elb", "", "a", "myLB"}),
+        .01);
+    assertEquals(
+        2.0,
+        registry.getSampleValue(
+            "aws_elb_request_count_average",
+            new String[] {"job", "instance", "availability_zone", "load_balancer_name"},
+            new String[] {"aws_elb", "", "a", "myLB"}),
+        .01);
+
+    Mockito.verify(cloudWatchClient).listMetrics(any(ListMetricsRequest.class));
+    Mockito.verify(cloudWatchClient, times(2))
+        .getMetricStatistics(any(GetMetricStatisticsRequest.class));
   }
 }
