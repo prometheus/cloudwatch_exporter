@@ -16,7 +16,7 @@ public class CachingDimensionSourceTest {
   public void cachedFromDelegate() {
     DimensionCacheConfig config = new DimensionCacheConfig(Duration.ofSeconds(60));
     FakeDimensionSource source = new FakeDimensionSource();
-    DimensionSource sut = CachingDimensionSource.create(source, config);
+    DimensionSource sut = new CachingDimensionSource(source, config);
 
     sut.getDimensions(createMetricRule("AWS/Redshift", "WriteIOPS"), Collections.emptyList());
     sut.getDimensions(createMetricRule("AWS/Redshift", "WriteIOPS"), Collections.emptyList());

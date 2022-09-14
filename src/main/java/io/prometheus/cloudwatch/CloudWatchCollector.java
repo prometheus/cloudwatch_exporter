@@ -309,7 +309,7 @@ public class CloudWatchCollector extends Collector implements Describable {
     DimensionSource dimensionSource =
         new DefaultDimensionSource(cloudWatchClient, cloudwatchRequests);
     if (defaultMetricCacheSeconds.toSeconds() > 0 || !metricCacheConfig.metricConfig.isEmpty()) {
-      dimensionSource = CachingDimensionSource.create(dimensionSource, metricCacheConfig);
+      dimensionSource = new CachingDimensionSource(dimensionSource, metricCacheConfig);
     }
 
     loadConfig(rules, cloudWatchClient, taggingClient, dimensionSource);

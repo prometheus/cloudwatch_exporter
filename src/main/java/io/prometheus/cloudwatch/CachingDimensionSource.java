@@ -13,14 +13,8 @@ import java.util.stream.Collectors;
 
 final class CachingDimensionSource implements DimensionSource {
 
-  private static final int MAX_ENTRIES = 500;
   private final DimensionSource delegate;
   private final Cache<DimensionCacheKey, DimensionData> cache;
-
-  CachingDimensionSource(DimensionSource delegate, Cache<DimensionCacheKey, DimensionData> cache) {
-    this.delegate = delegate;
-    this.cache = cache;
-  }
 
   /**
    * Create a new DimensionSource that will cache the results from another {@link DimensionSource}
@@ -29,14 +23,12 @@ final class CachingDimensionSource implements DimensionSource {
    * @param config - config used to configure the expiry (ttl) for entries in the cache
    * @return a new CachingDimensionSource
    */
-  static DimensionSource create(DimensionSource source, DimensionCacheConfig config) {
-    Cache<DimensionCacheKey, DimensionData> cache =
+  CachingDimensionSource(DimensionSource source, DimensionCacheConfig config) {
+    this.delegate = source;
+    this.cache =
         Caffeine.newBuilder()
-            .maximumSize(MAX_ENTRIES)
             .expireAfter(new DimensionExpiry(config.defaultExpiry, config.metricConfig))
             .build();
-
-    return new CachingDimensionSource(source, cache);
   }
 
   @Override
