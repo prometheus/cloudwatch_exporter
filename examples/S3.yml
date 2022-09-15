@@ -93,3 +93,10 @@ metrics:
   range_seconds: 172800
   period_seconds: 86400
   set_timestamp: false
+  # In case you want to use some bucket level Tag to select buckets to monitor,
+  # or to have additional `info` metric with all bucket Tags as labels, use `aws_tag_select`:
+  aws_tag_select:
+    tag_selections:
+      Monitoring: ["enabled"]
+    resource_type_selection: "s3:"
+    resource_id_dimension: BucketName
