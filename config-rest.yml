@@ -205,6 +205,22 @@ metrics:
     aws_metric_name: ClientConnectionCount
     aws_dimensions: [Cluster Name]
 
+  - aws_namespace: AWS/Kafka
+    aws_metric_name: EstimatedMaxTimeLag
+    aws_dimensions: [Topic, Cluster Name, Consumer Group]
+
+  - aws_namespace: AWS/Kafka
+    aws_metric_name: MaxOffsetLag
+    aws_dimensions: [Topic, Cluster Name, Consumer Group]
+
+  - aws_namespace: AWS/Kafka
+    aws_metric_name: SumOffsetLag
+    aws_dimensions: [Topic, Cluster Name, Consumer Group]
+
+  - aws_namespace: AWS/Kafka
+    aws_metric_name: OffsetLag
+    aws_dimensions: [Consumer Group, Topic, Partition]
+
   - aws_namespace: monitor-aws-account-limits
     aws_metric_name: available_ips
     aws_dimensions: [vpcid, cidrblock]
