@@ -219,11 +219,11 @@ metrics:
 
   - aws_namespace: AWS/Kafka
     aws_metric_name: EstimatedTimeLag
-    aws_dimensions: [Consumer Group, Topic, Partition]
+    aws_dimensions: [Topic, Cluster Name, Consumer Group, Partition]
 
   - aws_namespace: AWS/Kafka
     aws_metric_name: OffsetLag
-    aws_dimensions: [Consumer Group, Topic, Partition]
+    aws_dimensions: [Topic, Cluster Name, Consumer Group, Partition]
 
   - aws_namespace: monitor-aws-account-limits
     aws_metric_name: available_ips
