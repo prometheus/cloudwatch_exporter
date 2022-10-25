@@ -102,7 +102,7 @@ final class DefaultDimensionSource implements DimensionSource {
       }
       nextToken = response.nextToken();
     } while (nextToken != null);
-    if (dimensions.isEmpty()) {
+    if (rule.warnOnEmptyListDimensions && dimensions.isEmpty()) {
       LOGGER.warning(
           String.format(
               "(listDimensions) ignoring metric %s:%s due to dimensions mismatch",
