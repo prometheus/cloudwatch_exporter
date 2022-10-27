@@ -1,0 +1,172 @@
+region: us-east-1
+metrics:
+- aws_dimensions:
+  - DBInstanceIdentifier
+  aws_metric_name: BufferCacheHitRatio
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - DBInstanceIdentifier
+  aws_metric_name: CommitLatency
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - DBInstanceIdentifier
+  aws_metric_name: CommitThroughput
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - DBInstanceIdentifier
+  aws_metric_name: CPUUtilization
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - DBInstanceIdentifier
+  aws_metric_name: DatabaseConnections
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - DBInstanceIdentifier
+  aws_metric_name: DBLoad
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - DBInstanceIdentifier
+  aws_metric_name: DBLoadCPU
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - DBInstanceIdentifier
+  aws_metric_name: DBLoadNonCPU
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - DBInstanceIdentifier
+  aws_metric_name: Deadlocks
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - DBInstanceIdentifier
+  aws_metric_name: DiskQueueDepth
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - DBInstanceIdentifier
+  aws_metric_name: FreeableMemory
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - DBInstanceIdentifier
+  aws_metric_name: ReadIOPS
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - DBInstanceIdentifier
+  aws_metric_name: ReadLatency
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - DBInstanceIdentifier
+  aws_metric_name: ReadThroughput
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - DBInstanceIdentifier
+  aws_metric_name: SwapUsage
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - DBInstanceIdentifier
+  aws_metric_name: WriteIOPS
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - DBInstanceIdentifier
+  aws_metric_name: WriteLatency
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - DBInstanceIdentifier
+  aws_metric_name: WriteThroughput
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Average
+
+
+- aws_dimensions:
+  - DBClusterIdentifier
+  aws_metric_name: ACUUtilization
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - DBClusterIdentifier
+  aws_metric_name: CPUUtilization
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Maximum
+- aws_dimensions:
+  - DBClusterIdentifier
+  aws_metric_name: FreeableMemory
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - DBClusterIdentifier
+  aws_metric_name: FreeLocalStorage
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Minimum
+- aws_dimensions:
+  - DBClusterIdentifier
+  aws_metric_name: ServerlessDatabaseCapacity
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - DBClusterIdentifier
+  aws_metric_name: TempStorageIops
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - DBClusterIdentifier
+  aws_metric_name: TempStorageThroughput
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - DBClusterIdentifier
+  aws_metric_name: VolumeBytesUsed
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - DBClusterIdentifier
+  aws_metric_name: VolumeReadIOPs
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - DBClusterIdentifier
+  aws_metric_name: VolumeWriteIOPs
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Average
