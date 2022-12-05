@@ -1,0 +1,63 @@
+region: us-east-1
+period_seconds: 240
+metrics:
+- aws_dimensions: [Cluster Name, Broker ID]
+  aws_metric_name: RootDiskUsed
+  aws_namespace: AWS/Kafka
+  aws_statistics:
+  - Average
+- aws_dimensions: [Cluster Name, Broker ID]
+  aws_metric_name: KafkaDataLogsDiskUsed
+  aws_namespace: AWS/Kafka
+  aws_statistics:
+  - Average
+- aws_dimensions: [Cluster Name, Broker ID]
+  aws_metric_name: KafkaAppLogsDiskUsed
+  aws_namespace: AWS/Kafka
+  aws_statistics:
+  - Average
+- aws_dimensions: [Cluster Name, Broker ID]
+  aws_metric_name: MemoryFree
+  aws_namespace: AWS/Kafka
+  aws_statistics:
+  - Average
+- aws_dimensions: [Cluster Name, Broker ID]
+  aws_metric_name: MemoryUsed
+  aws_namespace: AWS/Kafka
+  aws_statistics:
+  - Average
+- aws_dimensions: [Cluster Name, Broker ID]
+  aws_metric_name: NetworkRxPackets
+  aws_namespace: AWS/Kafka
+  aws_statistics:
+  - Average
+- aws_dimensions: [Cluster Name, Broker ID]
+  aws_metric_name: NetworkRxPackets
+  aws_namespace: AWS/Kafka
+  aws_statistics:
+  - Maximum
+- aws_dimensions: [Cluster Name, Broker ID]
+  aws_metric_name: NetworkTxPackets
+  aws_namespace: AWS/Kafka
+  aws_statistics:
+  - Maximum
+- aws_dimensions: [Cluster Name, Broker ID]
+  aws_metric_name: SwapFree
+  aws_namespace: AWS/Kafka
+  aws_statistics:
+  - Average
+- aws_dimensions: [Cluster Name, Broker ID]
+  aws_metric_name: SwapUsed
+  aws_namespace: AWS/Kafka
+  aws_statistics:
+  - Average
+- aws_dimensions: [Cluster Name, Broker ID]
+  aws_metric_name: GlobalTopicCount
+  aws_namespace: AWS/Kafka
+  aws_statistics:
+  - Maximum
+- aws_dimensions: [Cluster Name, Broker ID]
+  aws_metric_name: CpuUser
+  aws_namespace: AWS/Kafka
+  aws_statistics:
+  - Average
