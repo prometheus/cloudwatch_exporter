@@ -24,7 +24,6 @@ class GetMetricDataDataGetter implements DataGetter {
 
   private static final int MAX_QUERIES_PER_REQUEST = 500;
   // https://aws.amazon.com/cloudwatch/pricing/
-  private static final int MAX_STATS_PER_BILLED_METRIC_REQUEST = 5;
   private final long start;
   private final MetricRule rule;
   private final CloudWatchClient client;
@@ -68,8 +67,7 @@ class GetMetricDataDataGetter implements DataGetter {
         queries.add(query);
       }
     }
-    double metricRequested = Math.ceil((double) stats.size() / MAX_STATS_PER_BILLED_METRIC_REQUEST);
-    metricRequestedForBilling += metricRequested;
+    metricRequestedForBilling += stats.size();
     return queries;
   }
 
