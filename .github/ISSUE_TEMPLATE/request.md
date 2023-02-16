@@ -6,15 +6,15 @@ labels: enhancement
 assignees: ''
 
 ---
-# Proposal
-###  Use case. Why is this important?
+## Use case. Why is this important?
 
 <!-- Please describe how this enhancement would improve your user experience -->
 
-<!-- If changed configuration required -->
-### How do you think the new configuration should look like?
+## How do you think the new configuration should look like?
 
+<!-- If changed configuration required -->
 Example:
+
 ```yaml
 
 ```
