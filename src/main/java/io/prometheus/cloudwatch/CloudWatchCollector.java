@@ -21,7 +21,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
@@ -98,7 +100,7 @@ public class CloudWatchCollector extends Collector implements Describable {
   }
 
   public CloudWatchCollector(String yamlConfig) {
-    this((Map<String, Object>) new Yaml().load(yamlConfig), null, null);
+    this(yamlConfig, null, null);
   }
 
   /* For unittests. */
@@ -106,7 +108,10 @@ public class CloudWatchCollector extends Collector implements Describable {
       String jsonConfig,
       CloudWatchClient cloudWatchClient,
       ResourceGroupsTaggingApiClient taggingClient) {
-    this((Map<String, Object>) new Yaml().load(jsonConfig), cloudWatchClient, taggingClient);
+    this(
+        (Map<String, Object>) new Yaml(new SafeConstructor(new LoaderOptions())).load(jsonConfig),
+        cloudWatchClient,
+        taggingClient);
   }
 
   private CloudWatchCollector(
@@ -130,7 +135,10 @@ public class CloudWatchCollector extends Collector implements Describable {
 
   protected void loadConfig(
       Reader in, CloudWatchClient cloudWatchClient, ResourceGroupsTaggingApiClient taggingClient) {
-    loadConfig((Map<String, Object>) new Yaml().load(in), cloudWatchClient, taggingClient);
+    loadConfig(
+        (Map<String, Object>) new Yaml(new SafeConstructor(new LoaderOptions())).load(in),
+        cloudWatchClient,
+        taggingClient);
   }
 
   private void loadConfig(
