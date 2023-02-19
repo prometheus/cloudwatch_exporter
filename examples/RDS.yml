@@ -90,3 +90,9 @@ metrics:
   aws_namespace: AWS/RDS
   aws_statistics:
   - Average
+- aws_dimensions:
+  - DBInstanceIdentifier
+  aws_metric_name: TransactionLogsDiskUsage
+  aws_namespace: AWS/RDS
+  aws_statistics:
+  - Average
