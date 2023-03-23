@@ -170,7 +170,7 @@
       <plugin>
         <artifactId>maven-release-plugin</artifactId>
         <groupId>org.apache.maven.plugins</groupId>
-        <version>3.0.0-M7</version>
+        <version>3.0.0</version>
         <configuration>
           <autoVersionSubmodules>true</autoVersionSubmodules>
           <useReleaseProfile>false</useReleaseProfile>
