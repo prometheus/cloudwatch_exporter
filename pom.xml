@@ -46,7 +46,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <project.releaseDate>${maven.build.timestamp}</project.releaseDate>
-    <software.amazon.awssdk.version>2.20.21</software.amazon.awssdk.version>
+    <software.amazon.awssdk.version>2.20.40</software.amazon.awssdk.version>
     <io.prometheus.version>0.16.0</io.prometheus.version>
   </properties>
   <dependencies>
