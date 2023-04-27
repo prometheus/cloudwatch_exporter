@@ -1,0 +1,51 @@
+region: us-east-1
+metrics:
+- aws_dimensions:
+  - EndpointName
+  - VariantName
+  aws_metric_name: Invocation4XXErrors
+  aws_namespace: AWS/SageMaker
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - EndpointName
+  - VariantName
+  aws_metric_name: Invocation5XXErrors
+  aws_namespace: AWS/SageMaker
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - EndpointName
+  - VariantName
+  aws_metric_name: Invocations
+  aws_namespace: AWS/SageMaker
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - EndpointName
+  - VariantName
+  aws_metric_name: InvocationsPerInstance
+  aws_namespace: AWS/SageMaker
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - EndpointName
+  - VariantName
+  aws_metric_name: ModelLatency
+  aws_namespace: AWS/SageMaker
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - EndpointName
+  - VariantName
+  aws_metric_name: OverheadLatency
+  aws_namespace: AWS/SageMaker
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - EndpointName
+  - VariantName
+  aws_metric_name: OverallLatency
+  aws_namespace: AWS/SageMaker
+  aws_statistics:
+  - Average
