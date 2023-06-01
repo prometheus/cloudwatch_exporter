@@ -1,1 +1,1 @@
-* Matthias Rampke <mr@soundcloud.com> @matthiasr
+* Matthias Rampke <matthias@prometheus.io> @matthiasr
