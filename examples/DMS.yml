@@ -1,0 +1,38 @@
+region: us-east-1
+metrics:
+- aws_dimensions:
+  - ReplicationInstanceIdentifier
+  aws_metric_name: ReadLatency
+  aws_namespace: AWS/DMS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - ReplicationInstanceIdentifier
+  aws_metric_name: WriteLatency
+  aws_namespace: AWS/DMS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - ReplicationInstanceIdentifier
+  aws_metric_name: ReadThroughput
+  aws_namespace: AWS/DMS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - ReplicationInstanceIdentifier
+  aws_metric_name: WriteThroughput
+  aws_namespace: AWS/DMS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - ReplicationInstanceIdentifier
+  aws_metric_name: CPUUtilization
+  aws_namespace: AWS/DMS
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - ReplicationInstanceIdentifier
+  aws_metric_name: AvailableMemory
+  aws_namespace: AWS/DMS
+  aws_statistics:
+  - Average
