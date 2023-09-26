@@ -1,0 +1,14 @@
+region: us-east-1
+metrics:
+  - aws_namespace: AWS/SES
+    aws_metric_name: Send
+  - aws_namespace: AWS/SES
+    aws_metric_name: Delivery
+  - aws_namespace: AWS/SES
+    aws_metric_name: Bounce
+  - aws_namespace: AWS/SES
+    aws_metric_name: Complaint
+  - aws_namespace: AWS/SES
+    aws_metric_name: Reputation.BounceRate
+  - aws_namespace: AWS/SES
+    aws_metric_name: Reputation.ComplaintRate
