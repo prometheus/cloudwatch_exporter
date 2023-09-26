@@ -1,0 +1,38 @@
+region: us-east-1
+metrics:
+- aws_dimensions:
+  - BackupVaultName
+  aws_metric_name: NumberOfBackupJobsCreated
+  aws_namespace: AWS/Backup
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - BackupVaultName
+  aws_metric_name: NumberOfBackupJobsFailed
+  aws_namespace: AWS/Backup
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - BackupVaultName
+  aws_metric_name: NumberOfBackupJobsCompleted
+  aws_namespace: AWS/Backup
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - BackupVaultName
+  aws_metric_name: NumberOfCopyJobsCreated
+  aws_namespace: AWS/Backup
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - BackupVaultName
+  aws_metric_name: NumberOfCopyJobsFailed
+  aws_namespace: AWS/Backup
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - BackupVaultName
+  aws_metric_name: NumberOfCopyJobsCompleted
+  aws_namespace: AWS/Backup
+  aws_statistics:
+  - Sum
