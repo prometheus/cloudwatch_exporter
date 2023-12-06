@@ -3,7 +3,7 @@
 
   <groupId>io.prometheus.cloudwatch</groupId>
   <artifactId>cloudwatch_exporter</artifactId>
-  <version>0.15.5-SNAPSHOT</version>
+  <version>0.15.5</version>
   <description>
     An exporter for AWS CloudWatch metrics, for use with Prometheus.
   </description>
@@ -38,7 +38,7 @@
     <connection>scm:git:git@github.com:prometheus/cloudwatch_exporter.git</connection>
     <developerConnection>scm:git:git@github.com:prometheus/cloudwatch_exporter.git</developerConnection>
     <url>git@github.com:prometheus/cloudwatch_exporter.git</url>
-    <tag>HEAD</tag>
+    <tag>v0.15.5</tag>
   </scm>
 
   <properties>
