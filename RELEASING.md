@@ -74,6 +74,7 @@ mvn release:perform
 This will upload everything to OSSRH into a **staging repository**.
 To locate it, [log into Sonatype OSS](https://oss.sonatype.org/), then open [Staging Repositories](https://oss.sonatype.org/#stagingRepositories).
 If it spins forever, open the [main page](https://oss.sonatype.org/) and log in first.
+If nothing shows up, you probably forgot to `mvn release:perform`.
 
 Press "Close" to promote the release.
 
