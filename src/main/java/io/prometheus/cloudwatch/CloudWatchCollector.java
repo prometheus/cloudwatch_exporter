@@ -1,26 +1,9 @@
 package io.prometheus.cloudwatch;
 
-import static io.prometheus.cloudwatch.CachingDimensionSource.DimensionCacheConfig;
-
 import io.prometheus.client.Collector;
 import io.prometheus.client.Collector.Describable;
 import io.prometheus.client.Counter;
 import io.prometheus.cloudwatch.DataGetter.MetricRuleData;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
@@ -32,14 +15,22 @@ import software.amazon.awssdk.services.cloudwatch.model.Dimension;
 import software.amazon.awssdk.services.cloudwatch.model.Statistic;
 import software.amazon.awssdk.services.resourcegroupstaggingapi.ResourceGroupsTaggingApiClient;
 import software.amazon.awssdk.services.resourcegroupstaggingapi.ResourceGroupsTaggingApiClientBuilder;
-import software.amazon.awssdk.services.resourcegroupstaggingapi.model.GetResourcesRequest;
-import software.amazon.awssdk.services.resourcegroupstaggingapi.model.GetResourcesResponse;
-import software.amazon.awssdk.services.resourcegroupstaggingapi.model.ResourceTagMapping;
-import software.amazon.awssdk.services.resourcegroupstaggingapi.model.Tag;
-import software.amazon.awssdk.services.resourcegroupstaggingapi.model.TagFilter;
+import software.amazon.awssdk.services.resourcegroupstaggingapi.model.*;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
+
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static io.prometheus.cloudwatch.CachingDimensionSource.DimensionCacheConfig;
 
 public class CloudWatchCollector extends Collector implements Describable {
   private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
@@ -50,11 +41,14 @@ public class CloudWatchCollector extends Collector implements Describable {
     ResourceGroupsTaggingApiClient taggingClient;
     DimensionSource dimensionSource;
 
+    Map<String, Object> globalConfig;
+
     public ActiveConfig(ActiveConfig cfg) {
       this.rules = new ArrayList<>(cfg.rules);
       this.cloudWatchClient = cfg.cloudWatchClient;
       this.taggingClient = cfg.taggingClient;
       this.dimensionSource = cfg.dimensionSource;
+      this.globalConfig = cfg.globalConfig;
     }
 
     public ActiveConfig() {}
@@ -96,29 +90,32 @@ public class CloudWatchCollector extends Collector implements Describable {
           "ReadThrottleEvents", "WriteThrottleEvents");
 
   public CloudWatchCollector(Reader in) {
-    loadConfig(in, null, null);
+    loadConfig(in, null, null, null);
   }
 
   public CloudWatchCollector(String yamlConfig) {
-    this(yamlConfig, null, null);
+    this(yamlConfig, null, null, null);
   }
 
   /* For unittests. */
   protected CloudWatchCollector(
       String jsonConfig,
       CloudWatchClient cloudWatchClient,
-      ResourceGroupsTaggingApiClient taggingClient) {
+      ResourceGroupsTaggingApiClient taggingClient,
+      Map<String, Object> globalConfig) {
     this(
         (Map<String, Object>) new Yaml(new SafeConstructor(new LoaderOptions())).load(jsonConfig),
         cloudWatchClient,
-        taggingClient);
+        taggingClient,
+        globalConfig);
   }
 
   private CloudWatchCollector(
       Map<String, Object> config,
       CloudWatchClient cloudWatchClient,
-      ResourceGroupsTaggingApiClient taggingClient) {
-    loadConfig(config, cloudWatchClient, taggingClient);
+      ResourceGroupsTaggingApiClient taggingClient,
+      Map<String, Object> globalConfig) {
+    loadConfig(config, cloudWatchClient, taggingClient, globalConfig);
   }
 
   @Override
@@ -129,25 +126,32 @@ public class CloudWatchCollector extends Collector implements Describable {
   protected void reloadConfig() throws IOException {
     LOGGER.log(Level.INFO, "Reloading configuration");
     try (FileReader reader = new FileReader(WebServer.configFilePath); ) {
-      loadConfig(reader, activeConfig.cloudWatchClient, activeConfig.taggingClient);
+      loadConfig(reader, activeConfig.cloudWatchClient, activeConfig.taggingClient, activeConfig.globalConfig);
     }
   }
 
   protected void loadConfig(
-      Reader in, CloudWatchClient cloudWatchClient, ResourceGroupsTaggingApiClient taggingClient) {
+      Reader in, CloudWatchClient cloudWatchClient, ResourceGroupsTaggingApiClient taggingClient, Map<String, Object> globalConfig) {
     loadConfig(
         (Map<String, Object>) new Yaml(new SafeConstructor(new LoaderOptions())).load(in),
         cloudWatchClient,
-        taggingClient);
+        taggingClient,
+        globalConfig);
   }
 
   private void loadConfig(
       Map<String, Object> config,
       CloudWatchClient cloudWatchClient,
-      ResourceGroupsTaggingApiClient taggingClient) {
+      ResourceGroupsTaggingApiClient taggingClient,
+      Map<String, Object> globalConfig) {
     if (config == null) { // Yaml config empty, set config to empty map.
       config = new HashMap<>();
     }
+
+    if (globalConfig == null) { // Yaml config empty, set config to empty map.
+      globalConfig = new HashMap<>();
+    }
+
 
     int defaultPeriod = 60;
     if (config.containsKey("period_seconds")) {
@@ -177,6 +181,12 @@ public class CloudWatchCollector extends Collector implements Describable {
       defaultMetricCacheSeconds =
           Duration.ofSeconds(((Number) config.get("list_metrics_cache_ttl")).intValue());
     }
+
+    int defaultGlobalCacheSeconds = 0;
+    if (config.containsKey("global_cache_ttl")) {
+      defaultGlobalCacheSeconds = ((Number) config.get("global_cache_ttl")).intValue();
+    }
+    globalConfig.put("globalCacheSeconds", defaultGlobalCacheSeconds);
 
     boolean defaultWarnOnMissingDimensions = false;
     if (config.containsKey("warn_on_empty_list_dimensions")) {
@@ -331,19 +341,21 @@ public class CloudWatchCollector extends Collector implements Describable {
       dimensionSource = new CachingDimensionSource(dimensionSource, metricCacheConfig);
     }
 
-    loadConfig(rules, cloudWatchClient, taggingClient, dimensionSource);
+    loadConfig(rules, cloudWatchClient, taggingClient, dimensionSource, globalConfig);
   }
 
   private void loadConfig(
-      ArrayList<MetricRule> rules,
-      CloudWatchClient cloudWatchClient,
-      ResourceGroupsTaggingApiClient taggingClient,
-      DimensionSource dimensionSource) {
+          ArrayList<MetricRule> rules,
+          CloudWatchClient cloudWatchClient,
+          ResourceGroupsTaggingApiClient taggingClient,
+          DimensionSource dimensionSource,
+          Map<String, Object> globalConfig) {
     synchronized (activeConfig) {
       activeConfig.cloudWatchClient = cloudWatchClient;
       activeConfig.taggingClient = taggingClient;
       activeConfig.rules = rules;
       activeConfig.dimensionSource = dimensionSource;
+      activeConfig.globalConfig = globalConfig;
     }
   }
 
@@ -633,11 +645,42 @@ public class CloudWatchCollector extends Collector implements Describable {
             "AWS information available for resource",
             infoSamples));
   }
+  private void updateCacheMetric(List<MetricFamilySamples> mfs, double value){
+    List<MetricFamilySamples.Sample> samples = new ArrayList<>();
+    MetricFamilySamples cacheMetric = null;
+    for(MetricFamilySamples metric : mfs){
+      if (metric.name.equals("cloudwatch_exporter_cached_answer")){
+        cacheMetric = metric;
+        break;
+      }
+    }
 
+    if(cacheMetric == null){
+      cacheMetric = new MetricFamilySamples(
+              "cloudwatch_exporter_cached_answer",
+              Type.GAUGE,
+              "Non-zero means this scrape was from cache",
+              samples);
+      mfs.add(cacheMetric);
+    }else{
+      cacheMetric.samples.clear();
+    }
+
+    cacheMetric.samples.add(new MetricFamilySamples.Sample(
+            "cloudwatch_exporter_cached_answer", new ArrayList<>(), new ArrayList<>(), value));
+  }
+  List<MetricFamilySamples> cachedMfs = new ArrayList<>();
   public List<MetricFamilySamples> collect() {
     long start = System.nanoTime();
     double error = 0;
     List<MetricFamilySamples> mfs = new ArrayList<>();
+
+    if (shouldCache() && shouldReturnFromCache()){
+      LOGGER.log(Level.INFO, "Returning from cache");
+      this.updateCacheMetric(this.cachedMfs, 1.0);
+      return this.cachedMfs;
+    }
+    this.updateCacheMetric(mfs, 0.0);
     try {
       scrape(mfs);
     } catch (Exception e) {
@@ -668,7 +711,22 @@ public class CloudWatchCollector extends Collector implements Describable {
             Type.GAUGE,
             "Non-zero if this scrape failed.",
             samples));
+    if (shouldCache()){
+      this.cachedMfs = mfs;
+    }
+    this.lastCall = Instant.now();
     return mfs;
+  }
+  public Instant lastCall;
+  private boolean shouldCache() {
+    return (int) this.activeConfig.globalConfig.get("globalCacheSeconds") > 0;
+  }
+  private boolean shouldReturnFromCache() {
+    if (this.lastCall == null){
+      return false;
+    }
+    Duration elapsedTime = Duration.between(lastCall, Instant.now());
+    return elapsedTime.toSeconds() <= (int) this.activeConfig.globalConfig.get("globalCacheSeconds");
   }
 
   private String extractResourceIdFromArn(String arn) {
