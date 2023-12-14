@@ -14,9 +14,7 @@ import io.prometheus.client.CollectorRegistry;
 import io.prometheus.cloudwatch.RequestsMatchers.*;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.*;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -1966,76 +1964,89 @@ public class CloudWatchCollectorTest {
     Mockito.verify(cloudWatchClient, times(2))
         .getMetricStatistics(any(GetMetricStatisticsRequest.class));
   }
+
   @Test
   public void testGlobalCacheCanCache() {
-    CloudWatchCollector cwc = new CloudWatchCollector(
-            "---\nregion: reg\nglobal_cache_ttl: 10\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount",
-            cloudWatchClient,
-            taggingClient,
-            new HashMap<>())
+    CloudWatchCollector cwc =
+        new CloudWatchCollector(
+                "---\nregion: reg\nglobal_cache_ttl: 10\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount",
+                cloudWatchClient,
+                taggingClient,
+                new HashMap<>())
             .register(registry);
 
     Mockito.when(
-                    cloudWatchClient.getMetricStatistics(
-                            (GetMetricStatisticsRequest)
-                                    argThat(
-                                            new GetMetricStatisticsRequestMatcher()
-                                                    .Namespace("AWS/ELB").MetricName("RequestCount"))))
-            .thenReturn(
-                    GetMetricStatisticsResponse.builder() // First
-                            .datapoints(
-                                    Datapoint.builder()
-                                            .timestamp(new Date().toInstant())
-                                            .average(1.0)
-                                            .maximum(2.0)
-                                            .build())
-                            .build(),
-                    GetMetricStatisticsResponse.builder() // Second
-                            .datapoints(
-                                    Datapoint.builder()
-                                            .timestamp(new Date().toInstant())
-                                            .average(2.0)
-                                            .maximum(4.0)
-                                            .build())
-                            .build(),
-                    GetMetricStatisticsResponse.builder() // Third
-                            .datapoints(
-                                    Datapoint.builder()
-                                            .timestamp(new Date().toInstant())
-                                            .average(4.0)
-                                            .maximum(8.0)
-                                            .build())
-                            .build());
-
+            cloudWatchClient.getMetricStatistics(
+                (GetMetricStatisticsRequest)
+                    argThat(
+                        new GetMetricStatisticsRequestMatcher()
+                            .Namespace("AWS/ELB").MetricName("RequestCount"))))
+        .thenReturn(
+            GetMetricStatisticsResponse.builder() // First
+                .datapoints(
+                    Datapoint.builder()
+                        .timestamp(new Date().toInstant())
+                        .average(1.0)
+                        .maximum(2.0)
+                        .build())
+                .build(),
+            GetMetricStatisticsResponse.builder() // Second
+                .datapoints(
+                    Datapoint.builder()
+                        .timestamp(new Date().toInstant())
+                        .average(2.0)
+                        .maximum(4.0)
+                        .build())
+                .build(),
+            GetMetricStatisticsResponse.builder() // Third
+                .datapoints(
+                    Datapoint.builder()
+                        .timestamp(new Date().toInstant())
+                        .average(4.0)
+                        .maximum(8.0)
+                        .build())
+                .build());
 
     for (Collector.MetricFamilySamples it : Collections.list(registry.metricFamilySamples())) {
-      if (it.name.equals("cloudwatch_exporter_cached_answer")) assertEquals(0.0, it.samples.get(0).value, .01);
-      if (it.name.equals("aws_elb_request_count_average")) assertEquals(1.0, it.samples.get(0).value, .01);
-      if (it.name.equals("aws_elb_request_count_maximum")) assertEquals(2.0, it.samples.get(0).value, .01);
+      if (it.name.equals("cloudwatch_exporter_cached_answer"))
+        assertEquals(0.0, it.samples.get(0).value, .01);
+      if (it.name.equals("aws_elb_request_count_average"))
+        assertEquals(1.0, it.samples.get(0).value, .01);
+      if (it.name.equals("aws_elb_request_count_maximum"))
+        assertEquals(2.0, it.samples.get(0).value, .01);
     }
 
     cwc.lastCall = Instant.now().minus(1, ChronoUnit.SECONDS);
 
     for (Collector.MetricFamilySamples it : Collections.list(registry.metricFamilySamples())) {
-      if (it.name.equals("cloudwatch_exporter_cached_answer")) assertEquals(1.0, it.samples.get(0).value, .01);
-      if (it.name.equals("aws_elb_request_count_average")) assertEquals(1.0, it.samples.get(0).value, .01);
-      if (it.name.equals("aws_elb_request_count_maximum")) assertEquals(2.0, it.samples.get(0).value, .01);
+      if (it.name.equals("cloudwatch_exporter_cached_answer"))
+        assertEquals(1.0, it.samples.get(0).value, .01);
+      if (it.name.equals("aws_elb_request_count_average"))
+        assertEquals(1.0, it.samples.get(0).value, .01);
+      if (it.name.equals("aws_elb_request_count_maximum"))
+        assertEquals(2.0, it.samples.get(0).value, .01);
     }
 
     cwc.lastCall = Instant.now().minus(11, ChronoUnit.SECONDS);
 
     for (Collector.MetricFamilySamples it : Collections.list(registry.metricFamilySamples())) {
-      if (it.name.equals("cloudwatch_exporter_cached_answer")) assertEquals(0.0, it.samples.get(0).value, .01);
-      if (it.name.equals("aws_elb_request_count_average")) assertEquals(2.0, it.samples.get(0).value, .01);
-      if (it.name.equals("aws_elb_request_count_maximum")) assertEquals(4.0, it.samples.get(0).value, .01);
+      if (it.name.equals("cloudwatch_exporter_cached_answer"))
+        assertEquals(0.0, it.samples.get(0).value, .01);
+      if (it.name.equals("aws_elb_request_count_average"))
+        assertEquals(2.0, it.samples.get(0).value, .01);
+      if (it.name.equals("aws_elb_request_count_maximum"))
+        assertEquals(4.0, it.samples.get(0).value, .01);
     }
 
     cwc.lastCall = Instant.now().minus(11, ChronoUnit.SECONDS);
 
     for (Collector.MetricFamilySamples it : Collections.list(registry.metricFamilySamples())) {
-      if (it.name.equals("cloudwatch_exporter_cached_answer")) assertEquals(0.0, it.samples.get(0).value, .01);
-      if (it.name.equals("aws_elb_request_count_average")) assertEquals(4.0, it.samples.get(0).value, .01);
-      if (it.name.equals("aws_elb_request_count_maximum")) assertEquals(8.0, it.samples.get(0).value, .01);
+      if (it.name.equals("cloudwatch_exporter_cached_answer"))
+        assertEquals(0.0, it.samples.get(0).value, .01);
+      if (it.name.equals("aws_elb_request_count_average"))
+        assertEquals(4.0, it.samples.get(0).value, .01);
+      if (it.name.equals("aws_elb_request_count_maximum"))
+        assertEquals(8.0, it.samples.get(0).value, .01);
     }
   }
 }
