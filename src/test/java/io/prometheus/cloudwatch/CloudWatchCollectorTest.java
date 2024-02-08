@@ -1137,6 +1137,206 @@ public class CloudWatchCollectorTest {
   }
 
   @Test
+  public void testTagSelectWebACL() {
+    // Testing "aws_tag_select" with an WAF WebAcl, which have a non-standard resource id in
+    // metrics.
+    // The regexp to get the resource id from the arn is specified in the rule
+    new CloudWatchCollector(
+            "---\nregion: eu-west-1\nmetrics:\n- aws_namespace: AWS/WAFV2\n  aws_metric_name: CountedRequests\n  aws_dimensions: [Region, Rule, WebACL]\n  aws_tag_select:\n    resource_type_selection: \"wafv2:regional/webacl\"\n    resource_id_dimension: WebACL\n    arn_resource_id_regexp: \"([^/]+)/[^/]+$\"\n",
+            cloudWatchClient,
+            taggingClient)
+        .register(registry);
+
+    Mockito.when(
+            taggingClient.getResources(
+                argThat(
+                    new GetResourcesRequestMatcher().ResourceTypeFilter("wafv2:regional/webacl"))))
+        .thenReturn(
+            GetResourcesResponse.builder()
+                .resourceTagMappingList(
+                    ResourceTagMapping.builder()
+                        .tags(Tag.builder().key("Monitoring").value("enabled").build())
+                        .resourceARN(
+                            "arn:aws:wafv2:eu-west-1:123456789:regional/webacl/svc-integration-xxxx/d177aaf1-b18f-4f84-aa8e-f1c5c40fc426")
+                        .build())
+                .build());
+
+    Mockito.when(
+            cloudWatchClient.listMetrics(
+                argThat(
+                    new ListMetricsRequestMatcher()
+                        .Namespace("AWS/WAFV2")
+                            .MetricName("CountedRequests")
+                            .Dimensions("Region", "Rule", "WebACL"))))
+        .thenReturn(
+            ListMetricsResponse.builder()
+                .metrics(
+                    Metric.builder()
+                        .dimensions(
+                            Dimension.builder().name("Region").value("eu-west-1").build(),
+                            Dimension.builder().name("Rule").value("WebAclLog").build(),
+                            Dimension.builder()
+                                .name("WebACL")
+                                .value("svc-integration-xxxx")
+                                .build())
+                        .build())
+                .build());
+
+    Mockito.when(
+            cloudWatchClient.getMetricStatistics(
+                argThat(
+                    new GetMetricStatisticsRequestMatcher()
+                        .Namespace("AWS/WAFV2")
+                            .MetricName("CountedRequests")
+                            .Dimension("Region", "eu-west-1")
+                            .Dimension("Rule", "WebAclLog")
+                            .Dimension("WebACL", "svc-integration-xxxx"))))
+        .thenReturn(
+            GetMetricStatisticsResponse.builder()
+                .datapoints(
+                    Datapoint.builder().timestamp(new Date().toInstant()).sum(200.0).build())
+                .build());
+
+    assertEquals(
+        200.0,
+        registry.getSampleValue(
+            "aws_wafv2_counted_requests_sum",
+            new String[] {"job", "instance", "region", "rule", "web_acl"},
+            new String[] {"aws_wafv2", "", "eu-west-1", "WebAclLog", "svc-integration-xxxx"}),
+        .01);
+    assertEquals(
+        1.0,
+        registry.getSampleValue(
+            "aws_resource_info",
+            new String[] {"job", "instance", "arn", "web_acl", "tag_Monitoring"},
+            new String[] {
+              "aws_wafv2",
+              "",
+              "arn:aws:wafv2:eu-west-1:123456789:regional/webacl/svc-integration-xxxx/d177aaf1-b18f-4f84-aa8e-f1c5c40fc426",
+              "svc-integration-xxxx",
+              "enabled"
+            }),
+        .01);
+  }
+
+  @Test
+  public void testTagSelectTargetGroup() {
+    // Testing "aws_tag_select" with an ALB target group, which have a non-standard resource id in
+    // metrics
+    // The regexp to get the resource id from the arn is specified in the rule
+    new CloudWatchCollector(
+            "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ApplicationELB\n  aws_metric_name: UnHealthyHostCount\n  aws_dimensions:\n  - TargetGroup\n  - LoadBalancer\n  aws_tag_select:\n    resource_type_selection: \"elasticloadbalancing:targetgroup\"\n    resource_id_dimension: TargetGroup\n    tag_selections:\n      Monitoring: [enabled]\n    arn_resource_id_regexp: \"(targetgroup/.*)$\"\n",
+            cloudWatchClient,
+            taggingClient)
+        .register(registry);
+
+    Mockito.when(
+            taggingClient.getResources(
+                argThat(
+                    new GetResourcesRequestMatcher()
+                        .ResourceTypeFilter("elasticloadbalancing:targetgroup")
+                            .TagFilter("Monitoring", List.of("enabled")))))
+        .thenReturn(
+            GetResourcesResponse.builder()
+                .resourceTagMappingList(
+                    ResourceTagMapping.builder()
+                        .tags(Tag.builder().key("Monitoring").value("enabled").build())
+                        .resourceARN(
+                            "arn:aws:elasticloadbalancing:us-east-1:121212121212:targetgroup/abc-123")
+                        .build(),
+                    ResourceTagMapping.builder()
+                        .tags(Tag.builder().key("Monitoring").value("enabled").build())
+                        .resourceARN(
+                            "arn:aws:elasticloadbalancing:us-east-1:121212121212:targetgroup/abc-234")
+                        .build())
+                .build());
+
+    Mockito.when(
+            cloudWatchClient.listMetrics(
+                argThat(
+                    new ListMetricsRequestMatcher()
+                        .Namespace("AWS/ApplicationELB")
+                            .MetricName("UnHealthyHostCount")
+                            .Dimensions("TargetGroup", "LoadBalancer"))))
+        .thenReturn(
+            ListMetricsResponse.builder()
+                .metrics(
+                    Metric.builder()
+                        .dimensions(
+                            Dimension.builder()
+                                .name("TargetGroup")
+                                .value("targetgroup/abc-123")
+                                .build(),
+                            Dimension.builder().name("LoadBalancer").value("app/myLB/123").build())
+                        .build(),
+                    Metric.builder()
+                        .dimensions(
+                            Dimension.builder()
+                                .name("TargetGroup")
+                                .value("targetgroup/abc-234")
+                                .build(),
+                            Dimension.builder().name("LoadBalancer").value("app/myLB/123").build())
+                        .build())
+                .build());
+
+    Mockito.when(
+            cloudWatchClient.getMetricStatistics(
+                argThat(
+                    new GetMetricStatisticsRequestMatcher()
+                        .Namespace("AWS/ApplicationELB")
+                            .MetricName("UnHealthyHostCount")
+                            .Dimension("TargetGroup", "targetgroup/abc-123")
+                            .Dimension("LoadBalancer", "app/myLB/123"))))
+        .thenReturn(
+            GetMetricStatisticsResponse.builder()
+                .datapoints(
+                    Datapoint.builder().timestamp(new Date().toInstant()).average(2.0).build())
+                .build());
+
+    Mockito.when(
+            cloudWatchClient.getMetricStatistics(
+                argThat(
+                    new GetMetricStatisticsRequestMatcher()
+                        .Namespace("AWS/ApplicationELB")
+                            .MetricName("UnHealthyHostCount")
+                            .Dimension("TargetGroup", "targetgroup/abc-234")
+                            .Dimension("LoadBalancer", "app/myLB/123"))))
+        .thenReturn(
+            GetMetricStatisticsResponse.builder()
+                .datapoints(
+                    Datapoint.builder().timestamp(new Date().toInstant()).average(3.0).build())
+                .build());
+
+    assertEquals(
+        2.0,
+        registry.getSampleValue(
+            "aws_applicationelb_un_healthy_host_count_average",
+            new String[] {"job", "instance", "target_group", "load_balancer"},
+            new String[] {"aws_applicationelb", "", "targetgroup/abc-123", "app/myLB/123"}),
+        .01);
+    assertEquals(
+        3.0,
+        registry.getSampleValue(
+            "aws_applicationelb_un_healthy_host_count_average",
+            new String[] {"job", "instance", "target_group", "load_balancer"},
+            new String[] {"aws_applicationelb", "", "targetgroup/abc-234", "app/myLB/123"}),
+        .01);
+    assertEquals(
+        1.0,
+        registry.getSampleValue(
+            "aws_resource_info",
+            new String[] {"job", "instance", "arn", "target_group", "tag_Monitoring"},
+            new String[] {
+              "aws_applicationelb",
+              "",
+              "arn:aws:elasticloadbalancing:us-east-1:121212121212:targetgroup/abc-123",
+              "targetgroup/abc-123",
+              "enabled"
+            }),
+        .01);
+  }
+
+  @Test
   public void testTagSelectALB() throws Exception {
     // Testing "aws_tag_select" with an ALB, which have a fairly complex ARN
     new CloudWatchCollector(
