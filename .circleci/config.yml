@@ -1,9 +1,18 @@
+---
 version: 2.1
+
+orbs:
+  prometheus: prometheus/prometheus@0.17.1
+
+executors:
+  java:
+    docker:
+      - image: cimg/openjdk:21.0
+
 jobs:
   build:
     working_directory: ~/circleci-java
-    docker:
-      - image: cimg/openjdk:17.0
+    executor: java
     steps:
       - checkout
       - restore_cache: # restore the saved cache after the first run or if `pom.xml` has changed
@@ -25,15 +34,13 @@ jobs:
             fi 
       - run: mvn package
   publish_image:
-    docker:
-      - image: cimg/openjdk:17.0
+    executor: java
     environment:
       DOCKER_BUILDKIT: 1
       BUILDX_PLATFORMS: linux/amd64,linux/arm64
     steps:
       - checkout
-      - setup_remote_docker:
-          version: "20.10.7"
+      - setup_remote_docker
       - run:
           name: Install buildx
           command: |
@@ -70,15 +77,13 @@ jobs:
             --push .
       - run: docker images
   build_image:
-    docker:
-      - image: cimg/openjdk:17.0
+    executor: java
     environment:
       DOCKER_BUILDKIT: 1
       BUILDX_PLATFORMS: linux/amd64,linux/arm64
     steps:
       - checkout
-      - setup_remote_docker:
-          version: "20.10.7"
+      - setup_remote_docker
       - run:
           name: Install buildx
           command: |
@@ -103,6 +108,7 @@ jobs:
             --progress plain \
             --platform "$BUILDX_PLATFORMS" \
             .
+
 workflows:
   version: 2
   cloudwatch_exporter:
@@ -126,5 +132,3 @@ workflows:
               only: /.*/
             branches:
               only: master
-orbs:
-  prometheus: prometheus/prometheus@0.17.1
