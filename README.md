@@ -145,6 +145,19 @@ For certain metrics which update relatively rarely, such as from S3,
 a timestamp. This is as the true timestamp from CloudWatch could be so old that
 Prometheus would reject the sample.
 
+#### FAQ: I can see the metrics in `/metrics` but not in the Prometheus web console
+
+The metrics will be visible in Prometheus if you look more than `delay_seconds` in the past.
+Try the graph view.
+
+This is an unfortunate result of a fundamental mismatch between CloudWatch and Prometheus.
+CloudWatch metrics converge over time, that is, the value at time `T` can change up to some later time `T+dT`.
+Meanwhile, Prometheus assumes that once it has scraped a sample, that is the truth, and the past does not change.
+
+To compensate for this, by default the exporter [delays fetching metrics](https://github.com/prometheus/cloudwatch_exporter/blob/master/README.md#timestamps), that is, it only asks for data 10 minutes later, when _almost_ all AWS services have converged.
+It also reports to Prometheus that this sample is from the past.
+Because Prometheus, for an instant request, only looks back 5 minutes, it never sees any data "now".
+
 ### Special handling for certain DynamoDB metrics
 
 The DynamoDB metrics listed below break the usual CloudWatch data model.
