@@ -4,8 +4,20 @@ metrics:
   aws_metric_name: HealthyHostCount
   aws_dimensions:
   - LoadBalancer
+  - TargetGroup
   aws_statistics:
-  - Sum
+  - Minimum
+  # In case you want to use some tag to select target group to monitor, or to have additional `info` metric
+  # with all target group tags as labels, use `aws_tag_select`.
+  # Since the TargetGroup dimension doesn't follow the convention for how to extract resource ids from ARN
+  # `arn_resource_id_regexp` is specified with an alternative regular expression.
+  aws_tag_select:
+    resource_type_selection: elasticloadbalancing:targetgroup
+    resource_id_dimension: TargetGroup
+    arn_resource_id_regexp: "(targetgroup/.*)$"
+    tag_selections:
+      Environment:
+      - production
 - aws_namespace: AWS/ApplicationELB
   aws_metric_name: UnHealthyHostCount
   aws_dimensions:

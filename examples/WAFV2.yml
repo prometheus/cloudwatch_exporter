@@ -9,6 +9,17 @@ metrics:
   aws_namespace: AWS/WAFV2
   aws_statistics:
   - Sum
+  # In case you want to use some tag to select web acls to monitor, or to have additional `info` metric
+  # with all web acl tags as labels, use `aws_tag_select`.
+  # Since the WebACL dimension doesn't follow the convention for how to extract resource ids from ARN
+  # `arn_resource_id_regexp` is specified with an alternative regular expression.
+  aws_tag_select:
+    resource_type_selection: wafv2:regional/webacl
+    resource_id_dimension: WebACL
+    arn_resource_id_regexp: "([^/]+)/[^/]+$"
+    tag_selections:
+      Environment:
+      - production
 - aws_dimensions:
   - Region
   - Rule
