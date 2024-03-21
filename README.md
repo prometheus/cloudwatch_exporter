@@ -88,6 +88,7 @@ set_timestamp | Optional. Boolean for whether to set the Prometheus metric times
 use_get_metric_data | Optional. Boolean (experimental) Use GetMetricData API to get metrics instead of GetMetricStatistics. Can be set globally and per metric.
 list_metrics_cache_ttl | Optional. Number of seconds to cache the result of calling the ListMetrics API. Defaults to 0 (no cache). Can be set globally and per metric.
 warn_on_empty_list_dimensions | Optional. Boolean Emit warning if the exporter cannot determine what metrics to request
+global_cache_ttl | Optional. Number of seconds to cache the result from /metrics. Any value greater than 0 means that the last result will be returned. Defaults to 0 (no cache). Can be set globally.
 
 
 The above config will export time series such as

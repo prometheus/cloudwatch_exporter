@@ -13,14 +13,8 @@ import io.prometheus.client.Collector;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.cloudwatch.RequestsMatchers.*;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -49,7 +43,8 @@ public class CloudWatchCollectorTest {
     new CloudWatchCollector(
             "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  period_seconds: 100\n  range_seconds: 200\n  delay_seconds: 300",
             cloudWatchClient,
-            taggingClient)
+            taggingClient,
+            new HashMap<>())
         .register(registry);
 
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest) any()))
@@ -72,7 +67,8 @@ public class CloudWatchCollectorTest {
     new CloudWatchCollector(
             "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  period_seconds: 100\n  range_seconds: 200\n  delay_seconds: 300\n  use_get_metric_data: true\n",
             cloudWatchClient,
-            taggingClient)
+            taggingClient,
+            new HashMap<>())
         .register(registry);
 
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest) any()))
@@ -107,7 +103,8 @@ public class CloudWatchCollectorTest {
     new CloudWatchCollector(
             "---\nregion: reg\nperiod_seconds: 100\nrange_seconds: 200\ndelay_seconds: 300\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount",
             cloudWatchClient,
-            taggingClient)
+            taggingClient,
+            new HashMap<>())
         .register(registry);
 
     Mockito.when(cloudWatchClient.getMetricStatistics((GetMetricStatisticsRequest) any()))
@@ -131,7 +128,8 @@ public class CloudWatchCollectorTest {
     new CloudWatchCollector(
             "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount",
             cloudWatchClient,
-            taggingClient)
+            taggingClient,
+            new HashMap<>())
         .register(registry);
 
     Mockito.when(
@@ -195,7 +193,8 @@ public class CloudWatchCollectorTest {
     new CloudWatchCollector(
             "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  use_get_metric_data: true\n",
             cloudWatchClient,
-            taggingClient)
+            taggingClient,
+            new HashMap<>())
         .register(registry);
     List<Instant> timestamps = List.of(new Date().toInstant());
     MetricMatcher metricMatcher =
@@ -304,7 +303,8 @@ public class CloudWatchCollectorTest {
     new CloudWatchCollector(
             "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  set_timestamp: true\n- aws_namespace: AWS/ELB\n  aws_metric_name: HTTPCode_Backend_2XX\n  set_timestamp: false",
             cloudWatchClient,
-            taggingClient)
+            taggingClient,
+            new HashMap<>())
         .register(registry);
 
     Date timestamp = new Date();
@@ -359,7 +359,8 @@ public class CloudWatchCollectorTest {
     new CloudWatchCollector(
             "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount",
             cloudWatchClient,
-            taggingClient)
+            taggingClient,
+            new HashMap<>())
         .register(registry);
 
     Mockito.when(
@@ -390,7 +391,8 @@ public class CloudWatchCollectorTest {
     new CloudWatchCollector(
             "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancerName",
             cloudWatchClient,
-            taggingClient)
+            taggingClient,
+            new HashMap<>())
         .register(registry);
 
     Mockito.when(
@@ -486,7 +488,8 @@ public class CloudWatchCollectorTest {
     new CloudWatchCollector(
             "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancerName\n  aws_dimension_select:\n    LoadBalancerName:\n    - myLB",
             cloudWatchClient,
-            taggingClient)
+            taggingClient,
+            new HashMap<>())
         .register(registry);
     Mockito.when(
             cloudWatchClient.listMetrics(
@@ -572,7 +575,8 @@ public class CloudWatchCollectorTest {
     new CloudWatchCollector(
             "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancerName\n  aws_dimension_select:\n    LoadBalancerName:\n    - myLB\n    AvailabilityZone:\n    - a\n    - b",
             cloudWatchClient,
-            taggingClient)
+            taggingClient,
+            new HashMap<>())
         .register(registry);
     Mockito.when(
             cloudWatchClient.getMetricStatistics(
@@ -630,7 +634,8 @@ public class CloudWatchCollectorTest {
     new CloudWatchCollector(
             "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancerName\n  aws_dimension_select:\n    LoadBalancerName:\n    - myLB\n    AvailabilityZone:\n    - a\n    - b\n  use_get_metric_data: true\n",
             cloudWatchClient,
-            taggingClient)
+            taggingClient,
+            new HashMap<>())
         .register(registry);
     List<Instant> timestamps = List.of(new Date().toInstant());
     MetricMatcher firstMetric =
@@ -704,7 +709,8 @@ public class CloudWatchCollectorTest {
     new CloudWatchCollector(
             "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancerName\n  aws_dimension_select_regex:\n    LoadBalancerName:\n    - myLB(.*)",
             cloudWatchClient,
-            taggingClient)
+            taggingClient,
+            new HashMap<>())
         .register(registry);
 
     Mockito.when(
@@ -791,7 +797,8 @@ public class CloudWatchCollectorTest {
     new CloudWatchCollector(
             "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancerName\n  aws_dimension_select:\n    LoadBalancerName:\n    - myLB",
             cloudWatchClient,
-            taggingClient)
+            taggingClient,
+            new HashMap<>())
         .register(registry);
 
     Mockito.when(
@@ -851,7 +858,8 @@ public class CloudWatchCollectorTest {
     new CloudWatchCollector(
             "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: Latency\n  aws_extended_statistics:\n  - p95\n  - p99.99",
             cloudWatchClient,
-            taggingClient)
+            taggingClient,
+            new HashMap<>())
         .register(registry);
 
     HashMap<String, Double> extendedStatistics = new HashMap<String, Double>();
@@ -892,7 +900,8 @@ public class CloudWatchCollectorTest {
     new CloudWatchCollector(
             "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/DynamoDB\n  aws_metric_name: ConsumedReadCapacityUnits\n  aws_dimensions:\n  - TableName\n  - GlobalSecondaryIndexName\n- aws_namespace: AWS/DynamoDB\n  aws_metric_name: OnlineIndexConsumedWriteCapacity\n  aws_dimensions:\n  - TableName\n  - GlobalSecondaryIndexName\n- aws_namespace: AWS/DynamoDB\n  aws_metric_name: ConsumedReadCapacityUnits\n  aws_dimensions:\n  - TableName",
             cloudWatchClient,
-            taggingClient)
+            taggingClient,
+            new HashMap<>())
         .register(registry);
     Mockito.when(
             cloudWatchClient.listMetrics(
@@ -1017,7 +1026,8 @@ public class CloudWatchCollectorTest {
     new CloudWatchCollector(
             "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/DynamoDB\n  aws_metric_name: AccountProvisionedReadCapacityUtilization\n",
             cloudWatchClient,
-            taggingClient)
+            taggingClient,
+            new HashMap<>())
         .register(registry);
 
     Mockito.when(
@@ -1047,7 +1057,8 @@ public class CloudWatchCollectorTest {
     new CloudWatchCollector(
             "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/EC2\n  aws_metric_name: CPUUtilization\n  aws_dimensions:\n  - InstanceId\n  aws_tag_select:\n    resource_type_selection: \"ec2:instance\"\n    resource_id_dimension: InstanceId\n    tag_selections:\n      Monitoring: [enabled]\n",
             cloudWatchClient,
-            taggingClient)
+            taggingClient,
+            new HashMap<>())
         .register(registry);
 
     Mockito.when(
@@ -1142,7 +1153,8 @@ public class CloudWatchCollectorTest {
     new CloudWatchCollector(
             "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ApplicationELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancer\n  aws_tag_select:\n    resource_type_selection: \"elasticloadbalancing:loadbalancer/app\"\n    resource_id_dimension: LoadBalancer\n    tag_selections:\n      Monitoring: [enabled]\n",
             cloudWatchClient,
-            taggingClient)
+            taggingClient,
+            new HashMap<>())
         .register(registry);
 
     Mockito.when(
@@ -1278,7 +1290,8 @@ public class CloudWatchCollectorTest {
     new CloudWatchCollector(
             "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/EC2\n  aws_metric_name: CPUUtilization\n  aws_dimensions:\n  - InstanceId\n  aws_tag_select:\n    resource_type_selection: \"ec2:instance\"\n    resource_id_dimension: InstanceId\n    tag_selections:\n      Monitoring: [enabled]\n",
             cloudWatchClient,
-            taggingClient)
+            taggingClient,
+            new HashMap<>())
         .register(registry);
 
     Mockito.when(
@@ -1402,7 +1415,8 @@ public class CloudWatchCollectorTest {
     new CloudWatchCollector(
             "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/EC2\n  aws_metric_name: CPUUtilization\n  aws_dimensions:\n  - InstanceId\n",
             cloudWatchClient,
-            taggingClient)
+            taggingClient,
+            new HashMap<>())
         .register(registry);
 
     Mockito.when(
@@ -1474,7 +1488,8 @@ public class CloudWatchCollectorTest {
     new CloudWatchCollector(
             "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/EC2\n  aws_metric_name: CPUUtilization\n  aws_dimensions:\n  - InstanceId\n  aws_tag_select:\n    resource_type_selection: \"ec2:instance\"\n    resource_id_dimension: InstanceId\n    tag_selections:\n      Monitoring: [enabled]\n  aws_dimension_select:\n    InstanceId: [\"i-1\"]",
             cloudWatchClient,
-            taggingClient)
+            taggingClient,
+            new HashMap<>())
         .register(registry);
 
     Mockito.when(
@@ -1583,7 +1598,8 @@ public class CloudWatchCollectorTest {
     new CloudWatchCollector(
             "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/EC2\n  aws_metric_name: CPUUtilization\n  aws_dimensions:\n  - InstanceId\n  aws_tag_select:\n    resource_type_selection: \"ec2:instance\"\n    resource_id_dimension: InstanceId\n  aws_dimension_select:\n    InstanceId: [\"i-1\", \"i-no-tag\"]",
             cloudWatchClient,
-            taggingClient)
+            taggingClient,
+            new HashMap<>())
         .register(registry);
 
     Mockito.when(
@@ -1723,7 +1739,8 @@ public class CloudWatchCollectorTest {
     new CloudWatchCollector(
             "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancerName\n  range_seconds: 12000",
             cloudWatchClient,
-            taggingClient)
+            taggingClient,
+            new HashMap<>())
         .register(registry);
 
     Mockito.when(
@@ -1829,7 +1846,8 @@ public class CloudWatchCollectorTest {
     new CloudWatchCollector(
             "---\nregion: reg\nlist_metrics_cache_ttl: 500\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancerName",
             cloudWatchClient,
-            taggingClient)
+            taggingClient,
+            new HashMap<>())
         .register(registry);
 
     Mockito.when(
@@ -1890,7 +1908,8 @@ public class CloudWatchCollectorTest {
     new CloudWatchCollector(
             "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  list_metrics_cache_ttl: 500\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancerName",
             cloudWatchClient,
-            taggingClient)
+            taggingClient,
+            new HashMap<>())
         .register(registry);
 
     Mockito.when(
@@ -1944,5 +1963,90 @@ public class CloudWatchCollectorTest {
     Mockito.verify(cloudWatchClient).listMetrics(any(ListMetricsRequest.class));
     Mockito.verify(cloudWatchClient, times(2))
         .getMetricStatistics(any(GetMetricStatisticsRequest.class));
+  }
+
+  @Test
+  public void testGlobalCacheCanCache() {
+    CloudWatchCollector cwc =
+        new CloudWatchCollector(
+                "---\nregion: reg\nglobal_cache_ttl: 10\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount",
+                cloudWatchClient,
+                taggingClient,
+                new HashMap<>())
+            .register(registry);
+
+    Mockito.when(
+            cloudWatchClient.getMetricStatistics(
+                (GetMetricStatisticsRequest)
+                    argThat(
+                        new GetMetricStatisticsRequestMatcher()
+                            .Namespace("AWS/ELB").MetricName("RequestCount"))))
+        .thenReturn(
+            GetMetricStatisticsResponse.builder() // First
+                .datapoints(
+                    Datapoint.builder()
+                        .timestamp(new Date().toInstant())
+                        .average(1.0)
+                        .maximum(2.0)
+                        .build())
+                .build(),
+            GetMetricStatisticsResponse.builder() // Second
+                .datapoints(
+                    Datapoint.builder()
+                        .timestamp(new Date().toInstant())
+                        .average(2.0)
+                        .maximum(4.0)
+                        .build())
+                .build(),
+            GetMetricStatisticsResponse.builder() // Third
+                .datapoints(
+                    Datapoint.builder()
+                        .timestamp(new Date().toInstant())
+                        .average(4.0)
+                        .maximum(8.0)
+                        .build())
+                .build());
+
+    for (Collector.MetricFamilySamples it : Collections.list(registry.metricFamilySamples())) {
+      if (it.name.equals("cloudwatch_exporter_cached_answer"))
+        assertEquals(0.0, it.samples.get(0).value, .01);
+      if (it.name.equals("aws_elb_request_count_average"))
+        assertEquals(1.0, it.samples.get(0).value, .01);
+      if (it.name.equals("aws_elb_request_count_maximum"))
+        assertEquals(2.0, it.samples.get(0).value, .01);
+    }
+
+    cwc.lastCall = Instant.now().minus(1, ChronoUnit.SECONDS);
+
+    for (Collector.MetricFamilySamples it : Collections.list(registry.metricFamilySamples())) {
+      if (it.name.equals("cloudwatch_exporter_cached_answer"))
+        assertEquals(1.0, it.samples.get(0).value, .01);
+      if (it.name.equals("aws_elb_request_count_average"))
+        assertEquals(1.0, it.samples.get(0).value, .01);
+      if (it.name.equals("aws_elb_request_count_maximum"))
+        assertEquals(2.0, it.samples.get(0).value, .01);
+    }
+
+    cwc.lastCall = Instant.now().minus(11, ChronoUnit.SECONDS);
+
+    for (Collector.MetricFamilySamples it : Collections.list(registry.metricFamilySamples())) {
+      if (it.name.equals("cloudwatch_exporter_cached_answer"))
+        assertEquals(0.0, it.samples.get(0).value, .01);
+      if (it.name.equals("aws_elb_request_count_average"))
+        assertEquals(2.0, it.samples.get(0).value, .01);
+      if (it.name.equals("aws_elb_request_count_maximum"))
+        assertEquals(4.0, it.samples.get(0).value, .01);
+    }
+
+    cwc.lastCall = Instant.now().minus(11, ChronoUnit.SECONDS);
+
+    for (Collector.MetricFamilySamples it : Collections.list(registry.metricFamilySamples())) {
+      if (it.name.equals("cloudwatch_exporter_cached_answer"))
+        assertEquals(0.0, it.samples.get(0).value, .01);
+      if (it.name.equals("aws_elb_request_count_average"))
+        assertEquals(4.0, it.samples.get(0).value, .01);
+      if (it.name.equals("aws_elb_request_count_maximum"))
+        assertEquals(8.0, it.samples.get(0).value, .01);
+    }
   }
 }
