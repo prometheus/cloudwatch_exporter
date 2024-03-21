@@ -2,6 +2,9 @@ package io.prometheus.cloudwatch;
 
 import static io.prometheus.cloudwatch.CachingDimensionSource.DimensionCacheConfig;
 
+import com.google.cloud.iam.credentials.v1.GenerateIdTokenRequest;
+import com.google.cloud.iam.credentials.v1.GenerateIdTokenResponse;
+import com.google.cloud.iam.credentials.v1.IamCredentialsClient;
 import io.prometheus.client.Collector;
 import io.prometheus.client.Collector.Describable;
 import io.prometheus.client.Counter;
@@ -24,6 +27,7 @@ import java.util.logging.Logger;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
@@ -39,10 +43,16 @@ import software.amazon.awssdk.services.resourcegroupstaggingapi.model.Tag;
 import software.amazon.awssdk.services.resourcegroupstaggingapi.model.TagFilter;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider;
+import software.amazon.awssdk.services.sts.auth.StsAssumeRoleWithWebIdentityCredentialsProvider;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
+import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityRequest;
 
 public class CloudWatchCollector extends Collector implements Describable {
   private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
+
+  private static final String SERVICE_ACCOUNT_NAME_FORMAT = "projects/-/serviceAccounts/%s";
+
+  private static final int WEB_IDENTITY_CREDENTIAL_DURATION_SECONDS = 3600;
 
   static class ActiveConfig {
     ArrayList<MetricRule> rules;
@@ -347,14 +357,53 @@ public class CloudWatchCollector extends Collector implements Describable {
     }
   }
 
+  private static String getIdToken(String serviceAccountEmail) throws IOException {
+    try (IamCredentialsClient credentialsClient = IamCredentialsClient.create()) {
+      GenerateIdTokenResponse idTokenResponse =
+          credentialsClient.generateIdToken(
+              GenerateIdTokenRequest.newBuilder()
+                  .setName(String.format(SERVICE_ACCOUNT_NAME_FORMAT, serviceAccountEmail))
+                  .setAudience(serviceAccountEmail)
+                  .setIncludeEmail(true)
+                  .build());
+      return idTokenResponse.getToken();
+    }
+  }
+
   private AwsCredentialsProvider getRoleCredentialProvider(Map<String, Object> config) {
+    String roleArn = (String) config.get("role_arn");
+    if (config.containsKey("assume_role_web_identity")) {
+      // indicates we need to use gcp-based web identity to assume the role
+      return StsAssumeRoleWithWebIdentityCredentialsProvider.builder()
+          // intentionally using anonymous credentials since this is meant to be run only in gcp
+          // environments, and the AssumeRoleWithWebIdentityRequest can run without any credentials
+          .stsClient(
+              StsClient.builder()
+                  .credentialsProvider(AnonymousCredentialsProvider.create())
+                  .region(Region.US_WEST_1)
+                  .build())
+          .refreshRequest(
+              () -> {
+                String idToken;
+                try {
+                  idToken = getIdToken((String) config.get("assume_role_web_identity"));
+                } catch (IOException e) {
+                  throw new RuntimeException("Failed to get id token for role arn: " + roleArn, e);
+                }
+                String[] roleSplit = roleArn.split("/");
+                return AssumeRoleWithWebIdentityRequest.builder()
+                    .roleArn(roleArn)
+                    .webIdentityToken(idToken)
+                    .roleSessionName(roleSplit[roleSplit.length - 1])
+                    .durationSeconds(WEB_IDENTITY_CREDENTIAL_DURATION_SECONDS)
+                    .build();
+              })
+          .build();
+    }
     StsClient stsClient =
         StsClient.builder().region(Region.of((String) config.get("region"))).build();
     AssumeRoleRequest assumeRoleRequest =
-        AssumeRoleRequest.builder()
-            .roleArn((String) config.get("role_arn"))
-            .roleSessionName("cloudwatch_exporter")
-            .build();
+        AssumeRoleRequest.builder().roleArn(roleArn).roleSessionName("cloudwatch_exporter").build();
     return StsAssumeRoleCredentialsProvider.builder()
         .stsClient(stsClient)
         .refreshRequest(assumeRoleRequest)
