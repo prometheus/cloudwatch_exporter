@@ -21,6 +21,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
@@ -44,6 +46,11 @@ import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 public class CloudWatchCollector extends Collector implements Describable {
   private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
 
+  // ARN parsing is based on
+  // https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html
+  private static final Pattern DEFAULT_ARN_RESOURCE_ID_REGEXP =
+      Pattern.compile("(?:([^:/]+)|[^:/]+/([^:]+))$");
+
   static class ActiveConfig {
     ArrayList<MetricRule> rules;
     CloudWatchClient cloudWatchClient;
@@ -64,6 +71,7 @@ public class CloudWatchCollector extends Collector implements Describable {
     String resourceTypeSelection;
     String resourceIdDimension;
     Map<String, List<String>> tagSelections;
+    Pattern arnResourceIdRegexp;
   }
 
   ActiveConfig activeConfig = new ActiveConfig();
@@ -314,6 +322,10 @@ public class CloudWatchCollector extends Collector implements Describable {
           awsTagSelect.tagSelections =
               (Map<String, List<String>>) yamlAwsTagSelect.get("tag_selections");
         }
+        if (yamlAwsTagSelect.containsKey("arn_resource_id_regexp")) {
+          awsTagSelect.arnResourceIdRegexp =
+              Pattern.compile((String) yamlAwsTagSelect.get("arn_resource_id_regexp"));
+        }
       }
 
       if (yamlMetricRule.containsKey("list_metrics_cache_ttl")) {
@@ -394,12 +406,21 @@ public class CloudWatchCollector extends Collector implements Describable {
     return resourceTagMappings;
   }
 
-  private List<String> extractResourceIds(List<ResourceTagMapping> resourceTagMappings) {
+  private List<String> extractResourceIds(
+      Pattern arnResourceIdRegexp, List<ResourceTagMapping> resourceTagMappings) {
     List<String> resourceIds = new ArrayList<>();
     for (ResourceTagMapping resourceTagMapping : resourceTagMappings) {
-      resourceIds.add(extractResourceIdFromArn(resourceTagMapping.resourceARN()));
+      resourceIds.add(
+          extractResourceIdFromArn(resourceTagMapping.resourceARN(), arnResourceIdRegexp));
     }
     return resourceIds;
+  }
+
+  private static Pattern getArnResourceIdRegexp(MetricRule rule) {
+    if (rule.awsTagSelect != null && rule.awsTagSelect.arnResourceIdRegexp != null) {
+      return rule.awsTagSelect.arnResourceIdRegexp;
+    }
+    return DEFAULT_ARN_RESOURCE_ID_REGEXP;
   }
 
   private String toSnakeCase(String str) {
@@ -477,7 +498,9 @@ public class CloudWatchCollector extends Collector implements Describable {
 
       List<ResourceTagMapping> resourceTagMappings =
           getResourceTagMappings(rule, config.taggingClient);
-      List<String> tagBasedResourceIds = extractResourceIds(resourceTagMappings);
+      Pattern arnResourceIdRegexp = getArnResourceIdRegexp(rule);
+      List<String> tagBasedResourceIds =
+          extractResourceIds(arnResourceIdRegexp, resourceTagMappings);
 
       List<List<Dimension>> dimensionList =
           config.dimensionSource.getDimensions(rule, tagBasedResourceIds).getDimensions();
@@ -609,7 +632,8 @@ public class CloudWatchCollector extends Collector implements Describable {
           labelNames.add("arn");
           labelValues.add(resourceTagMapping.resourceARN());
           labelNames.add(safeLabelName(toSnakeCase(rule.awsTagSelect.resourceIdDimension)));
-          labelValues.add(extractResourceIdFromArn(resourceTagMapping.resourceARN()));
+          labelValues.add(
+              extractResourceIdFromArn(resourceTagMapping.resourceARN(), arnResourceIdRegexp));
           for (Tag tag : resourceTagMapping.tags()) {
             // Avoid potential collision between resource tags and other metric labels by adding the
             // "tag_" prefix
@@ -671,16 +695,17 @@ public class CloudWatchCollector extends Collector implements Describable {
     return mfs;
   }
 
-  private String extractResourceIdFromArn(String arn) {
-    // ARN parsing is based on
-    // https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html
-    String[] arnArray = arn.split(":");
-    String resourceId = arnArray[arnArray.length - 1];
-    if (resourceId.contains("/")) {
-      String[] resourceArray = resourceId.split("/", 2);
-      resourceId = resourceArray[resourceArray.length - 1];
+  private String extractResourceIdFromArn(String arn, Pattern arnResourceIdRegexp) {
+    final Matcher matcher = arnResourceIdRegexp.matcher(arn);
+    if (matcher.find()) {
+      for (int i = 1; i <= matcher.groupCount(); i++) {
+        final String group = matcher.group(i);
+        if (group != null && !group.isEmpty()) {
+          return group;
+        }
+      }
     }
-    return resourceId;
+    return "";
   }
 
   /** Convenience function to run standalone. */
