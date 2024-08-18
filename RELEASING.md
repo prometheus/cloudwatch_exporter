@@ -19,6 +19,7 @@ Verify that you can log into [OSSRH](https://oss.sonatype.org/).
 The CloudWatch Exporter is at [io.prometheus.cloudwatch](https://oss.sonatype.org/#nexus-search;quick~io.prometheus.cloudwatch).
 
 Set up [Maven publishing](https://central.sonatype.org/publish/publish-maven/), specifically the `<server>` block in `~/.m2/settings.xml`.
+Fetch your user token according to [these instructions](https://central.sonatype.org/publish/generate-token/).
 A minimal config:
 
 ```xml
@@ -30,8 +31,9 @@ A minimal config:
   <servers>
     <server>
       <id>ossrh</id>
-      <username>jira-user</username>
-      <password>jira-password</password>
+      <!-- Update these following the instructions at https://central.sonatype.org/publish/generate-token/ -->
+      <username>token-user</username>
+      <password>token-password</password>
     </server>
   </servers>
 </settings>
