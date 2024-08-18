@@ -5,7 +5,7 @@ The process is based on the [`java_client` release process](https://github.com/p
 
 ## Requirements
 
-* JDK 17
+* [Temurin JDK 21](https://adoptium.net/)
 * Maven
 * GPG
 
