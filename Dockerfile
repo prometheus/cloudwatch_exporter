@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17-jdk-focal as builder
+FROM eclipse-temurin:21-jdk-noble as builder
 
 SHELL ["/bin/bash", "-xe", "-o", "pipefail", "-c"]
 
@@ -14,14 +14,10 @@ ENV PATH /opt/maven/bin:${PATH}
 WORKDIR /cloudwatch_exporter
 COPY . /cloudwatch_exporter
 
-# As of Java 13, the default is POSIX_SPAWN, which doesn't seem to work on
-# ARM64: https://github.com/openzipkin/docker-java/issues/34#issuecomment-721673618
-ENV MAVEN_OPTS "-Djdk.lang.Process.launchMechanism=vfork"
-
 RUN mvn package \
  && mv target/cloudwatch_exporter-*-with-dependencies.jar /cloudwatch_exporter.jar
 
-FROM eclipse-temurin:17-jre-focal as runner
+FROM eclipse-temurin:21-jre-noble as runner
 LABEL maintainer="The Prometheus Authors <prometheus-developers@googlegroups.com>"
 EXPOSE 9106
 
