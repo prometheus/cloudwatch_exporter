@@ -67,7 +67,7 @@ class GetMetricDataDataGetter implements DataGetter {
         queries.add(query);
       }
     }
-    metricRequestedForBilling += stats.size();
+    metricRequestedForBilling += queries.size();
     return queries;
   }
 
