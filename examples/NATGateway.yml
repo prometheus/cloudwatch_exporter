@@ -36,7 +36,7 @@ metrics:
   aws_namespace: AWS/NATGateway
   aws_statistics:
   - Sum
-  - aws_dimensions:
+- aws_dimensions:
   - NatGatewayId
   aws_metric_name: ConnectionEstablishedCount
   aws_namespace: AWS/NATGateway
