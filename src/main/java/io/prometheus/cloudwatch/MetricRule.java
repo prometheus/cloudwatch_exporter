@@ -9,6 +9,8 @@ import software.amazon.awssdk.services.cloudwatch.model.Statistic;
 class MetricRule {
   String awsNamespace;
   String awsMetricName;
+  List<String> awsAccountIds;  // support for multiple account ids
+  String awsAccountLabel;  // label to use for account id
   int periodSeconds;
   int rangeSeconds;
   int delaySeconds;
