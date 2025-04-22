@@ -7,7 +7,7 @@ orbs:
 executors:
   java:
     docker:
-      - image: cimg/openjdk:21.0.6
+      - image: cimg/openjdk:21
 
 jobs:
   build:
