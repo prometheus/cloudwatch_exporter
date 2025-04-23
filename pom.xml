@@ -46,8 +46,10 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <project.releaseDate>${maven.build.timestamp}</project.releaseDate>
-    <software.amazon.awssdk.version>2.29.40</software.amazon.awssdk.version>
+    <software.amazon.awssdk.version>2.31.6</software.amazon.awssdk.version>
     <io.prometheus.version>0.16.0</io.prometheus.version>
+    <maven.compiler.source>12</maven.compiler.source>
+    <maven.compiler.target>12</maven.compiler.target>
   </properties>
   <dependencies>
 
@@ -97,9 +99,9 @@
       <version>${io.prometheus.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-servlet</artifactId>
-      <version>11.0.24</version>
+      <groupId>org.eclipse.jetty.ee10</groupId>
+      <artifactId>jetty-ee10-maven-plugin</artifactId>
+      <version>12.0.12</version>
     </dependency>
     <dependency>
       <groupId>com.github.ben-manes.caffeine</groupId>
@@ -139,9 +141,9 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.13.0</version>
+        <version>3.8.0</version>
         <configuration>
-          <release>11</release>
+          <release>12</release>
         </configuration>
       </plugin>
       <!-- Build a full jar with dependencies -->
