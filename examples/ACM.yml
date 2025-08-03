@@ -1,0 +1,12 @@
+# This metric is reported from Cloudwatch twice a day for a short lived period
+# Use last_over_time(...[13h]) in order to properly visualize the metrics in Grafana
+# Use keep_firing_for: 13h in alerting rules to persist the alert between metric reports
+
+region: us-east-1
+metrics:
+- aws_dimensions:
+  - CertificateArn
+  aws_metric_name: DaysToExpiry
+  aws_namespace: AWS/CertificateManager
+  aws_statistics:
+  - Average
