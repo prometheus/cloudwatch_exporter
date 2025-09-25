@@ -639,8 +639,12 @@ public class CloudWatchCollector extends Collector implements Describable {
             // "tag_" prefix
             // The AWS tags are case sensitive, so to avoid loosing information and label
             // collisions, tag keys are not snaked cased
-            labelNames.add("tag_" + safeLabelName(tag.key()));
-            labelValues.add(tag.value());
+            String labelName = "tag_" + safeLabelName(tag.key());
+            // If multiple labels end up with the same safe label name, use only the first
+            if (!labelNames.contains(labelName)) {
+              labelNames.add(labelName);
+              labelValues.add(tag.value());
+            }
           }
 
           infoSamples.add(
