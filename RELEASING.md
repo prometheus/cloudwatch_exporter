@@ -92,7 +92,7 @@ It usually appears immediately after the release process is done, but can take a
 ## Docker images
 
 As part of the release process, `mvn` will create the git tag.
-This tag is picked up by [CircleCI](https://app.circleci.com/pipelines/github/prometheus/cloudwatch_exporter?branch=master), which builds and pushes the [Docker images](README.md#docker-images).
+This tag is picked up by [GitHub Actions](https://github.com/prometheus/cloudwatch_exporter/actions/workflows/maven.yml), which builds and pushes the [Docker images](README.md#docker-images).
 
 ## GitHub Release
 
