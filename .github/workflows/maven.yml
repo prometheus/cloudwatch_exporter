@@ -107,9 +107,9 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       - name: Build and push image
         run: |
-          tags=(master main)
+          tags=(master)
           if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
-            tags+=("$GITHUB_REF_NAME" latest)
+            tags+=(latest)
           fi
 
           docker buildx build \
