@@ -5,7 +5,7 @@ The process is based on the [`java_client` release process](https://github.com/p
 
 ## Requirements
 
-* [Temurin JDK 21](https://adoptium.net/)
+* [Temurin JDK 25](https://adoptium.net/)
 * GPG
 
 ## Access to the OSS Sonatype repository
