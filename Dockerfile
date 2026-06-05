@@ -1,9 +1,9 @@
-FROM eclipse-temurin:21-jdk-noble as builder
+FROM eclipse-temurin:25-jdk-noble as builder
 
 SHELL ["/bin/bash", "-xe", "-o", "pipefail", "-c"]
 
-ARG MAVEN_VERSION=3.8.5
-ARG MAVEN_SHA512=89ab8ece99292476447ef6a6800d9842bbb60787b9b8a45c103aa61d2f205a971d8c3ddfb8b03e514455b4173602bd015e82958c0b3ddc1728a57126f773c743
+ARG MAVEN_VERSION=3.9.16
+ARG MAVEN_SHA512=831a8591fe20c8243b1dbe7d71e3244f31d1665b0804b2e825e38cbbe5ce0cafb8338851f90780735568773e0a6cd07bbec107cda0b896b008b861075358b6f6
 
 ADD https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz /opt/maven.tar.gz
 RUN mkdir -p /opt/maven \
@@ -17,7 +17,7 @@ COPY . /cloudwatch_exporter
 RUN mvn package \
  && mv target/cloudwatch_exporter-*-with-dependencies.jar /cloudwatch_exporter.jar
 
-FROM eclipse-temurin:21-jre-noble as runner
+FROM eclipse-temurin:25-jre-noble as runner
 LABEL maintainer="The Prometheus Authors <prometheus-developers@googlegroups.com>"
 EXPOSE 9106
 
