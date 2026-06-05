@@ -1,13 +1,13 @@
 package io.prometheus.cloudwatch;
 
 import static io.prometheus.cloudwatch.DimensionSource.DimensionData;
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.prometheus.cloudwatch.CachingDimensionSource.DimensionCacheConfig;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.cloudwatch.model.Dimension;
 
 public class CachingDimensionSourceTest {
@@ -24,8 +24,8 @@ public class CachingDimensionSourceTest {
         sut.getDimensions(createMetricRule("AWS/Redshift", "WriteIOPS"), Collections.emptyList());
 
     Dimension dimension = Dimension.builder().name("AWS/Redshift").value("WriteIOPS").build();
-    assertEquals(1, source.called);
-    assertEquals(dimension, expected.getDimensions().get(0).get(0));
+    assertThat(source.called).isEqualTo(1);
+    assertThat(expected.getDimensions().get(0).get(0)).isEqualTo(dimension);
   }
 
   private MetricRule createMetricRule(String namespace, String name) {

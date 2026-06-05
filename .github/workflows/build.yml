@@ -30,9 +30,9 @@ jobs:
           distribution: temurin
           cache: maven
       - name: Check formatting
-        run: ./mvnw --batch-mode fmt:check
-      - name: Build
-        run: ./mvnw --batch-mode package
+        run: ./mvnw -B fmt:check
+      - name: Build and verify
+        run: ./mvnw -B verify
       - name: Update dependency graph
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: advanced-security/maven-dependency-submission-action@b275d12641ac2d2108b2cbb7598b154ad2f2cee8 # v5.0.0
