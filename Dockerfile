@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21-jdk-noble as builder
+FROM eclipse-temurin:25-jdk-noble as builder
 
 SHELL ["/bin/bash", "-xe", "-o", "pipefail", "-c"]
 
@@ -8,7 +8,7 @@ COPY . /cloudwatch_exporter
 RUN ./mvnw package \
  && mv target/cloudwatch_exporter-*-with-dependencies.jar /cloudwatch_exporter.jar
 
-FROM eclipse-temurin:21-jre-noble as runner
+FROM eclipse-temurin:25-jre-noble as runner
 LABEL maintainer="The Prometheus Authors <prometheus-developers@googlegroups.com>"
 EXPOSE 9106
 
