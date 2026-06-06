@@ -6,7 +6,6 @@ The process is based on the [`java_client` release process](https://github.com/p
 ## Requirements
 
 * [Temurin JDK 25](https://adoptium.net/)
-* Maven
 * GPG
 
 ## Access to the OSS Sonatype repository
@@ -46,7 +45,7 @@ The project setup is already done.
 To push a snapshot, check out the latest main branch and run
 
 ```sh
-mvn clean deploy
+./mvnw clean deploy
 ```
 
 This should succeed.
@@ -56,7 +55,7 @@ This should succeed.
 To prepare a release:
 
 ```sh
-mvn release:clean release:prepare
+./mvnw release:clean release:prepare
 ```
 
 This will
@@ -70,13 +69,13 @@ This will
 To actually release:
 
 ```sh
-mvn release:perform
+./mvnw release:perform
 ```
 
 This will upload everything to OSSRH into a **staging repository**.
 To locate it, [log into Sonatype OSS](https://oss.sonatype.org/), then open [Staging Repositories](https://oss.sonatype.org/#stagingRepositories).
 If it spins forever, open the [main page](https://oss.sonatype.org/) and log in first.
-If nothing shows up, you probably forgot to `mvn release:perform`.
+If nothing shows up, you probably forgot to `./mvnw release:perform`.
 
 Press "Close" to promote the release.
 
@@ -91,7 +90,7 @@ It usually appears immediately after the release process is done, but can take a
 
 ## Docker images
 
-As part of the release process, `mvn` will create the git tag.
+As part of the release process, `./mvnw` will create the git tag.
 This tag is picked up by [GitHub Actions](https://github.com/prometheus/cloudwatch_exporter/actions/workflows/maven.yml), which builds and pushes the [Docker images](README.md#docker-images).
 
 ## GitHub Release

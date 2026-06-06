@@ -13,7 +13,7 @@ For a different approach to CloudWatch metrics, with automatic discovery, consid
 
 Cloudwatch Exporter requires at least Java 11.
 
-`mvn package` to build.
+`./mvnw package` to build.
 
 `java -jar target/cloudwatch_exporter-*-SNAPSHOT-jar-with-dependencies.jar 9106 example.yml` to run.
 
