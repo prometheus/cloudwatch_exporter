@@ -48,13 +48,12 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <project.releaseDate>${maven.build.timestamp}</project.releaseDate>
-    <maven.compiler.release>11</maven.compiler.release>
+    <maven.compiler.release>17</maven.compiler.release>
     <!-- Dependency versions -->
     <caffeine.version>3.2.4</caffeine.version>
     <commons-codec.version>1.22.0</commons-codec.version>
     <hamcrest.version>3.0</hamcrest.version>
     <io.prometheus.version>0.16.0</io.prometheus.version>
-    <jetty-servlet.version>11.0.26</jetty-servlet.version>
     <junit.version>4.13.2</junit.version>
     <mockito.version>5.23.0</mockito.version>
     <slf4j.version>2.0.18</slf4j.version>
@@ -123,8 +122,13 @@
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-servlet</artifactId>
-      <version>${jetty-servlet.version}</version>
+      <artifactId>jetty-server</artifactId>
+      <version>12.0.36</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty.ee10</groupId>
+      <artifactId>jetty-ee10-servlet</artifactId>
+      <version>12.0.36</version>
     </dependency>
     <dependency>
       <groupId>com.github.ben-manes.caffeine</groupId>
@@ -242,7 +246,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${maven-surefire-plugin.version}</version>
         <configuration>
-          <argLine>-Djdk.net.URLClassPath.disableClassPathURLCheck=true</argLine>
+          <argLine>-javaagent:${settings.localRepository}/org/mockito/mockito-core/5.23.0/mockito-core-5.23.0.jar -XX:+EnableDynamicAgentLoading -Djdk.net.URLClassPath.disableClassPathURLCheck=true</argLine>
         </configuration>
       </plugin>
       <plugin>
