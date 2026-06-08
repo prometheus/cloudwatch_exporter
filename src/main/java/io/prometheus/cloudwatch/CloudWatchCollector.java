@@ -112,6 +112,7 @@ public class CloudWatchCollector extends Collector implements Describable {
   }
 
   /* For unittests. */
+  @SuppressWarnings("unchecked")
   protected CloudWatchCollector(
       String jsonConfig,
       CloudWatchClient cloudWatchClient,
@@ -141,6 +142,7 @@ public class CloudWatchCollector extends Collector implements Describable {
     }
   }
 
+  @SuppressWarnings("unchecked")
   protected void loadConfig(
       Reader in, CloudWatchClient cloudWatchClient, ResourceGroupsTaggingApiClient taggingClient) {
     loadConfig(
@@ -149,6 +151,7 @@ public class CloudWatchCollector extends Collector implements Describable {
         taggingClient);
   }
 
+  @SuppressWarnings("unchecked")
   private void loadConfig(
       Map<String, Object> config,
       CloudWatchClient cloudWatchClient,

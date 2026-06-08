@@ -1,6 +1,6 @@
 package io.prometheus.cloudwatch;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.prometheus.cloudwatch.CachingDimensionSource.DimensionCacheKey;
 import io.prometheus.cloudwatch.CachingDimensionSource.DimensionExpiry;
@@ -8,7 +8,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class CachingDimensionExpiryTest {
 
@@ -27,7 +27,7 @@ public class CachingDimensionExpiryTest {
             emptyData,
             Instant.now().toEpochMilli());
 
-    assertEquals(35, Duration.ofNanos(afterCreate).toSeconds());
+    assertThat(Duration.ofNanos(afterCreate).toSeconds()).isEqualTo(35);
   }
 
   @Test
@@ -42,7 +42,7 @@ public class CachingDimensionExpiryTest {
             emptyData,
             Instant.now().toEpochMilli());
 
-    assertEquals(100, Duration.ofNanos(afterCreate).toSeconds());
+    assertThat(Duration.ofNanos(afterCreate).toSeconds()).isEqualTo(100);
   }
 
   @Test
@@ -57,7 +57,7 @@ public class CachingDimensionExpiryTest {
             emptyData,
             Instant.now().toEpochMilli());
 
-    assertEquals(35, Duration.ofNanos(afterCreate).toSeconds());
+    assertThat(Duration.ofNanos(afterCreate).toSeconds()).isEqualTo(35);
   }
 
   @Test
@@ -73,7 +73,7 @@ public class CachingDimensionExpiryTest {
             Instant.now().toEpochMilli(),
             10_000_000);
 
-    assertEquals(10_000_000, afterUpdate);
+    assertThat(afterUpdate).isEqualTo(10_000_000);
   }
 
   @Test
@@ -88,7 +88,30 @@ public class CachingDimensionExpiryTest {
             emptyData,
             Instant.now().toEpochMilli(),
             20_000_000);
-    assertEquals(20_000_000, afterRead);
+    assertThat(afterRead).isEqualTo(20_000_000);
+  }
+
+  @Test
+  public void dimensionCacheKeyEqualsHandlesIdentityNullDifferentTypesAndFields() {
+    DimensionCacheKey key = createDimensionCacheKey("AWS/S3", "BucketSizeBytes", 100);
+    DimensionCacheKey same = createDimensionCacheKey("AWS/S3", "BucketSizeBytes", 100);
+    DimensionCacheKey differentRule = createDimensionCacheKey("AWS/EC2", "CPUUtilization", 100);
+    DimensionCacheKey differentTags =
+        new DimensionCacheKey(
+            createMetricRule("AWS/S3", "BucketSizeBytes", 100), List.of("bucket-a"));
+
+    assertThat(key).isEqualTo(key);
+    assertThat(key).isEqualTo(same);
+    assertThat(key).isNotEqualTo(null);
+    assertThat(key).isNotEqualTo("not a key");
+    assertThat(key).isNotEqualTo(differentRule);
+    assertThat(key).isNotEqualTo(differentTags);
+    assertThat(key.hashCode()).isEqualTo(same.hashCode());
+  }
+
+  @Test
+  public void dimensionCacheKeyHashCodeHandlesNullFields() {
+    assertThat(new DimensionCacheKey(null, null).hashCode()).isZero();
   }
 
   private DimensionCacheKey createDimensionCacheKey(
