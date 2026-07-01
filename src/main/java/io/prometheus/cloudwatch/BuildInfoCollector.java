@@ -8,8 +8,12 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/** Collects build version and release date information as a gauge metric. */
 public class BuildInfoCollector extends Collector {
   private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
+
+  /** Constructs a BuildInfoCollector. */
+  public BuildInfoCollector() {}
 
   public List<MetricFamilySamples> collect() {
     List<MetricFamilySamples> mfs = new ArrayList<>();

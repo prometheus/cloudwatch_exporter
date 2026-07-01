@@ -43,6 +43,10 @@ import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 
+/**
+ * Collects AWS CloudWatch metrics and exports them in Prometheus format. Configured via YAML with
+ * per-metric rules for namespace, metric name, dimensions, statistics, and period.
+ */
 public class CloudWatchCollector extends Collector implements Describable {
   private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
 
@@ -103,15 +107,32 @@ public class CloudWatchCollector extends Collector implements Describable {
           "ProvisionedReadCapacityUnits", "ProvisionedWriteCapacityUnits",
           "ReadThrottleEvents", "WriteThrottleEvents");
 
+  /**
+   * Constructs a CloudWatchCollector from a YAML configuration reader.
+   *
+   * @param in reader for the YAML configuration
+   */
   public CloudWatchCollector(Reader in) {
     loadConfig(in, null, null);
   }
 
+  /**
+   * Constructs a CloudWatchCollector from a YAML configuration string.
+   *
+   * @param yamlConfig YAML configuration as a string
+   */
   public CloudWatchCollector(String yamlConfig) {
     this(yamlConfig, null, null);
   }
 
-  /* For unittests. */
+  /**
+   * Constructs a CloudWatchCollector for unit testing.
+   *
+   * @param jsonConfig YAML/JSON configuration as a string
+   * @param cloudWatchClient pre-configured CloudWatch client, or null to create from config
+   * @param taggingClient pre-configured Resource Groups Tagging API client, or null to create from
+   *     config
+   */
   @SuppressWarnings("unchecked")
   protected CloudWatchCollector(
       String jsonConfig,
@@ -135,6 +156,11 @@ public class CloudWatchCollector extends Collector implements Describable {
     return Collections.emptyList();
   }
 
+  /**
+   * Reloads the configuration from the file specified by {@link WebServer#configFilePath}.
+   *
+   * @throws IOException if the configuration file cannot be read
+   */
   protected void reloadConfig() throws IOException {
     LOGGER.log(Level.INFO, "Reloading configuration");
     try (FileReader reader = new FileReader(WebServer.configFilePath); ) {
@@ -142,6 +168,13 @@ public class CloudWatchCollector extends Collector implements Describable {
     }
   }
 
+  /**
+   * Loads configuration from a reader, reusing existing clients when supplied.
+   *
+   * @param in reader for the YAML configuration
+   * @param cloudWatchClient existing CloudWatch client, or null to create a new one
+   * @param taggingClient existing tagging client, or null to create a new one
+   */
   @SuppressWarnings("unchecked")
   protected void loadConfig(
       Reader in, CloudWatchClient cloudWatchClient, ResourceGroupsTaggingApiClient taggingClient) {
@@ -711,7 +744,11 @@ public class CloudWatchCollector extends Collector implements Describable {
     return "";
   }
 
-  /** Convenience function to run standalone. */
+  /**
+   * Convenience function to run standalone.
+   *
+   * @param args command line arguments; args[0] is the AWS region (defaults to eu-west-1)
+   */
   public static void main(String[] args) {
     String region = "eu-west-1";
     if (args.length > 0) {
