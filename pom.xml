@@ -13,6 +13,7 @@
     <groupId>org.sonatype.oss</groupId>
     <artifactId>oss-parent</artifactId>
     <version>7</version>
+    <relativePath/>
   </parent>
 
   <distributionManagement>
@@ -56,11 +57,11 @@
     <hamcrest.version>3.0</hamcrest.version>
     <io.prometheus.version>0.16.0</io.prometheus.version>
     <jetty.version>12.1.10</jetty.version>
-    <junit.jupiter.version>6.1.0</junit.jupiter.version>
+    <junit.jupiter.version>6.1.1</junit.jupiter.version>
     <mockito.version>5.23.0</mockito.version>
     <slf4j.version>2.0.18</slf4j.version>
     <snakeyaml.version>2.6</snakeyaml.version>
-    <software.amazon.awssdk.version>2.46.17</software.amazon.awssdk.version>
+    <software.amazon.awssdk.version>2.46.18</software.amazon.awssdk.version>
     <!-- Plugin versions -->
     <fmt-maven-plugin.version>2.29</fmt-maven-plugin.version>
     <maven-assembly-plugin.version>3.8.0</maven-assembly-plugin.version>
