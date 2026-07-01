@@ -2140,6 +2140,18 @@ public class CloudWatchCollectorTest {
   }
 
   @Test
+  public void rejectsMetricWithAwsMetricNameButMissingAwsNamespace() {
+    assertThatThrownBy(
+            () ->
+                new CloudWatchCollector(
+                    "---\nmetrics:\n- aws_metric_name: RequestCount\n",
+                    cloudWatchClient,
+                    taggingClient))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("Must provide aws_namespace and aws_metric_name");
+  }
+
+  @Test
   public void parsesGlobalDefaultsAndMetricHelp() {
     CloudWatchCollector collector =
         new CloudWatchCollector(
@@ -2229,6 +2241,23 @@ public class CloudWatchCollectorTest {
                         + "  aws_metric_name: CPUUtilization\n"
                         + "  aws_tag_select:\n"
                         + "    resource_type_selection: ec2:instance\n",
+                    cloudWatchClient,
+                    taggingClient))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("Must provide resource_type_selection and resource_id_dimension");
+  }
+
+  @Test
+  public void rejectsTagSelectWithResourceIdDimensionButMissingResourceTypeSelection() {
+    assertThatThrownBy(
+            () ->
+                new CloudWatchCollector(
+                    "---\n"
+                        + "metrics:\n"
+                        + "- aws_namespace: AWS/EC2\n"
+                        + "  aws_metric_name: CPUUtilization\n"
+                        + "  aws_tag_select:\n"
+                        + "    resource_id_dimension: InstanceId\n",
                     cloudWatchClient,
                     taggingClient))
         .isInstanceOf(IllegalArgumentException.class)
