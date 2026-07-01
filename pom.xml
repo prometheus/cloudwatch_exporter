@@ -60,7 +60,7 @@
     <mockito.version>5.23.0</mockito.version>
     <slf4j.version>2.0.18</slf4j.version>
     <snakeyaml.version>2.6</snakeyaml.version>
-    <software.amazon.awssdk.version>2.46.17</software.amazon.awssdk.version>
+    <software.amazon.awssdk.version>2.46.19</software.amazon.awssdk.version>
     <!-- Plugin versions -->
     <fmt-maven-plugin.version>2.29</fmt-maven-plugin.version>
     <maven-assembly-plugin.version>3.8.0</maven-assembly-plugin.version>
