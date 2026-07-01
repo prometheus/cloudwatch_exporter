@@ -12,10 +12,21 @@ import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 
+/** Embedded Jetty web server that exposes CloudWatch metrics via HTTP. */
 public class WebServer {
 
+  /** Path to the YAML configuration file set from command-line arguments. */
   public static String configFilePath;
 
+  /** Constructs a WebServer. */
+  public WebServer() {}
+
+  /**
+   * Starts the web server.
+   *
+   * @param args command line arguments; args[0] is the port, args[1] is the YAML config file path
+   * @throws Exception if the server fails to start
+   */
   public static void main(String[] args) throws Exception {
     if (args.length < 2) {
       System.err.println("Usage: WebServer <port> <yml configuration file>");

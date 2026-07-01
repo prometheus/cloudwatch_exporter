@@ -6,8 +6,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+/** Servlet that serves a simple HTML home page with a link to /metrics. */
 public class HomePageServlet extends HttpServlet {
   private static final long serialVersionUID = 3239704246954810347L;
+
+  /** Constructs a HomePageServlet. */
+  public HomePageServlet() {}
 
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
