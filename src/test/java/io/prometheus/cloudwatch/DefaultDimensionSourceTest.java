@@ -50,6 +50,74 @@ class DefaultDimensionSourceTest {
     verify(client).listMetrics(any(ListMetricsRequest.class));
   }
 
+  @Test
+  void fallsBackToListDimensionsWhenAwsDimensionsIsEmptyWithNonNullSelect() {
+    CloudWatchClient client = mock(CloudWatchClient.class);
+    when(client.listMetrics(any(ListMetricsRequest.class)))
+        .thenReturn(
+            ListMetricsResponse.builder()
+                .metrics(
+                    software.amazon.awssdk.services.cloudwatch.model.Metric.builder()
+                        .dimensions(dimension("LoadBalancerName", "lb-a"))
+                        .build())
+                .build());
+    MetricRule rule = metricRule();
+    rule.awsDimensions = List.of();
+    rule.awsDimensionSelect = Map.of("LoadBalancerName", List.of("lb-a"));
+
+    DimensionSource.DimensionData data = source(client).getDimensions(rule, List.of());
+
+    assertThat(data.getDimensions()).isEmpty();
+    verify(client).listMetrics(any(ListMetricsRequest.class));
+  }
+
+  @Test
+  void fallsBackToListDimensionsWhenSelectKeysDoNotContainAllDimensions() {
+    CloudWatchClient client = mock(CloudWatchClient.class);
+    when(client.listMetrics(any(ListMetricsRequest.class)))
+        .thenReturn(
+            ListMetricsResponse.builder()
+                .metrics(
+                    software.amazon.awssdk.services.cloudwatch.model.Metric.builder()
+                        .dimensions(
+                            dimension("LoadBalancerName", "lb-a"),
+                            dimension("AvailabilityZone", "us-a"))
+                        .build())
+                .build());
+    MetricRule rule = metricRule();
+    rule.awsDimensions = List.of("LoadBalancerName", "AvailabilityZone");
+    rule.awsDimensionSelect = Map.of("LoadBalancerName", List.of("lb-a"));
+
+    DimensionSource.DimensionData data = source(client).getDimensions(rule, List.of());
+
+    assertThat(data.getDimensions())
+        .containsExactly(
+            List.of(dimension("LoadBalancerName", "lb-a"), dimension("AvailabilityZone", "us-a")));
+    verify(client).listMetrics(any(ListMetricsRequest.class));
+  }
+
+  @Test
+  void doesNotWarnWhenWarnEnabledButDimensionsAreNotEmpty() {
+    CloudWatchClient client = mock(CloudWatchClient.class);
+    when(client.listMetrics(any(ListMetricsRequest.class)))
+        .thenReturn(
+            ListMetricsResponse.builder()
+                .metrics(
+                    software.amazon.awssdk.services.cloudwatch.model.Metric.builder()
+                        .dimensions(dimension("LoadBalancerName", "lb-a"))
+                        .build())
+                .build());
+    MetricRule rule = metricRule();
+    rule.awsDimensions = List.of("LoadBalancerName");
+    rule.warnOnEmptyListDimensions = true;
+
+    DimensionSource.DimensionData data = source(client).getDimensions(rule, List.of());
+
+    assertThat(data.getDimensions())
+        .containsExactly(List.of(dimension("LoadBalancerName", "lb-a")));
+    verify(client).listMetrics(any(ListMetricsRequest.class));
+  }
+
   private DefaultDimensionSource source(CloudWatchClient client) {
     return new DefaultDimensionSource(
         client,
