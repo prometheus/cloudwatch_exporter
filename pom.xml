@@ -60,7 +60,7 @@
     <junit.jupiter.version>6.1.3</junit.jupiter.version>
     <mockito.version>5.23.0</mockito.version>
     <slf4j.version>2.0.19</slf4j.version>
-    <snakeyaml.version>2.6</snakeyaml.version>
+    <snakeyaml.version>2.7</snakeyaml.version>
     <software.amazon.awssdk.version>2.54.17</software.amazon.awssdk.version>
     <!-- Plugin versions -->
     <fmt-maven-plugin.version>2.29</fmt-maven-plugin.version>
