@@ -475,6 +475,63 @@ public class CloudWatchCollectorTest {
   }
 
   @Test
+  public void testInstanceDimensionReplacesBlankInstanceLabel() throws Exception {
+    new CloudWatchCollector(
+            "---\nregion: reg\nmetrics:\n- aws_namespace: CWAgent\n  aws_metric_name: LogicalDisk % Free Space\n  aws_dimensions:\n  - instance\n  - InstanceId\n  - objectname",
+            cloudWatchClient, taggingClient)
+        .register(registry);
+
+    Mockito.when(
+            cloudWatchClient.listMetrics(
+                (ListMetricsRequest)
+                    argThat(
+                        new ListMetricsRequestMatcher()
+                            .Namespace("CWAgent")
+                                .MetricName("LogicalDisk % Free Space")
+                                .Dimensions("instance", "InstanceId", "objectname"))))
+        .thenReturn(
+            ListMetricsResponse.builder()
+                .metrics(
+                    Metric.builder()
+                        .dimensions(
+                            Dimension.builder().name("instance").value("C:").build(),
+                            Dimension.builder().name("InstanceId").value("i-abc").build(),
+                            Dimension.builder().name("objectname").value("LogicalDisk").build())
+                        .build())
+                .build());
+
+    Mockito.when(
+            cloudWatchClient.getMetricStatistics(
+                (GetMetricStatisticsRequest)
+                    argThat(
+                        new GetMetricStatisticsRequestMatcher()
+                            .Namespace("CWAgent")
+                                .MetricName("LogicalDisk % Free Space")
+                                .Dimension("instance", "C:")
+                                .Dimension("InstanceId", "i-abc")
+                                .Dimension("objectname", "LogicalDisk"))))
+        .thenReturn(
+            GetMetricStatisticsResponse.builder()
+                .datapoints(
+                    Datapoint.builder().timestamp(new Date().toInstant()).average(78.5).build())
+                .build());
+
+    // Dimension named "instance" must replace the blank placeholder, not emit a duplicate label.
+    assertThat(
+            registry.getSampleValue(
+                "cwagent_logical_disk_free_space_average",
+                new String[] {"job", "instance", "instance_id", "objectname"},
+                new String[] {"cwagent", "C:", "i-abc", "LogicalDisk"}))
+        .isCloseTo(78.5, within(.01));
+    assertThat(
+            registry.getSampleValue(
+                "cwagent_logical_disk_free_space_average",
+                new String[] {"job", "instance", "instance", "instance_id", "objectname"},
+                new String[] {"cwagent", "", "C:", "i-abc", "LogicalDisk"}))
+        .isNull();
+  }
+
+  @Test
   public void testDimensionSelect() throws Exception {
     new CloudWatchCollector(
             "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancerName\n  aws_dimension_select:\n    LoadBalancerName:\n    - myLB",
