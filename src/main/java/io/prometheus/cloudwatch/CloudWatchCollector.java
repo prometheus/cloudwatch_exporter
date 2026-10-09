@@ -473,6 +473,23 @@ public class CloudWatchCollector extends Collector implements Describable {
     return s.replaceAll("[^a-zA-Z0-9_]", "_").replaceAll("__+", "_");
   }
 
+  /**
+   * Adds a label, or replaces the existing value when the name is already present. Metrics always
+   * start with a blank {@code instance=""} placeholder; CloudWatch dimensions named {@code
+   * instance} (for example CWAgent LogicalDisk) would otherwise emit a duplicate label and invalid
+   * samples.
+   */
+  private void addLabel(
+      List<String> labelNames, List<String> labelValues, String name, String value) {
+    int idx = labelNames.indexOf(name);
+    if (idx >= 0) {
+      labelValues.set(idx, value);
+      return;
+    }
+    labelNames.add(name);
+    labelValues.add(value);
+  }
+
   private String help(MetricRule rule, String unit, String statistic) {
     if (rule.help != null) {
       return rule.help;
@@ -573,8 +590,7 @@ public class CloudWatchCollector extends Collector implements Describable {
         labelNames.add("instance");
         labelValues.add("");
         for (Dimension d : dimensions) {
-          labelNames.add(safeLabelName(toSnakeCase(d.name())));
-          labelValues.add(d.value());
+          addLabel(labelNames, labelValues, safeLabelName(toSnakeCase(d.name())), d.value());
         }
 
         Long timestamp = null;
