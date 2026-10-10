@@ -2130,6 +2130,31 @@ public class CloudWatchCollectorTest {
   }
 
   @Test
+  public void validateConfigAcceptsValidYaml() {
+    CloudWatchCollector.validateConfig(
+        new StringReader(
+            "---\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n"));
+  }
+
+  @Test
+  public void validateConfigRejectsMissingMetrics() {
+    assertThatThrownBy(
+            () -> CloudWatchCollector.validateConfig(new StringReader("---\nregion: reg\n")))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("Must provide metrics");
+  }
+
+  @Test
+  public void validateConfigRejectsMissingAwsMetricName() {
+    assertThatThrownBy(
+            () ->
+                CloudWatchCollector.validateConfig(
+                    new StringReader("---\nmetrics:\n- aws_namespace: AWS/ELB\n")))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("Must provide aws_namespace and aws_metric_name");
+  }
+
+  @Test
   public void rejectsMetricWithoutRequiredCloudWatchNames() {
     assertThatThrownBy(
             () ->

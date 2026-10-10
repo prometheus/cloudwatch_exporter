@@ -17,6 +17,10 @@ Cloudwatch Exporter requires at least Java 11.
 
 `java -jar target/cloudwatch_exporter-*-SNAPSHOT-jar-with-dependencies.jar 9106 example.yml` to run.
 
+To validate a YAML configuration file without starting the HTTP server or contacting CloudWatch, use `--check-config`. The process exits 0 if the file is valid and 1 if it is not:
+
+`java -jar target/cloudwatch_exporter-*-SNAPSHOT-jar-with-dependencies.jar --check-config example.yml`
+
 The most recent pre-built JAR can be found at http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22cloudwatch_exporter%22
 
 ## Credentials and permissions
