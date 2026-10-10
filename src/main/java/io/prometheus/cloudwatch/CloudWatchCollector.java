@@ -169,6 +169,20 @@ public class CloudWatchCollector extends Collector implements Describable {
   }
 
   /**
+   * Validates YAML configuration without connecting to CloudWatch or requiring AWS credentials.
+   *
+   * @param in reader for the YAML configuration
+   * @throws IllegalArgumentException if the configuration is invalid
+   */
+  static void validateConfig(Reader in) {
+    new CloudWatchCollector(in, false);
+  }
+
+  private CloudWatchCollector(Reader in, boolean createClients) {
+    loadConfig(in, null, null, createClients);
+  }
+
+  /**
    * Loads configuration from a reader, reusing existing clients when supplied.
    *
    * @param in reader for the YAML configuration
@@ -178,10 +192,20 @@ public class CloudWatchCollector extends Collector implements Describable {
   @SuppressWarnings("unchecked")
   protected void loadConfig(
       Reader in, CloudWatchClient cloudWatchClient, ResourceGroupsTaggingApiClient taggingClient) {
+    loadConfig(in, cloudWatchClient, taggingClient, true);
+  }
+
+  @SuppressWarnings("unchecked")
+  private void loadConfig(
+      Reader in,
+      CloudWatchClient cloudWatchClient,
+      ResourceGroupsTaggingApiClient taggingClient,
+      boolean createClients) {
     loadConfig(
         (Map<String, Object>) new Yaml(new SafeConstructor(new LoaderOptions())).load(in),
         cloudWatchClient,
-        taggingClient);
+        taggingClient,
+        createClients);
   }
 
   @SuppressWarnings("unchecked")
@@ -189,6 +213,15 @@ public class CloudWatchCollector extends Collector implements Describable {
       Map<String, Object> config,
       CloudWatchClient cloudWatchClient,
       ResourceGroupsTaggingApiClient taggingClient) {
+    loadConfig(config, cloudWatchClient, taggingClient, true);
+  }
+
+  @SuppressWarnings("unchecked")
+  private void loadConfig(
+      Map<String, Object> config,
+      CloudWatchClient cloudWatchClient,
+      ResourceGroupsTaggingApiClient taggingClient,
+      boolean createClients) {
     if (config == null) { // Yaml config empty, set config to empty map.
       config = new HashMap<>();
     }
@@ -229,7 +262,7 @@ public class CloudWatchCollector extends Collector implements Describable {
 
     String region = (String) config.get("region");
 
-    if (cloudWatchClient == null) {
+    if (createClients && cloudWatchClient == null) {
       CloudWatchClientBuilder clientBuilder = CloudWatchClient.builder();
 
       if (config.containsKey("role_arn")) {
@@ -243,7 +276,7 @@ public class CloudWatchCollector extends Collector implements Describable {
       cloudWatchClient = clientBuilder.build();
     }
 
-    if (taggingClient == null) {
+    if (createClients && taggingClient == null) {
       ResourceGroupsTaggingApiClientBuilder clientBuilder =
           ResourceGroupsTaggingApiClient.builder();
 

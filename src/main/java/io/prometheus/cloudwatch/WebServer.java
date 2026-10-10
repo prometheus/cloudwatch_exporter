@@ -22,12 +22,17 @@ public class WebServer {
   public WebServer() {}
 
   /**
-   * Starts the web server.
+   * Starts the web server or validates a configuration file.
    *
-   * @param args command line arguments; args[0] is the port, args[1] is the YAML config file path
+   * @param args command line arguments; {@code --check-config <yml>} validates and exits, otherwise
+   *     args[0] is the port and args[1] is the YAML config file path
    * @throws Exception if the server fails to start
    */
   public static void main(String[] args) throws Exception {
+    if (args.length > 0 && "--check-config".equals(args[0])) {
+      System.exit(checkConfig(args));
+    }
+
     if (args.length < 2) {
       System.err.println("Usage: WebServer <port> <yml configuration file>");
       System.exit(1);
@@ -64,5 +69,26 @@ public class WebServer {
 
     server.start();
     server.join();
+  }
+
+  /**
+   * Validates a YAML configuration file without starting the HTTP server or contacting CloudWatch.
+   *
+   * @param args command line arguments; args[1] is the YAML config file path
+   * @return 0 if the configuration is valid, 1 otherwise
+   */
+  static int checkConfig(String[] args) {
+    if (args.length < 2) {
+      System.err.println("Usage: WebServer --check-config <yml configuration file>");
+      return 1;
+    }
+    try (FileReader reader = new FileReader(args[1])) {
+      CloudWatchCollector.validateConfig(reader);
+      System.out.println("OK");
+      return 0;
+    } catch (Exception e) {
+      System.err.println("Invalid configuration: " + e.getMessage());
+      return 1;
+    }
   }
 }
