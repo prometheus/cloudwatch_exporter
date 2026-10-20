@@ -3,6 +3,10 @@ CloudWatch Exporter
 
 A Prometheus exporter for [Amazon CloudWatch](http://aws.amazon.com/cloudwatch/).
 
+## Maintenance status
+
+This repository is currently unmaintained and has no active maintainers.
+
 ## Alternatives
 
 For ECS workloads, there is also an [ECS exporter](https://github.com/prometheus-community/ecs_exporter).

@@ -1,6 +1,6 @@
-# Maintainers
+# Maintenance status
 
-* Doug Hoard <doug.hoard@gmail.com> @dhoard
+This repository is currently unmaintained and has no active maintainers.
 
 ## Emeritus
 
