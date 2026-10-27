@@ -81,6 +81,9 @@ class GetMetricDataDataGetter implements DataGetter {
     String label = MetricLabels.labelFor(stat, dl);
     builder.label(label);
     builder.metricStat(metric);
+    if (rule.awsAccountId != null) {
+      builder.accountId(rule.awsAccountId);
+    }
     return builder.build();
   }
 
