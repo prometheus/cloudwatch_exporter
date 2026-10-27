@@ -23,6 +23,8 @@ class MetricRule {
   boolean useGetMetricData;
   Duration listMetricsCacheTtl;
   boolean warnOnEmptyListDimensions;
+  String awsAccountId;
+  String awsAccountLabel;
 
   @Override
   public boolean equals(Object o) {
@@ -45,6 +47,8 @@ class MetricRule {
     if (!Objects.equals(awsDimensionSelectRegex, that.awsDimensionSelectRegex)) return false;
     if (!Objects.equals(awsTagSelect, that.awsTagSelect)) return false;
     if (!Objects.equals(help, that.help)) return false;
+    if (!Objects.equals(awsAccountId, that.awsAccountId)) return false;
+    if (!Objects.equals(awsAccountLabel, that.awsAccountLabel)) return false;
     return Objects.equals(listMetricsCacheTtl, that.listMetricsCacheTtl);
   }
 
@@ -66,6 +70,8 @@ class MetricRule {
     result = 31 * result + (cloudwatchTimestamp ? 1 : 0);
     result = 31 * result + (useGetMetricData ? 1 : 0);
     result = 31 * result + (listMetricsCacheTtl != null ? listMetricsCacheTtl.hashCode() : 0);
+    result = 31 * result + (awsAccountId != null ? awsAccountId.hashCode() : 0);
+    result = 31 * result + (awsAccountLabel != null ? awsAccountLabel.hashCode() : 0);
     return result;
   }
 }

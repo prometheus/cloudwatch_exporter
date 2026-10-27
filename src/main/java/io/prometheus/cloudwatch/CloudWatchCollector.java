@@ -52,6 +52,7 @@ public class CloudWatchCollector extends Collector implements Describable {
 
   // ARN parsing is based on
   // https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html
+  private static final Pattern AWS_ACCOUNT_ID_PATTERN = Pattern.compile("\\d{12}");
   private static final Pattern DEFAULT_ARN_RESOURCE_ID_REGEXP =
       Pattern.compile("(?:([^:/]+)|[^:/]+/([^:]+))$");
 
@@ -365,6 +366,24 @@ public class CloudWatchCollector extends Collector implements Describable {
       } else {
         rule.useGetMetricData = defaultUseGetMetricData;
       }
+      if (yamlMetricRule.containsKey("aws_account_id")) {
+        rule.awsAccountId = String.valueOf(yamlMetricRule.get("aws_account_id"));
+        if (!AWS_ACCOUNT_ID_PATTERN.matcher(rule.awsAccountId).matches()) {
+          throw new IllegalArgumentException(
+              "aws_account_id must be a 12 digit AWS account ID, quote it if it starts with 0: "
+                  + rule.awsAccountId);
+        }
+        if (!rule.useGetMetricData) {
+          throw new IllegalArgumentException(
+              "aws_account_id requires use_get_metric_data, GetMetricStatistics cannot read metrics of linked accounts");
+        }
+      }
+      if (yamlMetricRule.containsKey("aws_account_label")) {
+        if (rule.awsAccountId == null) {
+          throw new IllegalArgumentException("aws_account_label requires aws_account_id");
+        }
+        rule.awsAccountLabel = (String) yamlMetricRule.get("aws_account_label");
+      }
       if (yamlMetricRule.containsKey("warn_on_empty_list_dimensions")) {
         rule.warnOnEmptyListDimensions =
             (Boolean) yamlMetricRule.get("warn_on_empty_list_dimensions");
@@ -605,6 +624,10 @@ public class CloudWatchCollector extends Collector implements Describable {
         labelValues.add(jobName);
         labelNames.add("instance");
         labelValues.add("");
+        if (rule.awsAccountId != null) {
+          labelNames.add("aws_account");
+          labelValues.add(rule.awsAccountLabel != null ? rule.awsAccountLabel : rule.awsAccountId);
+        }
         for (Dimension d : dimensions) {
           labelNames.add(safeLabelName(toSnakeCase(d.name())));
           labelValues.add(d.value());

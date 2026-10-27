@@ -25,6 +25,7 @@ public class RequestsMatchers {
     String metricName;
     String nextToken;
     String recentlyActive;
+    String owningAccount;
     List<DimensionFilter> dimensions = new ArrayList<DimensionFilter>();
 
     public ListMetricsRequestMatcher Namespace(String namespace) {
@@ -55,6 +56,11 @@ public class RequestsMatchers {
       return this;
     }
 
+    public ListMetricsRequestMatcher OwningAccount(String owningAccount) {
+      this.owningAccount = owningAccount;
+      return this;
+    }
+
     public boolean matches(Object o) {
       ListMetricsRequest request = (ListMetricsRequest) o;
       if (request == null) return false;
@@ -74,6 +80,11 @@ public class RequestsMatchers {
         return false;
       }
       if (recentlyActive != null && !recentlyActive.equals(request.recentlyActive())) {
+        return false;
+      }
+      if (owningAccount != null
+          && (!owningAccount.equals(request.owningAccount())
+              || !Boolean.TRUE.equals(request.includeLinkedAccounts()))) {
         return false;
       }
       return true;
@@ -285,7 +296,13 @@ public class RequestsMatchers {
 
   static class MetricDataQueryMatcher extends BaseMatcher<MetricDataQuery> {
     String label;
+    String accountId;
     MetricStatMatcher metricStat;
+
+    public MetricDataQueryMatcher AccountId(String accountId) {
+      this.accountId = accountId;
+      return this;
+    }
 
     public MetricDataQueryMatcher Label(String label) {
       this.label = label;
@@ -302,6 +319,9 @@ public class RequestsMatchers {
       MetricDataQuery query = (MetricDataQuery) o;
       if (query == null) return false;
       if (label != null && !label.equals(query.label())) {
+        return false;
+      }
+      if (accountId != null && !accountId.equals(query.accountId())) {
         return false;
       }
       if (metricStat != null && !metricStat.matches(query.metricStat())) {
