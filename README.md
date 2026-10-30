@@ -198,7 +198,7 @@ There are two ways to reload configuration:
 1. Send a SIGHUP signal to the pid: `kill -HUP 1234`
 2. POST to the `reload` endpoint: `curl -X POST localhost:9106/-/reload`
 
-If an error occurs during the reload, check the exporter's log output.
+If the new configuration can't be read or is invalid, the exporter keeps using the previous one, logs the error, and the `reload` endpoint responds with status 500.
 
 ### Cost
 
