@@ -18,16 +18,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 import software.amazon.awssdk.services.cloudwatch.model.*;
@@ -36,6 +40,7 @@ import software.amazon.awssdk.services.resourcegroupstaggingapi.model.GetResourc
 import software.amazon.awssdk.services.resourcegroupstaggingapi.model.GetResourcesResponse;
 import software.amazon.awssdk.services.resourcegroupstaggingapi.model.ResourceTagMapping;
 import software.amazon.awssdk.services.resourcegroupstaggingapi.model.Tag;
+import software.amazon.awssdk.services.resourcegroupstaggingapi.model.TagFilter;
 
 public class CloudWatchCollectorTest {
   CloudWatchClient cloudWatchClient;
@@ -2360,6 +2365,87 @@ public class CloudWatchCollectorTest {
       WebServer.configFilePath = previousConfigFilePath;
       Files.deleteIfExists(config);
     }
+  }
+
+  private static List<String> tagValues(String prefix, int count) {
+    List<String> values = new ArrayList<>();
+    for (int i = 0; i < count; i++) {
+      values.add(prefix + i);
+    }
+    return values;
+  }
+
+  @Test
+  public void tagFilterRequestsKeepShortValueListsInOneRequest() {
+    assertThat(CloudWatchCollector.tagFilterRequests(null)).containsExactly(List.of());
+
+    Map<String, List<String>> selections = new LinkedHashMap<>();
+    selections.put("Monitoring", List.of("enabled"));
+    selections.put("Team", tagValues("team-", 20));
+    assertThat(CloudWatchCollector.tagFilterRequests(selections))
+        .containsExactly(
+            List.of(
+                TagFilter.builder().key("Monitoring").values("enabled").build(),
+                TagFilter.builder().key("Team").values(tagValues("team-", 20)).build()));
+  }
+
+  @Test
+  public void tagFilterRequestsSplitLongValueLists() {
+    Map<String, List<String>> selections = new LinkedHashMap<>();
+    selections.put("Name", tagValues("name-", 45));
+    selections.put("Team", tagValues("team-", 25));
+
+    List<List<TagFilter>> requests = CloudWatchCollector.tagFilterRequests(selections);
+
+    // 3 chunks of Name values times 2 chunks of Team values
+    assertThat(requests).hasSize(6);
+    Set<String> names = new HashSet<>();
+    Set<String> teams = new HashSet<>();
+    for (List<TagFilter> filters : requests) {
+      assertThat(filters).extracting(TagFilter::key).containsExactly("Name", "Team");
+      for (TagFilter filter : filters) {
+        assertThat(filter.values()).hasSizeLessThanOrEqualTo(20);
+      }
+      names.addAll(filters.get(0).values());
+      teams.addAll(filters.get(1).values());
+    }
+    assertThat(names).containsExactlyInAnyOrderElementsOf(tagValues("name-", 45));
+    assertThat(teams).containsExactlyInAnyOrderElementsOf(tagValues("team-", 25));
+  }
+
+  @Test
+  public void tagSelectWithMoreThan20ValuesMergesRequests() {
+    StringBuilder config =
+        new StringBuilder(
+            "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/EC2\n  aws_metric_name: CPUUtilization\n  aws_dimensions:\n  - InstanceId\n  aws_tag_select:\n    resource_type_selection: \"ec2:instance\"\n    resource_id_dimension: InstanceId\n    tag_selections:\n      Name:\n");
+    for (String value : tagValues("name-", 25)) {
+      config.append("      - ").append(value).append("\n");
+    }
+    CloudWatchCollector collector =
+        new CloudWatchCollector(config.toString(), cloudWatchClient, taggingClient);
+
+    ResourceTagMapping first =
+        ResourceTagMapping.builder()
+            .resourceARN("arn:aws:ec2:us-east-1:121212121212:instance/i-1")
+            .build();
+    ResourceTagMapping second =
+        ResourceTagMapping.builder()
+            .resourceARN("arn:aws:ec2:us-east-1:121212121212:instance/i-2")
+            .build();
+    Mockito.when(taggingClient.getResources(any(GetResourcesRequest.class)))
+        .thenReturn(GetResourcesResponse.builder().resourceTagMappingList(first).build())
+        .thenReturn(GetResourcesResponse.builder().resourceTagMappingList(first, second).build());
+
+    List<ResourceTagMapping> mappings =
+        collector.getResourceTagMappings(collector.activeConfig.rules.get(0), taggingClient);
+
+    ArgumentCaptor<GetResourcesRequest> requests =
+        ArgumentCaptor.forClass(GetResourcesRequest.class);
+    Mockito.verify(taggingClient, times(2)).getResources(requests.capture());
+    assertThat(requests.getAllValues())
+        .extracting(r -> r.tagFilters().get(0).values().size())
+        .containsExactly(20, 5);
+    assertThat(mappings).containsExactly(first, second);
   }
 
   @Test

@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -54,6 +55,9 @@ public class CloudWatchCollector extends Collector implements Describable {
   // https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html
   private static final Pattern DEFAULT_ARN_RESOURCE_ID_REGEXP =
       Pattern.compile("(?:([^:/]+)|[^:/]+/([^:]+))$");
+
+  // GetResources accepts at most 20 values per tag filter
+  static final int MAX_TAG_FILTER_VALUES = 20;
 
   static class ActiveConfig {
     ArrayList<MetricRule> rules;
@@ -442,37 +446,72 @@ public class CloudWatchCollector extends Collector implements Describable {
         .build();
   }
 
-  private List<ResourceTagMapping> getResourceTagMappings(
+  List<ResourceTagMapping> getResourceTagMappings(
       MetricRule rule, ResourceGroupsTaggingApiClient taggingClient) {
     if (rule.awsTagSelect == null) {
       return Collections.emptyList();
     }
 
-    List<TagFilter> tagFilters = new ArrayList<>();
-    if (rule.awsTagSelect.tagSelections != null) {
-      for (Entry<String, List<String>> entry : rule.awsTagSelect.tagSelections.entrySet()) {
-        tagFilters.add(TagFilter.builder().key(entry.getKey()).values(entry.getValue()).build());
-      }
+    // Resources can match any of the selected values of a tag, so splitting the values over
+    // several requests and merging the results selects the same resources.
+    Map<String, ResourceTagMapping> resourceTagMappings = new LinkedHashMap<>();
+    for (List<TagFilter> tagFilters : tagFilterRequests(rule.awsTagSelect.tagSelections)) {
+      GetResourcesRequest.Builder requestBuilder =
+          GetResourcesRequest.builder()
+              .tagFilters(tagFilters)
+              .resourceTypeFilters(rule.awsTagSelect.resourceTypeSelection);
+      String paginationToken = "";
+      do {
+        requestBuilder.paginationToken(paginationToken);
+
+        GetResourcesResponse response = taggingClient.getResources(requestBuilder.build());
+        taggingApiRequests.labels("getResources", rule.awsTagSelect.resourceTypeSelection).inc();
+
+        for (ResourceTagMapping mapping : response.resourceTagMappingList()) {
+          resourceTagMappings.putIfAbsent(mapping.resourceARN(), mapping);
+        }
+
+        paginationToken = response.paginationToken();
+      } while (paginationToken != null && !paginationToken.isEmpty());
     }
 
-    List<ResourceTagMapping> resourceTagMappings = new ArrayList<>();
-    GetResourcesRequest.Builder requestBuilder =
-        GetResourcesRequest.builder()
-            .tagFilters(tagFilters)
-            .resourceTypeFilters(rule.awsTagSelect.resourceTypeSelection);
-    String paginationToken = "";
-    do {
-      requestBuilder.paginationToken(paginationToken);
+    return new ArrayList<>(resourceTagMappings.values());
+  }
 
-      GetResourcesResponse response = taggingClient.getResources(requestBuilder.build());
-      taggingApiRequests.labels("getResources", rule.awsTagSelect.resourceTypeSelection).inc();
-
-      resourceTagMappings.addAll(response.resourceTagMappingList());
-
-      paginationToken = response.paginationToken();
-    } while (paginationToken != null && !paginationToken.isEmpty());
-
-    return resourceTagMappings;
+  /**
+   * Returns the tag filters of each GetResources request needed for the tag selections. The API
+   * accepts at most {@value #MAX_TAG_FILTER_VALUES} values per tag, so longer value lists are split
+   * into chunks, with one request for each combination of chunks.
+   */
+  static List<List<TagFilter>> tagFilterRequests(Map<String, List<String>> tagSelections) {
+    List<List<TagFilter>> requests = new ArrayList<>();
+    requests.add(new ArrayList<>());
+    if (tagSelections == null) {
+      return requests;
+    }
+    for (Entry<String, List<String>> entry : tagSelections.entrySet()) {
+      List<String> values = entry.getValue();
+      List<TagFilter> chunks = new ArrayList<>();
+      if (values == null || values.size() <= MAX_TAG_FILTER_VALUES) {
+        chunks.add(TagFilter.builder().key(entry.getKey()).values(values).build());
+      } else {
+        for (int i = 0; i < values.size(); i += MAX_TAG_FILTER_VALUES) {
+          List<String> chunk =
+              values.subList(i, Math.min(i + MAX_TAG_FILTER_VALUES, values.size()));
+          chunks.add(TagFilter.builder().key(entry.getKey()).values(chunk).build());
+        }
+      }
+      List<List<TagFilter>> combined = new ArrayList<>();
+      for (List<TagFilter> request : requests) {
+        for (TagFilter chunk : chunks) {
+          List<TagFilter> filters = new ArrayList<>(request);
+          filters.add(chunk);
+          combined.add(filters);
+        }
+      }
+      requests = combined;
+    }
+    return requests;
   }
 
   private List<String> extractResourceIds(
