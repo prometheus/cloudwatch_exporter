@@ -29,6 +29,7 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 import software.amazon.awssdk.services.cloudwatch.model.*;
 import software.amazon.awssdk.services.resourcegroupstaggingapi.ResourceGroupsTaggingApiClient;
@@ -2360,6 +2361,71 @@ public class CloudWatchCollectorTest {
       WebServer.configFilePath = previousConfigFilePath;
       Files.deleteIfExists(config);
     }
+  }
+
+  private static void reloadFrom(CloudWatchCollector collector, String yaml) throws Exception {
+    Path config =
+        Files.writeString(Files.createTempFile("cloudwatch-exporter-reload", ".yml"), yaml);
+    String previousConfigFilePath = WebServer.configFilePath;
+    WebServer.configFilePath = config.toString();
+    try {
+      collector.reloadConfig();
+    } finally {
+      WebServer.configFilePath = previousConfigFilePath;
+      Files.deleteIfExists(config);
+    }
+  }
+
+  private static final String RELOAD_METRICS =
+      "metrics:\n- aws_namespace: AWS/EC2\n  aws_metric_name: CPUUtilization\n";
+
+  @Test
+  public void reloadConfigKeepsSuppliedClientsWhenRegionChanges() throws Exception {
+    CloudWatchCollector collector =
+        new CloudWatchCollector(
+            "---\nregion: us-east-1\n" + RELOAD_METRICS, cloudWatchClient, taggingClient);
+
+    reloadFrom(collector, "---\nregion: eu-west-1\n" + RELOAD_METRICS);
+
+    assertThat(collector.activeConfig.cloudWatchClient).isSameAs(cloudWatchClient);
+    assertThat(collector.activeConfig.taggingClient).isSameAs(taggingClient);
+  }
+
+  @Test
+  public void reloadConfigCreatesNewClientsWhenRegionChanges() throws Exception {
+    CloudWatchCollector collector =
+        new CloudWatchCollector("---\nregion: us-east-1\n" + RELOAD_METRICS);
+    CloudWatchClient originalCloudWatchClient = collector.activeConfig.cloudWatchClient;
+    ResourceGroupsTaggingApiClient originalTaggingClient = collector.activeConfig.taggingClient;
+
+    reloadFrom(collector, "---\nregion: us-east-1\n" + RELOAD_METRICS);
+    assertThat(collector.activeConfig.cloudWatchClient).isSameAs(originalCloudWatchClient);
+    assertThat(collector.activeConfig.taggingClient).isSameAs(originalTaggingClient);
+
+    reloadFrom(collector, "---\nregion: eu-west-1\n" + RELOAD_METRICS);
+    assertThat(collector.activeConfig.cloudWatchClient).isNotSameAs(originalCloudWatchClient);
+    assertThat(collector.activeConfig.taggingClient).isNotSameAs(originalTaggingClient);
+    assertThat(collector.activeConfig.cloudWatchClient.serviceClientConfiguration().region())
+        .isEqualTo(Region.EU_WEST_1);
+    assertThat(collector.activeConfig.taggingClient.serviceClientConfiguration().region())
+        .isEqualTo(Region.EU_WEST_1);
+  }
+
+  @Test
+  public void reloadConfigCreatesNewClientsWhenRoleArnChanges() throws Exception {
+    CloudWatchCollector collector =
+        new CloudWatchCollector(
+            "---\nregion: us-east-1\nrole_arn: arn:aws:iam::123456789012:role/first\n"
+                + RELOAD_METRICS);
+    CloudWatchClient originalCloudWatchClient = collector.activeConfig.cloudWatchClient;
+
+    reloadFrom(
+        collector,
+        "---\nregion: us-east-1\nrole_arn: arn:aws:iam::123456789012:role/second\n"
+            + RELOAD_METRICS);
+
+    assertThat(collector.activeConfig.cloudWatchClient).isNotSameAs(originalCloudWatchClient);
+    assertThat(collector.activeConfig.roleArn).isEqualTo("arn:aws:iam::123456789012:role/second");
   }
 
   @Test
