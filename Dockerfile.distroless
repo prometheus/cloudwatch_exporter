@@ -1,0 +1,36 @@
+FROM eclipse-temurin:21-jdk-noble AS builder
+
+SHELL ["/bin/bash", "-xe", "-o", "pipefail", "-c"]
+
+ARG MAVEN_VERSION=3.8.5
+ARG MAVEN_SHA512=89ab8ece99292476447ef6a6800d9842bbb60787b9b8a45c103aa61d2f205a971d8c3ddfb8b03e514455b4173602bd015e82958c0b3ddc1728a57126f773c743
+
+ADD https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz /opt/maven.tar.gz
+RUN mkdir -p /opt/maven \
+ && echo "${MAVEN_SHA512}  /opt/maven.tar.gz" | sha512sum -c \
+ && tar -x --strip-components=1 -C /opt/maven -f /opt/maven.tar.gz
+ENV PATH=/opt/maven/bin:${PATH}
+
+WORKDIR /cloudwatch_exporter
+COPY . /cloudwatch_exporter
+
+RUN mvn package \
+ && mv target/cloudwatch_exporter-*-with-dependencies.jar /cloudwatch_exporter.jar
+
+FROM gcr.io/distroless/java21-debian12:nonroot
+
+LABEL org.opencontainers.image.authors="The Prometheus Authors"
+LABEL org.opencontainers.image.vendor="Prometheus"
+LABEL org.opencontainers.image.title="cloudwatch_exporter"
+LABEL org.opencontainers.image.description="CloudWatch exporter for Prometheus"
+LABEL org.opencontainers.image.source="https://github.com/prometheus/cloudwatch_exporter"
+LABEL org.opencontainers.image.url="https://github.com/prometheus/cloudwatch_exporter"
+LABEL org.opencontainers.image.documentation="https://github.com/prometheus/cloudwatch_exporter"
+LABEL org.opencontainers.image.licenses="Apache License 2.0"
+LABEL io.prometheus.image.variant="distroless"
+
+COPY --from=builder /cloudwatch_exporter.jar /cloudwatch_exporter.jar
+
+EXPOSE     9106
+ENTRYPOINT [ "java", "-jar", "/cloudwatch_exporter.jar", "9106"]
+CMD        [ "/config/config.yml" ]
