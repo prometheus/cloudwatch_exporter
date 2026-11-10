@@ -73,6 +73,11 @@ final class DefaultDimensionSource implements DimensionSource {
     ListMetricsRequest.Builder requestBuilder = ListMetricsRequest.builder();
     requestBuilder.namespace(rule.awsNamespace);
     requestBuilder.metricName(rule.awsMetricName);
+    if (rule.awsAccountId != null) {
+      // Only list the metrics that a monitoring account sees for this source account.
+      requestBuilder.includeLinkedAccounts(true);
+      requestBuilder.owningAccount(rule.awsAccountId);
+    }
 
     // 10800 seconds is 3 hours, this setting causes metrics older than 3 hours to not be listed
     if (rule.rangeSeconds < 10800) {
