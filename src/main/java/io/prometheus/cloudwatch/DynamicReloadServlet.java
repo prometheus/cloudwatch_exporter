@@ -5,10 +5,13 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /** Servlet endpoint that triggers configuration reload on POST requests. */
 public class DynamicReloadServlet extends HttpServlet {
   private static final long serialVersionUID = 9078784531819993933L;
+  private static final Logger LOGGER = Logger.getLogger(CloudWatchCollector.class.getName());
 
   /** The CloudWatchCollector whose configuration will be reloaded. */
   private final CloudWatchCollector collector;
@@ -41,7 +44,10 @@ public class DynamicReloadServlet extends HttpServlet {
       throws ServletException, IOException {
     try {
       collector.reloadConfig();
-    } catch (IOException e) {
+    } catch (IOException | RuntimeException e) {
+      // An invalid configuration fails before it replaces the active one, so the exporter keeps
+      // running with the previous configuration.
+      LOGGER.log(Level.WARNING, "Configuration reload failed", e);
       resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       resp.setContentType(CONTENT_TYPE);
       try {
