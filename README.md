@@ -219,6 +219,10 @@ requests (as of Aug 2018), that is around $45 per month. The
 When using the `aws_tag_select` feature, additional requests are made to the Resource Groups Tagging API, but these are [free](https://aws.amazon.com/blogs/aws/new-aws-resource-tagging-api/).
 The `tagging_api_requests_total` counter tracks how many requests are being made for these.
 
+#### :warning: Cost Warning: Interaction with APM / Observability Agents
+Deploying the CloudWatch Exporter in environments with active APM agents—particularly those that automatically discover and scrape JVM metric registries by default (such as [Instana](https://www.ibm.com/products/instana/application-performance-monitoring) or [Elastic APM](https://www.elastic.co/docs/reference/apm/agents/java))—can generate massive, unintended AWS costs.
+These agents seamlessly instrument and poll active registries without explicit user configuration. If an agent automatically scrapes the exporter at a fast default interval (commonly every 10–15 seconds), it will continuously trigger expensive underlying AWS CloudWatch API requests (GetMetricData or GetMetricStatistics), bypassing your intended Prometheus scrape intervals.
+
 ### Experimental GetMetricData
 We are transitioning to use `GetMetricsData` instead of `GetMetricsStatistics`.
 The benefits of using `GetMetricsData` is mainly around much better performence.
