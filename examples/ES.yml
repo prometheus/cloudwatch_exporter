@@ -1,0 +1,25 @@
+region: us-east-1
+metrics:
+- aws_namespace: AWS/ES
+  aws_metric_name: ClusterStatus.red
+  aws_dimensions: [ DomainName, ClientId ]
+  aws_statistics: [ Maximum ]
+  period_seconds: 900
+- aws_namespace: AWS/ES
+  aws_metric_name: ClusterStatus.yellow
+  aws_dimensions: [ DomainName, ClientId ]
+  aws_statistics: [ Maximum ]
+  period_seconds: 900
+- aws_namespace: AWS/ES
+  aws_metric_name: ClusterStatus.green
+  aws_dimensions: [ DomainName, ClientId ]
+  aws_statistics: [ Maximum ]
+  period_seconds: 900
+- aws_namespace: AWS/ES
+  aws_metric_name: MasterCPUUtilization
+  aws_dimensions: [ DomainName, ClientId ]
+  aws_statistics: [ Average ]
+- aws_namespace: AWS/ES
+  aws_metric_name: OpenSearchRequests
+  aws_dimensions: [ DomainName, ClientId ]
+  aws_statistics: [ Average ]
