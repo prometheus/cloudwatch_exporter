@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -60,12 +61,20 @@ public class CloudWatchCollector extends Collector implements Describable {
     CloudWatchClient cloudWatchClient;
     ResourceGroupsTaggingApiClient taggingClient;
     DimensionSource dimensionSource;
+    // The settings the AWS clients were created with, and whether the collector created them.
+    // Clients passed in by the caller are never replaced on reload.
+    String region;
+    String roleArn;
+    boolean ownsClients;
 
     public ActiveConfig(ActiveConfig cfg) {
       this.rules = new ArrayList<>(cfg.rules);
       this.cloudWatchClient = cfg.cloudWatchClient;
       this.taggingClient = cfg.taggingClient;
       this.dimensionSource = cfg.dimensionSource;
+      this.region = cfg.region;
+      this.roleArn = cfg.roleArn;
+      this.ownsClients = cfg.ownsClients;
     }
 
     public ActiveConfig() {}
@@ -161,11 +170,37 @@ public class CloudWatchCollector extends Collector implements Describable {
    *
    * @throws IOException if the configuration file cannot be read
    */
+  @SuppressWarnings("unchecked")
   protected void reloadConfig() throws IOException {
     LOGGER.log(Level.INFO, "Reloading configuration");
     try (FileReader reader = new FileReader(WebServer.configFilePath); ) {
-      loadConfig(reader, activeConfig.cloudWatchClient, activeConfig.taggingClient);
+      Map<String, Object> config =
+          (Map<String, Object>) new Yaml(new SafeConstructor(new LoaderOptions())).load(reader);
+
+      CloudWatchClient cloudWatchClient;
+      ResourceGroupsTaggingApiClient taggingClient;
+      boolean clientSettingsChanged;
+      synchronized (activeConfig) {
+        cloudWatchClient = activeConfig.cloudWatchClient;
+        taggingClient = activeConfig.taggingClient;
+        clientSettingsChanged =
+            activeConfig.ownsClients
+                && (!Objects.equals(activeConfig.region, configString(config, "region"))
+                    || !Objects.equals(activeConfig.roleArn, configString(config, "role_arn")));
+      }
+
+      if (clientSettingsChanged) {
+        // The clients are built for the region and role, so reusing them ignores the change.
+        LOGGER.log(Level.INFO, "region or role_arn changed, creating new AWS clients");
+        cloudWatchClient = null;
+        taggingClient = null;
+      }
+      loadConfig(config, cloudWatchClient, taggingClient);
     }
+  }
+
+  private static String configString(Map<String, Object> config, String key) {
+    return config == null ? null : (String) config.get(key);
   }
 
   /**
@@ -261,6 +296,12 @@ public class CloudWatchCollector extends Collector implements Describable {
     }
 
     String region = (String) config.get("region");
+    // Clients passed in by the caller keep the ownership they had, which is false for clients
+    // supplied to the constructor and true for clients this collector created earlier.
+    boolean ownsClients = activeConfig.ownsClients;
+    if (createClients && cloudWatchClient == null && taggingClient == null) {
+      ownsClients = true;
+    }
 
     if (createClients && cloudWatchClient == null) {
       CloudWatchClientBuilder clientBuilder = CloudWatchClient.builder();
@@ -412,19 +453,32 @@ public class CloudWatchCollector extends Collector implements Describable {
       dimensionSource = new CachingDimensionSource(dimensionSource, metricCacheConfig);
     }
 
-    loadConfig(rules, cloudWatchClient, taggingClient, dimensionSource);
+    loadConfig(
+        rules,
+        cloudWatchClient,
+        taggingClient,
+        dimensionSource,
+        region,
+        (String) config.get("role_arn"),
+        ownsClients);
   }
 
   private void loadConfig(
       ArrayList<MetricRule> rules,
       CloudWatchClient cloudWatchClient,
       ResourceGroupsTaggingApiClient taggingClient,
-      DimensionSource dimensionSource) {
+      DimensionSource dimensionSource,
+      String region,
+      String roleArn,
+      boolean ownsClients) {
     synchronized (activeConfig) {
       activeConfig.cloudWatchClient = cloudWatchClient;
       activeConfig.taggingClient = taggingClient;
       activeConfig.rules = rules;
       activeConfig.dimensionSource = dimensionSource;
+      activeConfig.region = region;
+      activeConfig.roleArn = roleArn;
+      activeConfig.ownsClients = ownsClients;
     }
   }
 
