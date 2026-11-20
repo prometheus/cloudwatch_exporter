@@ -8,11 +8,15 @@ updates:
     schedule:
       interval: "weekly"
       day: "thursday"
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 100
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 7
     groups:
       promci:
         patterns:
