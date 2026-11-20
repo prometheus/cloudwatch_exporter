@@ -30,7 +30,6 @@ jobs:
         with:
           java-version: "25"
           distribution: temurin
-          cache: maven
       - name: Check formatting
         run: ./mvnw -B fmt:check
       - name: Build and verify
