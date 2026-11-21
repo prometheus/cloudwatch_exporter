@@ -1,0 +1,98 @@
+region: us-east-1
+metrics:
+- aws_dimensions:
+  - JobName
+  - JobRunId
+  - Type
+  aws_metric_name: glue.driver.aggregate.bytesRead
+  aws_namespace: Glue
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - JobName
+  - JobRunId
+  - Type
+  aws_metric_name: glue.driver.aggregate.elapsedTime
+  aws_namespace: Glue
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - JobName
+  - JobRunId
+  - Type
+  aws_metric_name: glue.driver.aggregate.numCompletedStages
+  aws_namespace: Glue
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - JobName
+  - JobRunId
+  - Type
+  aws_metric_name: glue.driver.aggregate.numCompletedTasks
+  aws_namespace: Glue
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - JobName
+  - JobRunId
+  - Type
+  aws_metric_name: glue.driver.aggregate.numFailedTasks
+  aws_namespace: Glue
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - JobName
+  - JobRunId
+  - Type
+  aws_metric_name: glue.driver.aggregate.numKilledTasks
+  aws_namespace: Glue
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - JobName
+  - JobRunId
+  - Type
+  aws_metric_name: glue.driver.aggregate.recordsRead
+  aws_namespace: Glue
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - JobName
+  - JobRunId
+  - Type
+  aws_metric_name: glue.driver.aggregate.shuffleBytesWritten
+  aws_namespace: Glue
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - JobName
+  - JobRunId
+  - Type
+  aws_metric_name: glue.driver.aggregate.shuffleLocalBytesRead
+  aws_namespace: Glue
+  aws_statistics:
+  - Sum
+- aws_dimensions:
+  - JobName
+  - JobRunId
+  - Type
+  aws_metric_name: glue.driver.jvm.heap.usage
+  aws_namespace: Glue
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - JobName
+  - JobRunId
+  - Type
+  aws_metric_name: glue.ALL.jvm.heap.usage
+  aws_namespace: Glue
+  aws_statistics:
+  - Average
+- aws_dimensions:
+  - JobName
+  - JobRunId
+  - Type
+  aws_metric_name: glue.ALL.system.cpuSystemLoad
+  aws_namespace: Glue
+  aws_statistics:
+  - Average
