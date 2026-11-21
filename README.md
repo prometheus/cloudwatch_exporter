@@ -97,6 +97,8 @@ set_timestamp | Optional. Boolean for whether to set the Prometheus metric times
 use_get_metric_data | Optional. Boolean (experimental) Use GetMetricData API to get metrics instead of GetMetricStatistics. Can be set globally and per metric.
 list_metrics_cache_ttl | Optional. Number of seconds to cache the result of calling the ListMetrics API. Defaults to 0 (no cache). Can be set globally and per metric.
 warn_on_empty_list_dimensions | Optional. Boolean Emit warning if the exporter cannot determine what metrics to request
+aws_account_id | Optional. When the exporter runs in a [CloudWatch monitoring account](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account.html), the 12 digit ID of the source account to read the metric from. Quote IDs that start with `0`. Requires `use_get_metric_data`. Adds an `aws_account` label to the metric.
+aws_account_label | Optional. Value of the `aws_account` label for metrics read with `aws_account_id`, for example `prod`. Defaults to the account ID.
 
 
 The above config will export time series such as
