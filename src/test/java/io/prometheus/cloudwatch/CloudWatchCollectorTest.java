@@ -2363,6 +2363,35 @@ public class CloudWatchCollectorTest {
   }
 
   @Test
+  public void failedReloadKeepsPreviousConfig() throws Exception {
+    String previousConfigFilePath = WebServer.configFilePath;
+    CloudWatchCollector collector =
+        new CloudWatchCollector(
+            "---\nmetrics:\n- aws_namespace: AWS/EC2\n  aws_metric_name: CPUUtilization\n",
+            cloudWatchClient,
+            taggingClient);
+    for (String invalid :
+        new String[] {
+          "---\nmetrics:\n- aws_namespace: AWS/ELB\n", // missing aws_metric_name
+          "---\nmetrics: [\n", // not valid YAML
+        }) {
+      Path config =
+          Files.writeString(Files.createTempFile("cloudwatch-exporter-reload", ".yml"), invalid);
+      WebServer.configFilePath = config.toString();
+      try {
+        assertThatThrownBy(collector::reloadConfig).isInstanceOf(RuntimeException.class);
+
+        assertThat(collector.activeConfig.rules).hasSize(1);
+        assertThat(collector.activeConfig.rules.get(0).awsNamespace).isEqualTo("AWS/EC2");
+        assertThat(collector.activeConfig.cloudWatchClient).isSameAs(cloudWatchClient);
+      } finally {
+        WebServer.configFilePath = previousConfigFilePath;
+        Files.deleteIfExists(config);
+      }
+    }
+  }
+
+  @Test
   public void customHelpIsUsedForMetricFamily() {
     CloudWatchCollector collector =
         new CloudWatchCollector(

@@ -82,6 +82,19 @@ public class ServletTest {
   }
 
   @Test
+  public void dynamicReloadServletReturnsErrorWhenConfigIsInvalid() throws Exception {
+    CloudWatchCollector collector = mock(CloudWatchCollector.class);
+    doThrow(new IllegalArgumentException("Must provide metrics")).when(collector).reloadConfig();
+    HttpServletResponse response = mock(HttpServletResponse.class);
+    StringWriter responseBody = responseBody(response);
+
+    new DynamicReloadServlet(collector).doPost(request, response);
+
+    verify(response).setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+    assertThat(responseBody.toString()).isEqualTo("Reloading config failed");
+  }
+
+  @Test
   public void homePageServletIgnoresWriterFailures() throws Exception {
     HttpServletResponse response = mock(HttpServletResponse.class);
     when(response.getWriter()).thenThrow(new IOException("boom"));
