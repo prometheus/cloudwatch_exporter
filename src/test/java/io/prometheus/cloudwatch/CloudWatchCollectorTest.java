@@ -690,6 +690,95 @@ public class CloudWatchCollectorTest {
   }
 
   @Test
+  public void testMonitoringAccountMetrics() throws Exception {
+    new CloudWatchCollector(
+            "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - LoadBalancerName\n  aws_statistics:\n  - Sum\n  use_get_metric_data: true\n  aws_account_id: '012345678901'\n  aws_account_label: dev\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - LoadBalancerName\n  aws_statistics:\n  - Sum\n  use_get_metric_data: true\n  aws_account_id: 222222222222\n",
+            cloudWatchClient,
+            taggingClient)
+        .register(registry);
+    List<Instant> timestamps = List.of(new Date().toInstant());
+
+    for (String account : List.of("012345678901", "222222222222")) {
+      Mockito.when(
+              cloudWatchClient.listMetrics(
+                  (ListMetricsRequest)
+                      argThat(
+                          new ListMetricsRequestMatcher()
+                              .Namespace("AWS/ELB")
+                                  .MetricName("RequestCount")
+                                  .Dimensions("LoadBalancerName")
+                                  .OwningAccount(account))))
+          .thenReturn(
+              ListMetricsResponse.builder()
+                  .metrics(
+                      Metric.builder()
+                          .dimensions(
+                              Dimension.builder().name("LoadBalancerName").value("myLB").build())
+                          .build())
+                  .build());
+      Mockito.when(
+              cloudWatchClient.getMetricData(
+                  (GetMetricDataRequest)
+                      argThat(
+                          new GetMetricDataRequestMatcher()
+                              .Query(
+                                  new MetricDataQueryMatcher()
+                                      .AccountId(account)
+                                          .MetricStat(new MetricStatMatcher().Stat("Sum"))))))
+          .thenReturn(
+              GetMetricDataResponse.builder()
+                  .metricDataResults(
+                      MetricDataResult.builder()
+                          .label("Sum/LoadBalancerName=myLB")
+                          .values(account.equals("222222222222") ? 7.0 : 42.0)
+                          .timestamps(timestamps)
+                          .build())
+                  .build());
+    }
+
+    assertThat(
+            registry.getSampleValue(
+                "aws_elb_request_count_sum",
+                new String[] {"job", "instance", "aws_account", "load_balancer_name"},
+                new String[] {"aws_elb", "", "dev", "myLB"}))
+        .isCloseTo(42.0, within(.01));
+    assertThat(
+            registry.getSampleValue(
+                "aws_elb_request_count_sum",
+                new String[] {"job", "instance", "aws_account", "load_balancer_name"},
+                new String[] {"aws_elb", "", "222222222222", "myLB"}))
+        .isCloseTo(7.0, within(.01));
+  }
+
+  @Test
+  public void rejectsInvalidAccountConfig() {
+    assertThatThrownBy(
+            () ->
+                new CloudWatchCollector(
+                    "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  aws_account_id: 222222222222\n",
+                    cloudWatchClient,
+                    taggingClient))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("requires use_get_metric_data");
+    assertThatThrownBy(
+            () ->
+                new CloudWatchCollector(
+                    "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  use_get_metric_data: true\n  aws_account_id: 1234\n",
+                    cloudWatchClient,
+                    taggingClient))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("12 digit");
+    assertThatThrownBy(
+            () ->
+                new CloudWatchCollector(
+                    "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  use_get_metric_data: true\n  aws_account_label: dev\n",
+                    cloudWatchClient,
+                    taggingClient))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("aws_account_label requires aws_account_id");
+  }
+
+  @Test
   public void testDimensionSelectRegex() throws Exception {
     new CloudWatchCollector(
             "---\nregion: reg\nmetrics:\n- aws_namespace: AWS/ELB\n  aws_metric_name: RequestCount\n  aws_dimensions:\n  - AvailabilityZone\n  - LoadBalancerName\n  aws_dimension_select_regex:\n    LoadBalancerName:\n    - myLB(.*)",
